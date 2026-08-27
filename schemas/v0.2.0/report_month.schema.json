@@ -144,6 +144,18 @@
       "title": "Schema Version",
       "type": "string"
     },
+    "scope_original": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Scope Original"
+    },
     "unit_original": {
       "anyOf": [
         {

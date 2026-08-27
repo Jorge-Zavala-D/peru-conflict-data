@@ -74,7 +74,8 @@ identity field. A disagreement is retained as a discrepancy, not repaired here.
 | `indicator_basis` | `source_reported` or `derived` | pipeline control | — | 1 | Determines conditional fields | T |
 | `value` | Indicator value (numeric or source status/text); missing stays null | scalar | N | 0..1 | P when source-reported; derivation trace when derived | S/D |
 | `unit_original` | Published unit label | orig str | N | 0..1 | P when present | S |
-| `provenance_ids` | Source evidence IDs; required for `source_reported` | ids | empty for derived | 0..* | FK to `provenance` | T |
+| `scope_original` | Published population, denominator, or coverage scope for the indicator | orig str | N | 0..1 | P when source-reported and present; never inferred | S |
+| `provenance_ids` | Evidence IDs attached to the observation; required for `source_reported`, optional for `derived` when source context is directly relevant | ids | N when not supplied | 0..* | FK to `provenance`; derived rows still require derivation metadata and upstream IDs | T |
 | `derivation_name` | Named calculation for a derived indicator | str | required for derived | 0..1 | Paired with version and upstream IDs | D |
 | `derivation_version` | Version of calculation code/rule | str | required for derived | 0..1 | Run metadata | D |
 | `upstream_record_ids` | Records consumed by a derived calculation | ids | required for derived | 0..* | FK-like links to event/record IDs | D |
@@ -256,7 +257,7 @@ indicator.
 | `dialogue_event_id` | Dated dialogue occurrence key | id | — | 1 | Key | T |
 | `report_id` | Report key | id | — | 1 | FK to `report` | T |
 | `case_id` | Linked case when evidenced | id | N | 0..1 | Explicit link evidence | S/D |
-| `mediation_process_id` | Parent continuing mediation process | id | N | 0..1 | FK to `mediation_process` | D/S |
+| `mediation_process_id` | Parent continuing mediation process | id | N | 0..1 | FK to `mediation_process`; if populated, `provenance_ids` is required | D/S |
 | `event_date` | Parsed event date | date | N | 0..1 | P | S/D |
 | `event_date_original` | Source date phrase | orig str | N | 0..1 | P | S |
 | `event_date_precision_original` | Open source date precision | orig str | N | 0..1 | P | S |

@@ -82,3 +82,23 @@ def test_schema_exports_indicator_and_report_identity_safety_conditions(tmp_path
     } == set(
         report["allOf"][0]["then"]["properties"]["report_number_evidence_types"]["contains"]["enum"]
     )
+
+
+def test_schema_exports_mediation_link_provenance_condition(tmp_path: Path) -> None:
+    export_json_schemas(tmp_path)
+    dialogue_event = json.loads(
+        (tmp_path / f"v{SCHEMA_VERSION}" / "dialogue_event.schema.json").read_text(encoding="utf-8")
+    )
+
+    assert dialogue_event["allOf"] == [
+        {
+            "if": {
+                "properties": {"mediation_process_id": {"minLength": 1, "type": "string"}},
+                "required": ["mediation_process_id"],
+            },
+            "then": {
+                "properties": {"provenance_ids": {"minItems": 1}},
+                "required": ["provenance_ids"],
+            },
+        }
+    ]

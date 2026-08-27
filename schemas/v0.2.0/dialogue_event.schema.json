@@ -2,6 +2,31 @@
   "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/v0.2.0/dialogue_event.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "mediation_process_id": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "mediation_process_id"
+        ]
+      },
+      "then": {
+        "properties": {
+          "provenance_ids": {
+            "minItems": 1
+          }
+        },
+        "required": [
+          "provenance_ids"
+        ]
+      }
+    }
+  ],
   "properties": {
     "case_id": {
       "anyOf": [

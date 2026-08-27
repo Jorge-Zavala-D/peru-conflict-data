@@ -100,6 +100,7 @@ class ReportMonthAggregate(VersionedModel):
     indicator_basis: IndicatorBasis
     value: ScalarValue = None
     unit_original: str | None = None
+    scope_original: str | None = None
     provenance_ids: tuple[Identifier, ...] = ()
     derivation_name: Identifier | None = None
     derivation_version: Identifier | None = None
@@ -288,6 +289,12 @@ class DialogueEvent(VersionedModel):
     description_original: str | None = None
     status_original: str | None = None
     provenance_ids: tuple[str, ...] = ()
+
+    @model_validator(mode="after")
+    def require_mediation_link_provenance(self) -> Self:
+        if self.mediation_process_id is not None and not self.provenance_ids:
+            raise ValueError("mediation_process_id links require provenance IDs")
+        return self
 
 
 class MediationProcess(VersionedModel):

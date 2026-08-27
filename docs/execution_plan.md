@@ -27,7 +27,7 @@ Parallel work is limited to independent, read-heavy or isolated outputs. No two 
 | Field | Plan |
 |---|---|
 | Goal | Define reproducible official-source search, retrieval, retry, and evidence rules before acquiring anything |
-| Dependencies | M0 approval; decision on redistribution/storage and canonical official domains |
+| Dependencies | M0.1 completion review and Jorge's explicit authorization; decision on redistribution/storage and canonical official domains |
 | Inputs | M0 inventories, Defensoría site structure, existing raw filenames |
 | Outputs | Versioned discovery protocol, source-domain allowlist, operational-manifest schema migration if required |
 | Tests | URL normalization; retrieval timestamps; official-domain checks; nullable report/month handling; alternate-version representation |

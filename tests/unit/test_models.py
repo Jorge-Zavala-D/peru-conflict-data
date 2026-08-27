@@ -105,11 +105,22 @@ def test_mediation_process_is_distinct_from_dated_dialogue_events() -> None:
         event_date_original="22/07/2026",
         event_date_precision_original="day",
         description_original="Reunión de seguimiento",
+        provenance_ids=("prov_dialogue_mediation",),
     )
 
     assert process.progress_original == "Se continúa coordinando"
     assert event.mediation_process_id == process.mediation_process_id
     assert event.event_date_original == "22/07/2026"
+
+
+def test_dialogue_mediation_link_requires_provenance() -> None:
+    with pytest.raises(ValidationError, match="provenance"):
+        DialogueEvent(
+            dialogue_event_id="dialogue_2",
+            report_id="report_269",
+            mediation_process_id="mediation_1",
+            description_original="Reunión de seguimiento",
+        )
 
 
 def test_agreement_separates_text_follow_up_and_optional_responsibility() -> None:
@@ -190,6 +201,7 @@ def test_monthly_indicator_basis_preserves_source_and_derived_rows() -> None:
         metric_original="Estado del diálogo",
         indicator_basis=IndicatorBasis.SOURCE_REPORTED,
         value="En proceso",
+        scope_original="casos con diálogo activo",
         provenance_ids=("prov_indicator",),
     )
     derived = ReportMonthAggregate(
@@ -198,6 +210,7 @@ def test_monthly_indicator_basis_preserves_source_and_derived_rows() -> None:
         metric_original="Violencia acumulada",
         indicator_basis=IndicatorBasis.DERIVED,
         value=12,
+        provenance_ids=("prov_derived_context",),
         derivation_name="sum_violence_events",
         derivation_version="v1",
         upstream_record_ids=("violence_1",),
@@ -205,6 +218,7 @@ def test_monthly_indicator_basis_preserves_source_and_derived_rows() -> None:
 
     assert source.indicator_basis is IndicatorBasis.SOURCE_REPORTED
     assert source.value == "En proceso"
+    assert source.scope_original == "casos con diálogo activo"
     assert derived.indicator_basis is IndicatorBasis.DERIVED
     assert source.report_month_id != derived.report_month_id
 
