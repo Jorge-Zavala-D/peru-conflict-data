@@ -100,3 +100,27 @@ def test_parser_does_not_treat_a_four_digit_year_as_a_report_number() -> None:
 
     assert parsed.records[0].candidate_report_number is None
     assert parsed.records[0].candidate_reference_period is None
+
+
+def test_parser_does_not_attach_unrelated_page_pdfs_to_every_candidate() -> None:
+    parsed = parse_discovery_page(
+        (
+            "<html><body>"
+            "<a href='/documentos/reporte-269-julio-2026/'>"
+            "Reporte de conflictos sociales n.° 269 - julio 2026</a>"
+            "<a href='/documentos/reporte-268-junio-2026/'>"
+            "Reporte de conflictos sociales n.° 268 - junio 2026</a>"
+            "<a href='/wp-content/uploads/2025/05/Organigrama.pdf'>Organigrama institucional</a>"
+            "</body></html>"
+        ),
+        page_url=CATALOGUE_URL,
+        page_role=UrlRole.CATALOGUE_PAGE,
+        observation_id="catalogue-many",
+        captured_at=CAPTURED_AT,
+    )
+
+    assert len(parsed.records) == 2
+    assert all(
+        all("Organigrama.pdf" not in observation.url for observation in record.url_observations)
+        for record in parsed.records
+    )

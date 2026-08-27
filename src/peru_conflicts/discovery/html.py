@@ -185,6 +185,24 @@ def _stable_id(prefix: str, *parts: str) -> str:
     return f"{prefix}-{digest}"
 
 
+def _link_matches_candidate(
+    link: DiscoveredLink,
+    *,
+    candidate_text: str,
+    report_number: int | None,
+) -> bool:
+    """Associate only visibly related links; never attach every page PDF."""
+
+    if link.role is UrlRole.LANDING_PAGE:
+        return link.text == candidate_text or bool(_RELEVANT_TEXT_RE.search(link.text))
+    if link.role is not UrlRole.DIRECT_DOWNLOAD:
+        return False
+    haystack = f"{link.url} {link.text}".lower()
+    if report_number is not None and re.search(rf"(?<!\d){report_number}(?!\d)", haystack):
+        return True
+    return "reporte" in haystack and "conflict" in haystack
+
+
 def _candidate_texts(parser: _MetadataParser) -> list[str]:
     candidates: list[str] = []
     for anchor in parser.anchors:
@@ -284,13 +302,15 @@ def parse_discovery_page(
             str(reference_period),
         )
         record_observations = [page_observation]
-        relevant_links = (
-            links
-            if len(candidate_texts) == 1
-            else [
-                link for link in links if link.text == text or link.role is UrlRole.DIRECT_DOWNLOAD
-            ]
-        )
+        relevant_links = [
+            link
+            for link in links
+            if _link_matches_candidate(
+                link,
+                candidate_text=text,
+                report_number=report_number,
+            )
+        ]
         relations: list[CandidateSourceRelation] = []
         for link_index, link in enumerate(relevant_links):
             link_observation_id = _stable_id("url", record_key, str(link_index), link.url)
