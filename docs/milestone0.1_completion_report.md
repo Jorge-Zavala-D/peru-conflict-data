@@ -7,7 +7,7 @@ and M1-03 remain stopped; M1-03 still requires its separate acquisition checkpoi
 
 Date: 2026-08-27 (Europe/Berlin)  
 Branch: `codex/milestone-0-foundation`  
-Commit at local/remote verification: `a63b6bf09e15dfa81f035d72eaf532a7b190a3de`  
+Implementation commit at local/remote verification: `3fcb5fdfb10233334cf365348b90d33a61f3f387`  
 Base: `origin/main` at `14b913f390056a74b598de08742be1120515dda6`  
 Pull request: pending creation; no merge performed  
 Remote Actions: pending pull-request run
@@ -78,21 +78,22 @@ replace a source-reported row.
 | Ruff format check | Passed |
 | Ruff lint | Passed |
 | strict Pyright | Passed; 0 errors, 0 warnings, 0 informations |
-| `uv run pytest -q` | Passed; 92 tests |
+| `uv run pytest -q` | Passed; 97 tests |
 | generated-schema drift check | Passed |
 | repository data-policy check | Passed |
 | `git diff --check` | Passed |
 | pre-commit (`--all-files`) | All hooks passed |
 
-The independent review found three important issues and two documentation issues;
+The independent review found five important issues and two documentation issues;
 all were addressed with tests, regenerated schemas, and documentation updates:
-monthly scope is represented, mediation links require provenance, M1-01 now depends
-on M0.1 review plus explicit authorization, the historical receipt link is valid,
-and derived-indicator provenance semantics are documented and tested.
+monthly scope is represented; mediation IDs and evidence IDs reject blank values;
+dialogue and mediation case links require provenance; M1-01 now depends on M0.1
+review plus explicit authorization; the historical receipt link is valid; and
+derived-indicator provenance semantics are documented and tested.
 
 ## Source-integrity receipt
 
-Read-only verification was rerun at `2026-08-27T11:39:00.7485378Z` UTC. All 11
+Read-only verification was rerun at `2026-08-27T11:57:50.2562736Z` UTC. All 11
 allowed external/raw inputs match their pre-M0 SHA-256 and byte sizes recorded in
 `docs/source_integrity_receipt_m0_1.md`: `Base15-26.xlsx` plus reports 260-269.
 The connected Dropbox root remains 82 directories, 110 files, and 33,453,193 bytes.
@@ -106,7 +107,9 @@ added to a derived-data layer.
 ## Git and review summary
 
 - Previous pushed foundation: `12433154ac54cb4f2ae0842ae2df47b8fd0ae23c`.
-- M0.1 review-fix commit: `a63b6bf09e15dfa81f035d72eaf532a7b190a3de`.
+- M0.1 review-fix commits: `a63b6bf09e15dfa81f035d72eaf532a7b190a3de` and
+  `3fcb5fdfb10233334cf365348b90d33a61f3f387` (the latter adds the completion
+  receipt and final evidence guards).
 - Remote branch was fetched and equals the local commit; `origin/main` remains
   unchanged.
 - The diff contains only repository code, tests, schemas, configuration, and
