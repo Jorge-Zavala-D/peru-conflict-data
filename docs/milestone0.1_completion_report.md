@@ -121,6 +121,9 @@ added to a derived-data layer.
 - The receipt-only follow-up head `582c9e69419354802256763f274db85d6064f869`
   was independently verified by Actions run `33072798437`; `quality (3.12)` and
   `quality (3.13)` again completed with conclusion `success`.
+- The final pre-receipt branch head `7910f1c99f51a0284eb6bea9178b26413eb80d0b`
+  was independently verified by Actions run `33073309672`; `quality (3.12)` and
+  `quality (3.13)` again completed with conclusion `success`.
 
 ## Decisions requiring Jorge before M1
 
