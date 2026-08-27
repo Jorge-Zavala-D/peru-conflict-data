@@ -5,11 +5,11 @@ This report records the owner-authorized M0.1 pass on
 `codex/milestone-0-foundation`. It does not authorize Milestone 1. M1-01, M1-02,
 and M1-03 remain stopped; M1-03 still requires its separate acquisition checkpoint.
 
-Date: 2026-08-27 (Europe/Berlin)  
-Branch: `codex/milestone-0-foundation`  
-Implementation commit at local/remote verification: `3fcb5fdfb10233334cf365348b90d33a61f3f387`  
-Base: `origin/main` at `14b913f390056a74b598de08742be1120515dda6`  
-Pull request: pending creation; no merge performed  
+Date: 2026-08-27 (Europe/Berlin)
+Branch: `codex/milestone-0-foundation`
+Implementation commit at local/remote verification: `3fcb5fdfb10233334cf365348b90d33a61f3f387`
+Base: `origin/main` at `14b913f390056a74b598de08742be1120515dda6`
+Pull request: pending creation; no merge performed
 Remote Actions: pending pull-request run
 
 ## Scope and outcome
