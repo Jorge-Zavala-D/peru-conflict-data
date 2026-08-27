@@ -90,15 +90,34 @@ def test_pagination_tracker_stops_on_repeated_page() -> None:
     assert tracker.visit("/categorias_de_documentos/reportes/page/2/", base_url=CATALOGUE) is True
     assert tracker.propose_next(CATALOGUE) is None
     assert tracker.stop_reason is PaginationStopReason.REPEATED_URL
-    assert tracker.complete is True
+    assert tracker.reached_local_terminal is False
 
 
-def test_pagination_tracker_stops_on_missing_next_as_complete() -> None:
-    tracker = PaginationTracker(CATALOGUE, APPROVED)
+def test_missing_next_only_exhausts_a_verified_pagination_contract() -> None:
+    tracker = PaginationTracker(CATALOGUE, APPROVED, pagination_contract_verified=True)
     assert tracker.visit(CATALOGUE) is True
     assert tracker.propose_next(None) is None
     assert tracker.stop_reason is PaginationStopReason.NO_NEXT_LINK
-    assert tracker.complete is True
+    assert tracker.reached_local_terminal is True
+    assert tracker.pagination_exhausted is True
+
+
+def test_missing_next_does_not_imply_terminal_when_contract_is_unverified() -> None:
+    tracker = PaginationTracker(CATALOGUE, APPROVED, pagination_contract_verified=False)
+    assert tracker.visit(CATALOGUE) is True
+    assert tracker.propose_next(None) is None
+    assert tracker.stop_reason is PaginationStopReason.NO_NEXT_LINK
+    assert tracker.reached_local_terminal is True
+    assert tracker.pagination_exhausted is False
+
+
+def test_single_page_surface_terminates_without_claiming_pagination_exhaustion() -> None:
+    tracker = PaginationTracker(CATALOGUE, APPROVED, pagination_contract_verified=True)
+    assert tracker.visit(CATALOGUE) is True
+    tracker.stop_single_page()
+    assert tracker.stop_reason is PaginationStopReason.SINGLE_PAGE
+    assert tracker.reached_local_terminal is True
+    assert tracker.pagination_exhausted is False
 
 
 def test_pagination_tracker_rejects_non_authoritative_next_as_incomplete() -> None:
@@ -106,7 +125,7 @@ def test_pagination_tracker_rejects_non_authoritative_next_as_incomplete() -> No
     assert tracker.visit(CATALOGUE) is True
     assert tracker.propose_next("https://other.example.org/page/2/") is None
     assert tracker.stop_reason is PaginationStopReason.NON_AUTHORITATIVE_NEXT
-    assert tracker.complete is False
+    assert tracker.reached_local_terminal is False
 
 
 def test_pagination_tracker_cap_is_not_complete() -> None:
@@ -114,7 +133,7 @@ def test_pagination_tracker_cap_is_not_complete() -> None:
     assert tracker.visit(CATALOGUE) is True
     assert tracker.propose_next("/categorias_de_documentos/reportes/page/2/") is None
     assert tracker.stop_reason is PaginationStopReason.PAGE_CAP
-    assert tracker.complete is False
+    assert tracker.reached_local_terminal is False
 
 
 def test_pagination_tracker_records_explicit_errors_as_incomplete() -> None:
@@ -122,4 +141,4 @@ def test_pagination_tracker_records_explicit_errors_as_incomplete() -> None:
     tracker.visit(CATALOGUE)
     tracker.stop_error()
     assert tracker.stop_reason is PaginationStopReason.ERROR
-    assert tracker.complete is False
+    assert tracker.reached_local_terminal is False

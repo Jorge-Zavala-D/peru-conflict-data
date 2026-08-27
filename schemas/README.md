@@ -4,10 +4,12 @@
 
 - `v0.2.0/` is the M1 working scientific content contract generated from
   `peru_conflicts.models.MODEL_REGISTRY`; `v0.1.0/` is the immutable M0 snapshot.
-- `discovery/v0.2.0/` is the current provisional M1 source-discovery contract generated from
-  `peru_conflicts.discovery.ProvisionalDiscoveryRecord`; `discovery/v0.1.0/` is retained as
-  the first discovery snapshot. It does not version or modify the scientific content
-  contract.
+- `discovery/v0.3.0/` is the current provisional M1 source-discovery contract.
+  It contains schemas for `ProvisionalDiscoveryRecord`, one actual
+  `RequestAttemptReceipt`, `ReconnaissanceSummary`, and the reviewed, non-executable
+  `PilotAcquisitionPlan`. Discovery `v0.1.0` and `v0.2.0` are retained immutable as
+  reviewed historical snapshots. This technical version does not version or modify
+  the scientific content contract.
 
 Regenerate only the current versions and preserve prior version directories.
 `scripts/export_schemas.py --check` checks both current contracts for drift. Python/Pydantic
@@ -27,7 +29,10 @@ remain distinct structured records. Technical discovery issues preserve evidence
 corrections. `CoverageExpectation` remains a standalone research-grid hypothesis that can be
 constructed and returned independently of observed URLs.
 
-Discovery `v0.1.0` records remain readable historical receipts. The `v0.1.0` to `v0.2.0`
-change adds nullable source-original page-title and publication-date fields so HTML metadata
-is not discarded; it does not reinterpret prior identity values. See
-`docs/schema_migrations/discovery_v0.1.0_to_v0.2.0.md`.
+Discovery `v0.1.0` and `v0.2.0` records remain readable historical receipts. The
+`v0.1.0` to `v0.2.0` change added nullable page-level source metadata. The
+`v0.2.0` to `v0.3.0` change separates containing-page metadata from bounded-entry
+metadata and adds per-attempt/run receipts; it cannot manufacture missing attempt
+evidence from old aggregate receipts. See
+`docs/schema_migrations/discovery_v0.1.0_to_v0.2.0.md` and
+`docs/schema_migrations/discovery_v0.2.0_to_v0.3.0.md`.

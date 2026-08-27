@@ -10,7 +10,7 @@ from pydantic import AwareDatetime, Field, model_validator
 
 from peru_conflicts.models.common import Identifier, ReferencePeriod, StrictModel
 
-DISCOVERY_SCHEMA_VERSION = "0.2.0"
+DISCOVERY_SCHEMA_VERSION = "0.3.0"
 
 
 class IdentitySubject(StrEnum):
@@ -165,12 +165,14 @@ class DiscoveryIssue(StrictModel):
 class ProvisionalDiscoveryRecord(StrictModel):
     """A provisional report candidate assembled solely from discovery evidence."""
 
-    schema_version: Literal["0.2.0"] = DISCOVERY_SCHEMA_VERSION
+    schema_version: Literal["0.3.0"] = DISCOVERY_SCHEMA_VERSION
     discovery_record_id: Identifier
     candidate_report_number: int | None = Field(default=None, ge=1)
     candidate_reference_period: ReferencePeriod | None = None
-    page_title_original: str | None = None
-    publication_date_original: str | None = None
+    source_page_title_original: str | None = None
+    entry_title_original: str | None = None
+    entry_publication_date_original: str | None = None
+    entry_description_original: str | None = None
     identity_evidence: tuple[IdentityEvidence, ...] = ()
     url_observations: tuple[UrlObservation, ...] = Field(min_length=1)
     candidate_source_relations: tuple[CandidateSourceRelation, ...] = ()

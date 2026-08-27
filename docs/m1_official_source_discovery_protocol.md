@@ -1,8 +1,9 @@
 # M1-01 official-source discovery protocol
 
-Status: approved working protocol for M1-01/M1-02, 2026-08-27. This protocol is
-read-only. It does not authorize M1-03 acquisition, writes to Dropbox, PDF or
-binary retrieval, OCR, content extraction, or a completeness claim.
+Status: M1-01 is approved and this protocol is hardened for the corrective
+M1-02.1 review, 2026-08-27. It is read-only. It does not authorize M1-03
+acquisition, writes to Dropbox, PDF or binary retrieval, OCR, content extraction,
+or a corpus-completeness claim.
 
 ## Authority boundary
 
@@ -28,9 +29,10 @@ only so its behavior can be recorded rather than silently rewritten.
 
 ## Evidence and provisional records
 
-The technical discovery contract is `schemas/discovery/v0.2.0/`; `schemas/discovery/v0.1.0/`
-is retained as the first discovery snapshot. It is separate from scientific content schema
-`v0.2.0`. A `ProvisionalDiscoveryRecord` may contain
+The current technical discovery contract is `schemas/discovery/v0.3.0/`;
+`schemas/discovery/v0.1.0/` and `schemas/discovery/v0.2.0/` are immutable reviewed
+snapshots. Discovery versioning is separate from scientific content schema
+`v0.2.0`, which remains unchanged. A `ProvisionalDiscoveryRecord` may contain
 null candidate number/month values. Each non-null candidate value requires a
 paired `IdentityEvidence` record for the exact subject/value, a source observation
 ID, source URL, capture time, observed source value, and optional excerpt. Only
@@ -38,9 +40,21 @@ ID, source URL, capture time, observed source value, and optional excerpt. Only
 Filenames, URL slugs, direct-file paths, and embedded PDF titles are retained only
 as weak or conflicting evidence and never establish identity alone.
 
-Each record also retains nullable source-original page title and publication-date text when
-the page exposes them. This prevents landing-page metadata from being lost while keeping
-publication dates unnormalized until a later evidence review.
+Each record separates nullable source-original containing-page metadata from the
+bounded entry/card metadata: `source_page_title_original`,
+`entry_title_original`, `entry_publication_date_original`, and
+`entry_description_original`. Search or thematic page metadata is never copied
+across its entries. A landing page may use its own page-level publication metadata
+because that page is scoped to one source entry. Dates remain unnormalized until
+later evidence review.
+
+Malformed source HTML can nest later Bootstrap cards inside an earlier card.
+Candidate text, dates, and links therefore stop at nested peer card, article, or
+list-item boundaries. Historical reference-period parsing preserves the exact
+visible span, accepts only evidenced Spanish month forms and separators, and
+rejects forward/reverse calendar dates and compact identifiers. A day-like token
+is exempted from date rejection only when its exact span is a recognized report
+number, which protects reports 23-31.
 
 URL roles are separate structured observations: `catalogue_page`,
 `search_result_page`, `thematic_page`, `landing_page`, and `direct_download`.
@@ -63,12 +77,23 @@ Only observed source evidence can populate a provisional candidate report or
 month. Missing or unobserved months/reports remain unknown or unresolved; they are
 never coded as zero or silently treated as absent.
 
-For each surface, traverse only visible, normalized next links. Stop with an
-explicit reason: no next link (terminal traversal), repeated URL, non-authoritative
-next URL, page cap, or error. A page cap or error is incomplete. The reports
-catalogue was observed through the site's linked `/page/120/`; this is a navigation
-receipt, not proof that report numbering or historical coverage is complete.
-Search and thematic pagination is recorded independently for each query/surface.
+Each configured surface declares either `numeric_or_rel_next` or `single_page`.
+For paginated surfaces, follow only visible navigation evidence inside pagination
+or navigation containers: scoped `rel=next`, accessible next labels/titles/classes,
+or the next numeric page after the visible current page. Article-level `rel=next`
+and page chrome do not qualify. Stop with a machine-readable reason: no next link,
+single-page completion, repeated URL, non-authoritative next URL, page cap, or
+error. `reached_local_terminal` describes traversal only. `pagination_exhausted`
+requires both a verified pagination contract and a no-next terminal; neither field
+claims corpus completeness. `corpus_completeness_status` remains `not_assessed`.
+
+The reports catalogue's observed pagination container is WP-PageNavi
+(`wp-pagenavi`) with a current-page span, numeric shortcuts, `rel=next`, and a
+last-page link. Immediate `rel=next`/current+1 evidence takes precedence over
+distant numeric or `Last` links. Official search uses a different pagination
+structure and is tested separately. `NO_NEXT_LINK` is meaningful only for a
+surface whose pagination contract has been verified; `REPEATED_URL` is a safety
+stop, never evidence of corpus completeness.
 
 ## URL normalization
 
@@ -82,15 +107,27 @@ an apex host to `www` or promote a new host through normalization.
 
 ## Responsible retrieval
 
-M1-02 uses the standard-library client and a stable identifying user agent. Requests
-are serial (`concurrency=1`) with at least 2.0 seconds between requests and at
-most two retries after the initial attempt. `Retry-After` is honored for transient
-429/5xx responses. `robots.txt` is fetched separately as `text/plain`; ordinary
-page bodies accept only `text/html` or `application/xhtml+xml`. PDF, ZIP, workbook,
-and other binary URLs or response content types are rejected before body
-interpretation. Redirects to binary or unapproved hosts are rejected and recorded.
+M1-02.1 uses the standard-library client and a stable identifying user agent.
+Requests are serial (`concurrency=1`) with at least 2.0 seconds between requests
+and at most two retries after the initial attempt. Ordinary CLI inputs cannot
+lower the delay or raise retry, page, or landing limits beyond the reviewed
+configuration. `Retry-After` is honored for transient 429/5xx responses.
+`robots.txt` is fetched separately as `text/plain`; ordinary page bodies accept
+only `text/html` or `application/xhtml+xml`. The transport checks status,
+Content-Type, and a declared oversize Content-Length before a body read. PDF, ZIP,
+workbook, unfamiliar binary MIME types, binary signatures, and oversized bodies
+are rejected without interpretation. Redirects to binary or unapproved hosts are
+rejected and recorded.
 
-The full provisional inventory is temporary and Git-ignored under `.cache/`.
+Every actual attempt receives independent UTC request/completion timestamps and
+an outcome. Safe response evidence retains status, response URL, original
+Content-Type, Content-Length, ETag, Last-Modified, Retry-After, Location, recognized
+rate-limit headers, and a normalized redirect target when available. A permitted
+body retains exact byte count and SHA-256; partial oversize reads are marked
+incomplete. Cookies, authorization headers, and credentials are never retained.
+
+The full provisional inventory is temporary and Git-ignored under the repository's
+`.cache/`; the ordinary CLI rejects output anywhere else, including Dropbox.
 Dropbox `01_raw/manifests/` is the future mutable operational acquisition ledger;
 Git stores the protocol, schema, code, allowlist, tests, and reviewed aggregate
 receipts. No public Git source index is created in M1. The future canonical

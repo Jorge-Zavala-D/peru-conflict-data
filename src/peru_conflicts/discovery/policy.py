@@ -122,6 +122,7 @@ class PaginationStopReason(StrEnum):
     NON_AUTHORITATIVE_NEXT = "non_authoritative_next"
     PAGE_CAP = "page_cap"
     ERROR = "error"
+    SINGLE_PAGE = "single_page"
 
 
 class PaginationTracker:
@@ -133,6 +134,7 @@ class PaginationTracker:
         approved_hosts: frozenset[str],
         *,
         page_cap: int = 120,
+        pagination_contract_verified: bool = False,
     ) -> None:
         if page_cap < 1:
             raise ValueError("page_cap must be at least one")
@@ -141,7 +143,9 @@ class PaginationTracker:
         self._seen_urls: list[str] = []
         self._current_url = normalize_url(start_url)
         self._stop_reason: PaginationStopReason | None = None
-        self._complete = False
+        self._pagination_contract_verified = pagination_contract_verified
+        self._reached_local_terminal = False
+        self._pagination_exhausted = False
 
     @property
     def current_url(self) -> str:
@@ -156,12 +160,23 @@ class PaginationTracker:
         return self._stop_reason
 
     @property
-    def complete(self) -> bool:
-        return self._complete
+    def reached_local_terminal(self) -> bool:
+        return self._reached_local_terminal
 
-    def _stop(self, reason: PaginationStopReason, *, complete: bool) -> None:
+    @property
+    def pagination_exhausted(self) -> bool:
+        return self._pagination_exhausted
+
+    def _stop(
+        self,
+        reason: PaginationStopReason,
+        *,
+        reached_local_terminal: bool = False,
+        pagination_exhausted: bool = False,
+    ) -> None:
         self._stop_reason = reason
-        self._complete = complete
+        self._reached_local_terminal = reached_local_terminal
+        self._pagination_exhausted = pagination_exhausted
 
     def visit(self, url: str | None = None, *, base_url: str | None = None) -> bool:
         """Record one page if it is new, authoritative, and within the safety cap."""
@@ -174,16 +189,16 @@ class PaginationTracker:
                 base_url=base_url,
             )
         except ValueError:
-            self._stop(PaginationStopReason.ERROR, complete=False)
+            self._stop(PaginationStopReason.ERROR)
             return False
         if classify_host(candidate, self._approved_hosts) != "authoritative":
-            self._stop(PaginationStopReason.NON_AUTHORITATIVE_NEXT, complete=False)
+            self._stop(PaginationStopReason.NON_AUTHORITATIVE_NEXT)
             return False
         if candidate in self._seen_urls:
-            self._stop(PaginationStopReason.REPEATED_URL, complete=True)
+            self._stop(PaginationStopReason.REPEATED_URL)
             return False
         if len(self._seen_urls) >= self._page_cap:
-            self._stop(PaginationStopReason.PAGE_CAP, complete=False)
+            self._stop(PaginationStopReason.PAGE_CAP)
             return False
         self._seen_urls.append(candidate)
         self._current_url = candidate
@@ -195,25 +210,39 @@ class PaginationTracker:
         if self._stop_reason is not None:
             return None
         if next_url is None:
-            self._stop(PaginationStopReason.NO_NEXT_LINK, complete=True)
+            self._stop(
+                PaginationStopReason.NO_NEXT_LINK,
+                reached_local_terminal=True,
+                pagination_exhausted=self._pagination_contract_verified,
+            )
             return None
         try:
             candidate = normalize_url(next_url, base_url=base_url or self._current_url)
         except ValueError:
-            self._stop(PaginationStopReason.ERROR, complete=False)
+            self._stop(PaginationStopReason.ERROR)
             return None
         if classify_host(candidate, self._approved_hosts) != "authoritative":
-            self._stop(PaginationStopReason.NON_AUTHORITATIVE_NEXT, complete=False)
+            self._stop(PaginationStopReason.NON_AUTHORITATIVE_NEXT)
             return None
         if candidate in self._seen_urls:
-            self._stop(PaginationStopReason.REPEATED_URL, complete=True)
+            self._stop(PaginationStopReason.REPEATED_URL)
             return None
         if len(self._seen_urls) >= self._page_cap:
-            self._stop(PaginationStopReason.PAGE_CAP, complete=False)
+            self._stop(PaginationStopReason.PAGE_CAP)
             return None
         return candidate
 
     def stop_error(self) -> None:
         """Stop on an unclassified request/parse failure; this is never complete."""
 
-        self._stop(PaginationStopReason.ERROR, complete=False)
+        self._stop(PaginationStopReason.ERROR)
+
+    def stop_single_page(self) -> None:
+        """End a configured one-page surface without a pagination claim."""
+
+        if self._stop_reason is None:
+            self._stop(
+                PaginationStopReason.SINGLE_PAGE,
+                reached_local_terminal=True,
+                pagination_exhausted=False,
+            )

@@ -6,8 +6,13 @@ import json
 from pathlib import Path
 
 from peru_conflicts.discovery.models import DISCOVERY_SCHEMA_VERSION, ProvisionalDiscoveryRecord
+from peru_conflicts.discovery.pilot import PilotAcquisitionPlan, load_pilot_acquisition_plan
+from peru_conflicts.discovery.receipts import ReconnaissanceSummary, RequestAttemptReceipt
 
 DISCOVERY_SCHEMA_FILENAME = "provisional_discovery_record.schema.json"
+REQUEST_RECEIPT_SCHEMA_FILENAME = "request_attempt_receipt.schema.json"
+RECONNAISSANCE_SUMMARY_SCHEMA_FILENAME = "reconnaissance_summary.schema.json"
+PILOT_ACQUISITION_PLAN_SCHEMA_FILENAME = "pilot_acquisition_plan.schema.json"
 
 
 def _qualified_evidence_condition(
@@ -41,17 +46,17 @@ def _qualified_evidence_condition(
 def rendered_discovery_schemas() -> dict[str, str]:
     """Render the complete discovery schema registry deterministically."""
 
-    schema = ProvisionalDiscoveryRecord.model_json_schema(mode="validation")
-    schema["$schema"] = "https://json-schema.org/draft/2020-12/schema"
-    schema["$id"] = (
+    provisional_schema = ProvisionalDiscoveryRecord.model_json_schema(mode="validation")
+    provisional_schema["$schema"] = "https://json-schema.org/draft/2020-12/schema"
+    provisional_schema["$id"] = (
         "https://github.com/Jorge-Zavala-D/peru-conflict-data/"
         f"schemas/discovery/v{DISCOVERY_SCHEMA_VERSION}/{DISCOVERY_SCHEMA_FILENAME}"
     )
-    schema["$comment"] = (
+    provisional_schema["$comment"] = (
         "JSON Schema enforces subject/type evidence sufficiency; Pydantic additionally "
         "requires candidate_value to equal the corresponding candidate identity exactly."
     )
-    schema.setdefault("allOf", []).extend(
+    provisional_schema.setdefault("allOf", []).extend(
         [
             _qualified_evidence_condition(
                 candidate_field="candidate_report_number",
@@ -65,10 +70,31 @@ def rendered_discovery_schemas() -> dict[str, str]:
             ),
         ]
     )
-    return {
-        DISCOVERY_SCHEMA_FILENAME: (
-            json.dumps(schema, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+    pilot_schema = PilotAcquisitionPlan.model_json_schema(mode="validation")
+    repository_root = Path(__file__).resolve().parents[3]
+    reviewed_pilot = load_pilot_acquisition_plan(
+        repository_root / "config" / "acquisition_pilots" / "m1_03_reports_260_269_v1.yaml"
+    ).model_dump(mode="json")
+    pilot_schema["properties"]["approved_hosts"]["const"] = reviewed_pilot["approved_hosts"]
+    pilot_schema["properties"]["targets"]["const"] = reviewed_pilot["targets"]
+
+    models = {
+        DISCOVERY_SCHEMA_FILENAME: provisional_schema,
+        REQUEST_RECEIPT_SCHEMA_FILENAME: RequestAttemptReceipt.model_json_schema(mode="validation"),
+        RECONNAISSANCE_SUMMARY_SCHEMA_FILENAME: ReconnaissanceSummary.model_json_schema(
+            mode="validation"
+        ),
+        PILOT_ACQUISITION_PLAN_SCHEMA_FILENAME: pilot_schema,
+    }
+    for filename, schema in models.items():
+        schema["$schema"] = "https://json-schema.org/draft/2020-12/schema"
+        schema["$id"] = (
+            "https://github.com/Jorge-Zavala-D/peru-conflict-data/"
+            f"schemas/discovery/v{DISCOVERY_SCHEMA_VERSION}/{filename}"
         )
+    return {
+        filename: json.dumps(schema, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+        for filename, schema in models.items()
     }
 
 

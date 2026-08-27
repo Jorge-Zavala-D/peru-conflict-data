@@ -1,202 +1,201 @@
-# M1-01/M1-02 review report
+# M1-01/M1-02.1 review report
 
-Status: M1-01/M1-02 complete for review; M1-03 is not authorized or executed.
-The branch remains `codex/m1-01-02-corpus-discovery`. This report deliberately
-does not claim a complete historical corpus.
+Status: M1-01 is approved. The M1-02.1 historical-discovery hardening pass is
+complete for pull-request review. M1-03, M1-04, and M2 remain unauthorized and
+unexecuted. This report does not claim a complete corpus.
 
-## Final read-only run
+## Scope and result
 
-Command:
+The corrective pass replaced page-global extraction with bounded source-entry
+extraction, added the actual Defensoría historical heading/card and pagination
+structures, hardened the CLI and HTTP body boundary, versioned the discovery
+contract forward to `v0.3.0`, and created a non-executable reports 260-269 pilot
+recipe. Scientific schemas `v0.1.0` and `v0.2.0` and discovery schemas `v0.1.0`
+and `v0.2.0` remain immutable.
 
-```powershell
-uv run python scripts/discover_official_sources.py `
-  --output .cache/m1-discovery-2026-08-27-final9 `
-  --page-cap 120 `
-  --max-landing-pages 24
-```
+No PDF body, ZIP, workbook, OCR output, conflict-content extraction, raw manifest,
+or canonical data artifact was requested or created. Dropbox was read-only.
 
-The run used the approved configuration: four starting HTML surfaces (catalogue,
-two distinct official search queries, and thematic page), serial concurrency 1,
-2.0-second delay, retry cap 2, and no PDF/binary requests.
+## Definitive HTML-only reconnaissance
+
+The exact command and three-file checksums are preserved in
+`docs/m1_02_1_inventory_receipt.md`. The run used all four configured official
+surfaces, page cap 120, landing cap 24, concurrency 1, delay 2.0 seconds, retry cap
+2, and discovery schema `v0.3.0`.
 
 | Measure | Observed |
 |---|---:|
-| HTML/robots response receipts | 148 |
-| HTTP successes / failures | 148 / 0 |
-| Pages visited | 123 |
-| Provisional records in ignored inventory | 574 |
-| Distinct candidate report numbers | 73 (188–269) |
-| Distinct candidate reference months | 68 |
-| Distinct landing URLs in records | 74 |
-| Distinct direct-download URLs in records | 24 |
-| Records retaining source-original publication dates | 286 |
-| Hosts in final response receipts | `www.defensoria.gob.pe` only |
-| PDF/ZIP/workbook requests | 0 |
-| Dropbox writes or active derived-layer files | 0 |
+| HTML/robots request-attempt receipts | 165 |
+| HTTP 200 / non-200 | 165 / 0 |
+| Pages visited | 140 |
+| Provisional records | 739 |
+| Distinct candidate report numbers | 244 (23-269) |
+| Distinct candidate reference months | 242 (2006-01 to 2026-07) |
+| Distinct landing URLs observed | 129 |
+| Landing pages fetched / deliberately skipped | 24 / 105 |
+| Distinct direct-file URLs observed but not requested | 248 |
+| Records retaining source-original publication dates | 734 |
+| PDF/binary requests | 0 |
+| Dropbox writes | 0 |
 
-The final run was captured at `2026-08-27T19:15:35.03416+02:00`. Its 148
-responses were 147 `text/html` pages plus one `text/plain` robots response, all
-HTTP 200, with no errors. The final temporary receipt is
-`.cache/m1-discovery-2026-08-27-final9/` and is
-not tracked or intended as a public source index. It contains `records.jsonl`,
-`requests.jsonl`, and `summary.json`. Every surface stopped at `no_next_link`;
-that means the observed traversal reached its local terminal condition, not that
-the research corpus is complete.
+All 165 requests remained HTTPS on `www.defensoria.gob.pe`. They comprise 164
+complete `text/html` bodies and one complete `text/plain` robots body. Every body
+has a byte count and SHA-256. There were no redirects, retries, off-allowlist
+hosts, unapproved successful MIME types, credentials, or cookie evidence.
 
-## Historical candidate coverage
+## Traversal status is not corpus completeness
 
-The coverage hypothesis is April 2004 onward (268 months through July 2026). The
-HTML-visible candidate records provide 68 distinct months, from 2020-02 through
-2026-07, with the following observed runs:
+The reports catalogue traversed all 120 visible pages and stopped at its verified
+WP-PageNavi no-next terminal. The official `Reporte conflictos` and `Reporte
+Mensual de Conflictos Sociales` searches traversed 10 and 9 pages respectively
+and stopped at their verified no-next terminals. The Paz Social thematic surface
+used its declared single-page contract.
 
-- 2020-02 through 2021-02;
-- 2021-10 through 2021-11;
-- 2022-03 through 2026-07.
+These are local traversal results only. The 24-page landing cap was reached, the
+official site can change, and HTML discovery cannot establish byte availability.
+`corpus_completeness_status` therefore remains `not_assessed`.
 
-The 200 missing grid months are unresolved, not zeros: 2004-04 through 2020-01,
-2021-03 through 2021-09, and 2021-12 through 2022-02. The thematic page visibly
-links an archive labelled 2004, an archive labelled 2005, and 2006 report labels,
-but those links were not downloaded. This establishes official historical leads,
-not observed report files.
+## Historical source evidence and coverage hypotheses
 
-Candidate report numbers 188–269 were visible in the audited HTML records. The
-unobserved values inside that numeric range are 206–211 and 214–216. This is an
-observed-number gap only; report numbering is not assumed to be a complete monthly
-or historical universe. Values below 188 and any alternate numbering regimes
-remain unenumerated by this bounded HTML pass.
+The corrected parser visibly observes report 23 as January 2006 and the numbered
+series through report 269. It does not infer reports 1-22. Within 23-269, report
+numbers 122, 125, and 136 were not observed on any traversed source surface.
+Neighboring entries are visible, so these remain explicit source-discovery gaps,
+not proof of nonpublication.
 
-## Surfaces and source-domain evidence
+The 242 distinct source-visible reference months span 2006-01 through 2026-07.
+Five month positions inside that interval lack a source-visible month candidate:
+2014-04, 2014-07, 2015-06, 2018-06, and 2018-09. The first three correspond to
+the same portions of the observed numbering sequence as missing reports 122, 125,
+and 136, but no missing record is manufactured from that sequence. Reports 172
+and 175 are visible by number while their scoped HTML entries state no reference
+month; their month remains null.
 
-The official catalogue exposed linked pagination through `/page/120/`. Both search
-queries returned overlapping but non-identical landing-page candidates. The Paz
-Social thematic page states that monitoring began in 2004 and visibly exposes 2004,
-2005, and 2006 leads alongside unrelated institutional material. Individual
-landing pages expose visible title/publication metadata and official upload links.
-The site-wide HTML title is generic and was not used as report identity evidence.
+The official catalogue, thematic page, and searches independently expose
+`Reporte Mensual de Conflictos Sociales 2004` and `Reporte Conflictos Sociales
+2005`. Those are unnumbered document/bundle leads. The April 2004 research lower
+bound remains a coverage hypothesis: no monthly rows for 2004/2005 and no
+unobserved grid month were fabricated or classified as an absent report.
 
-Only `www.defensoria.gob.pe` appeared in final responses. The bare host's Zimbra
-root behavior and its separate robots response are recorded in the robots receipt.
-No redirect destination or third-party mirror was promoted.
+## Entry scoping and live structural findings
 
-## Ambiguities, duplicates, and suspected alternate versions
+The live catalogue uses `wp-pagenavi`, not the initially assumed generic
+`pagination` class. It also contains malformed nested Bootstrap cards. The parser
+now treats nested peer cards/articles/list items as separate source-entry
+boundaries so an unrelated `Reporte Igualdad y No Violencia` card cannot inherit
+an adjacent conflict report's title, date, or links. Search dates remain scoped to
+their own result items, and thematic `h3`-`h6` structures preserve their own
+Spanish title, description, date, and downloads.
 
-The search surfaces intentionally produce duplicate candidate observations for the
-same report/month; these are retained as separate source observations and can later
-be reconciled without claiming byte identity. Examples include repeated 221–269
-records across the two queries. The HTML evidence also preserves known contradictions:
+Historical reference-period recognition retains the exact visible span. It
+supports the evidenced `Jun-2013` and `Abril -2021` forms while rejecting compact
+identifiers and forward/reverse publication dates. Small report numbers such as
+`N° 23 Enero 2006` are not mistaken for calendar-day prefixes.
 
-- the report 252 landing slug says `enero-2025` while the visible candidate metadata
-  and modern sequence support a February-2025 candidate;
-- report 227 appears through landing URLs whose slugs/month labels differ;
-- report 223 appears through a generic landing URL and an October-2022 candidate;
-- two thematic-page URLs contain `reporte_61` (`.../2009/12/conflictos_reporte_61_marzo2009.pdf`
-  and `.../2009/04/conflictos_reporte_61.pdf`). They are suspected identity/version
-  candidates only; no PDF body was requested and no byte relationship is asserted.
+## Duplicates, source ambiguities, and suspected versions
 
-Four article-local direct links have opaque names: two `3.pdf` URLs under the
-2024/10 and 2024/12 upload paths, `10.pdf.pdf` under 2025/12, and `10.pdf` under
-2026/02. They are retained as unresolved source observations, without report
-identity or byte-version claims. The latter two appear on the 261 and 263 landing
-pages; their landing-page context is reported separately from identity evidence.
+Overlapping catalogue, search, thematic, and landing observations are retained as
+separate evidence. Identical URLs are not treated as identical bytes until an
+authorized hash receipt exists.
 
-The stale embedded PDF `/Title` value `RCS N° 126` is not used by discovery code.
-The report-269 benchmark observations remain future M2 discrepancy candidates:
-the alert narrative's 58 total with a 51/2/5 breakdown versus Cuadro N.° 1's 34
-with a 28/2/4 breakdown, and case `1514-0726` saying `Ingresó como caso nuevo:
-Agosto 2026` inside a July 2026 report.
+Three official thematic entries visibly contain multiple direct-file links:
 
-## Schema and manifest decisions
+- report 69 / 2009-11 links both `reporte-69.pdf` and a filename referring to
+  `conflictos_reporte_61_marzo2009.pdf`;
+- report 153 / 2016-11 links both its report-153 file and a report-155 filename;
+- report 169 / 2018-03 links both its report-169 file and a report-156 filename.
 
-The current discovery contract is versioned separately at `schemas/discovery/v0.2.0/`;
-`schemas/discovery/v0.1.0/` is retained unchanged as the first discovery snapshot.
-Scientific `schemas/v0.1.0/` and `schemas/v0.2.0/` were not modified. Identity
-evidence is paired and observation-linked; URL roles and redirect chains are
-structured; source inconsistencies are classified without correction. No public
-Git source index was created. Git contains schema/code/rules/tests and reviewed
-methodological receipts; the future mutable acquisition ledger belongs in Dropbox
-`01_raw/manifests/`; canonical report manifests belong in Parquet/DuckDB.
+The records preserve both URLs and classify them for later review; they do not
+repair the source page or assert alternate bytes. Report 252 also has a landing
+slug containing `enero-2025` while its visible title/file metadata says February
+2025. Reports 261 and 263 expose opaque `10.pdf.pdf` and `10.pdf` links. Their
+future pilot associations are explicitly unresolved.
 
-The only discovery-schema change in this pass is the versioned addition of nullable
-`page_title_original` and `publication_date_original` fields. The bounded run below was
-repeated after that change so its provisional records are emitted under `v0.2.0`; no prior
-schema directory was rewritten. The migration note is
-`docs/schema_migrations/discovery_v0.1.0_to_v0.2.0.md`.
+The stale embedded PDF title `RCS N° 126` is never used as identity evidence. The
+report-269 alert 58-versus-34 totals and case `1514-0726` saying it entered as new
+in August 2026 inside the July 2026 report remain M2 source-discrepancy candidates;
+M1 neither opens the PDF bodies nor corrects them.
 
-For the ten modern benchmark landing pages, the source-original metadata observed in
-final9 is:
+## Discovery schema and receipts
 
-| Candidate | Candidate reference period | Publication date original |
-|---:|---|---|
-| 260 | `2025-10` | `14/11/2025` |
-| 261 | `2025-11` | `12/12/2025` |
-| 262 | `2025-12` | `13/01/2026` |
-| 263 | `2026-01` | `13/02/2026` |
-| 264 | `2026-02` | `16/03/2026` |
-| 265 | `2026-03` | `29/04/2026` |
-| 266 | `2026-04` | `18/05/2026` |
-| 267 | `2026-05` | `26/06/2026` |
-| 268 | `2026-06` | `16/07/2026` |
-| 269 | `2026-07` | `13/08/2026` |
+Discovery `v0.3.0` replaces ambiguous page-wide metadata with separate nullable
+`source_page_title_original`, `entry_title_original`,
+`entry_publication_date_original`, and `entry_description_original` fields. It
+also defines strict per-attempt HTTP receipts, traversal/run summaries, and the
+reviewed non-executable pilot plan. Every candidate identity value remains paired
+with its own evidence classification and provenance observation.
 
-## Exact first bounded acquisition proposal (not executed)
+Prior discovery schemas are unchanged and pinned by tree digests. Migration from
+`v0.2.0` requires re-parsing the exact HTML; old page-global dates cannot be copied
+mechanically. Scientific `v0.2.0` remains the approved M1 working baseline, not
+the final M2 gold schema. The five M2-01 ontology questions in
+`docs/29_open_questions.md` remain unresolved.
 
-After Jorge reviews `docs/m1_acquisition_checkpoint.md`, the first internal
-acquisition proposal is capped at **10 report landing URLs plus at most 10 linked
-file URLs**, one candidate each for reports 260–269. The two opaque file URLs are
-kept explicitly as uncertain candidates:
+## Exact proposed M1-03 pilot set (not executed)
 
-| Candidate | Landing page | Direct file candidate observed in HTML |
-|---|---|---|
-| 260 | `https://www.defensoria.gob.pe/documentos/reporte-de-conflictos-sociales-n-o-260-octubre-2025/` | `https://www.defensoria.gob.pe/wp-content/uploads/2025/11/Reporte-Mensual-de-Conflictos-Sociales-N°-260-Oct_2025.pdf` |
-| 261 | `https://www.defensoria.gob.pe/documentos/reporte-de-conflictos-sociales-n-o-261-noviembre-2025/` | `https://www.defensoria.gob.pe/wp-content/uploads/2025/12/10.pdf.pdf` (opaque; unresolved) |
-| 262 | `https://www.defensoria.gob.pe/documentos/reporte-de-conflictos-sociales-n-o-262-diciembre-2025/` | `https://www.defensoria.gob.pe/wp-content/uploads/2026/01/Reporte-de-conflictos-sociales-n.º-262-–-diciembre-2025.pdf` |
-| 263 | `https://www.defensoria.gob.pe/documentos/reporte-de-conflictos-sociales-n-o-263-enero-2026/` | `https://www.defensoria.gob.pe/wp-content/uploads/2026/02/10.pdf` (opaque; unresolved) |
-| 264 | `https://www.defensoria.gob.pe/documentos/reporte-de-conflictos-sociales-n-o-264-febrero-2026/` | `https://www.defensoria.gob.pe/wp-content/uploads/2026/03/Reporte-de-Conflictos-Sociales-n-264-febrero-26.pdf` |
-| 265 | `https://www.defensoria.gob.pe/documentos/reporte-de-conflictos-sociales-n-o-265-marzo-2026/` | `https://www.defensoria.gob.pe/wp-content/uploads/2026/04/Reporte-de-Conflictos-Sociales-n-265-VF.pdf` |
-| 266 | `https://www.defensoria.gob.pe/documentos/reporte-de-conflictos-sociales-n-o-266-abril-2026/` | `https://www.defensoria.gob.pe/wp-content/uploads/2026/05/Reporte-de-Conflictos-Sociales-n-266-VF.pdf` |
-| 267 | `https://www.defensoria.gob.pe/documentos/reporte-de-conflictos-sociales-n-o-267-mayo-2026/` | `https://www.defensoria.gob.pe/wp-content/uploads/2026/06/Reporte-de-Conflictos-Sociales-n-267-VF.pdf` |
-| 268 | `https://www.defensoria.gob.pe/documentos/reporte-de-conflictos-sociales-n-o-268-junio-2026/` | `https://www.defensoria.gob.pe/wp-content/uploads/2026/07/Reporte-de-Conflictos-Sociales-n-268.pdf` |
-| 269 | `https://www.defensoria.gob.pe/documentos/reporte-de-conflictos-sociales-n-o-269-julio-2026/` | `https://www.defensoria.gob.pe/wp-content/uploads/2026/08/Reporte-de-Conflictos-Sociales-n-269.pdf` |
+The machine-readable source is
+`config/acquisition_pilots/m1_03_reports_260_269_v1.yaml`. It is fixed to
+`authorization_status: not_authorized`, 10 reports, 20 logical URLs, and the ten
+already documented local hashes. The exact proposed URL pairs are:
 
-The table uses official-host paths with the host expanded by the approved allowlist.
-It is a proposed acquisition set, not an authorization. Reports 260–269 already
-exist in the M0 raw benchmark; any future acquisition must preserve alternate bytes
-and collision evidence rather than overwrite them.
+| Report | Candidate month | Landing page | Direct-file candidate |
+|---:|---|---|---|
+| 260 | `2025-10` | `https://www.defensoria.gob.pe/documentos/reporte-de-conflictos-sociales-n-o-260-octubre-2025/` | `https://www.defensoria.gob.pe/wp-content/uploads/2025/11/Reporte-Mensual-de-Conflictos-Sociales-N°-260-Oct_2025.pdf` |
+| 261 | `2025-11` | `https://www.defensoria.gob.pe/documentos/reporte-de-conflictos-sociales-n-o-261-noviembre-2025/` | `https://www.defensoria.gob.pe/wp-content/uploads/2025/12/10.pdf.pdf` (opaque; unresolved) |
+| 262 | `2025-12` | `https://www.defensoria.gob.pe/documentos/reporte-de-conflictos-sociales-n-o-262-diciembre-2025/` | `https://www.defensoria.gob.pe/wp-content/uploads/2026/01/Reporte-de-conflictos-sociales-n.º-262-–-diciembre-2025.pdf` |
+| 263 | `2026-01` | `https://www.defensoria.gob.pe/documentos/reporte-de-conflictos-sociales-n-o-263-enero-2026/` | `https://www.defensoria.gob.pe/wp-content/uploads/2026/02/10.pdf` (opaque; unresolved) |
+| 264 | `2026-02` | `https://www.defensoria.gob.pe/documentos/reporte-de-conflictos-sociales-n-o-264-febrero-2026/` | `https://www.defensoria.gob.pe/wp-content/uploads/2026/03/Reporte-de-Conflictos-Sociales-n-264-febrero-26.pdf` |
+| 265 | `2026-03` | `https://www.defensoria.gob.pe/documentos/reporte-de-conflictos-sociales-n-o-265-marzo-2026/` | `https://www.defensoria.gob.pe/wp-content/uploads/2026/04/Reporte-de-Conflictos-Sociales-n-265-VF.pdf` |
+| 266 | `2026-04` | `https://www.defensoria.gob.pe/documentos/reporte-de-conflictos-sociales-n-o-266-abril-2026/` | `https://www.defensoria.gob.pe/wp-content/uploads/2026/05/Reporte-de-Conflictos-Sociales-n-266-VF.pdf` |
+| 267 | `2026-05` | `https://www.defensoria.gob.pe/documentos/reporte-de-conflictos-sociales-n-o-267-mayo-2026/` | `https://www.defensoria.gob.pe/wp-content/uploads/2026/06/Reporte-de-Conflictos-Sociales-n-267-VF.pdf` |
+| 268 | `2026-06` | `https://www.defensoria.gob.pe/documentos/reporte-de-conflictos-sociales-n-o-268-junio-2026/` | `https://www.defensoria.gob.pe/wp-content/uploads/2026/07/Reporte-de-Conflictos-Sociales-n-268.pdf` |
+| 269 | `2026-07` | `https://www.defensoria.gob.pe/documentos/reporte-de-conflictos-sociales-n-o-269-julio-2026/` | `https://www.defensoria.gob.pe/wp-content/uploads/2026/08/Reporte-de-Conflictos-Sociales-n-269.pdf` |
 
-## Source-integrity recheck and active-layer boundary
+The proposed dry run performs zero network requests and zero Dropbox writes. A
+future authorized network mode must validate approved host, robots, status,
+Content-Type, reasonable size, `%PDF-` magic, and SHA-256. Bytes differing from
+the existing expected hash cause `STOP FOR REVIEW` before promotion; identical
+bytes create no duplicate file; multiple URLs for identical bytes retain all URL
+observations around one byte object. The complete still-unexecuted design is in
+`docs/m1_acquisition_checkpoint.md`.
 
-At `2026-08-27T17:23:00.0554282Z`, a read-only PowerShell recheck recomputed
-SHA-256 over the eleven
-existing source inputs. All hashes and byte sizes matched the M0.1 receipt in
-`docs/source_integrity_receipt_m0_1.md`; the detailed current receipt is
-`docs/source_integrity_receipt_m1_02.md`. The complete Dropbox root still contains
-82 directories, 110 files, and 33,453,193 bytes. The source inputs total 33,354,916
-bytes. File counts under `02_extracted`, `03_parsed`, `04_linked`, `05_database`,
-`06_validation`, and `07_releases` are all zero. No file was added, removed, or
-modified by M1-01/M1-02, and no write was made to `01_raw`.
+## Source integrity and Dropbox boundary
 
-## Local quality-gate receipt
+At `2026-08-27T21:35:32.7060002Z`, all 11 protected source hashes and byte sizes
+matched the M0.1/M1-02 baseline. Their combined size remains 33,354,916 bytes.
+Layers `02_extracted` through `07_releases` each contain zero files, and no
+operational raw manifest was written.
 
-The final staged tree passed the complete repository gate:
+The connected root now contains 82 directories, 111 files, and 33,453,193 bytes.
+The sole count difference from the 110-file baseline is a zero-byte
+`99_archive/.Rhistory` timestamped `2026-08-27T18:14:17Z`; it is outside raw and
+derived layers and was left untouched. Full details are in
+`docs/source_integrity_receipt_m1_02_1.md`.
 
-| Check | Result |
+## Quality and review gate
+
+The integrated implementation was independently reviewed after the final parser
+changes. The reviewers found no remaining Critical or Important issues. The exact
+commit candidate passes frozen dependency sync, Ruff format/lint, strict Pyright,
+the complete test suite, schema drift, repository data policy, pre-commit, and Git
+diff checks. Git contains no full JSONL inventory, PDF, workbook, credential, or
+Dropbox corpus object.
+
+| Local check | Result |
 |---|---|
 | `uv sync --frozen --group dev` | Passed; 26 locked packages checked |
-| `uv run ruff format --check .` | Passed; 126 files formatted |
+| `uv run ruff format --check .` | Passed; 138 files already formatted |
 | `uv run ruff check .` | Passed |
-| `uv run pyright` | Passed; 0 errors, 0 warnings, 0 information messages |
-| `uv run pytest -q` | Passed; 152 tests |
+| `uv run pyright` | Passed; 0 errors, 0 warnings |
+| `uv run pytest -q` | Passed; 251 tests |
 | `uv run python scripts/export_schemas.py --check` | Passed |
 | `uv run python scripts/check_git_data_policy.py` | Passed |
 | `uv run pre-commit run --all-files` | All hooks passed |
-| `git diff --cached --check` and `git diff --check` | Passed |
-
-No dependency was added and `uv.lock` was not changed. The repository data-policy
-guard found no source corpus, binary data, secret, or disallowed large file in Git.
+| `git diff --check` | Passed |
 
 ## Stop condition
 
-M1-01/M1-02 are now ready for Jorge's review. No M2 work, parser/OCR work, entity
-resolution, geocoding, LLM extraction, raw promotion, or canonical materialization
-starts from this branch. M1-03 remains blocked until the separate checkpoint is
-explicitly approved.
+This branch is ready for protected-main pull-request review. Do not merge it in
+this task. Do not implement or run M1-03, write `01_raw/manifests/`, retrieve a
+PDF body, begin M1-04, or begin M2 until Jorge explicitly approves the next
+checkpoint.

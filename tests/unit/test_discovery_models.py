@@ -146,12 +146,12 @@ def test_qualifying_paired_evidence_supports_both_candidate_identity_values() ->
         url_observations=(_landing_observation(),),
     )
 
-    assert record.schema_version == DISCOVERY_SCHEMA_VERSION == "0.2.0"
+    assert record.schema_version == DISCOVERY_SCHEMA_VERSION == "0.3.0"
     assert record.candidate_report_number == 269
     assert record.candidate_reference_period == "2026-07"
 
 
-def test_page_metadata_is_preserved_as_original_source_values() -> None:
+def test_source_page_and_entry_metadata_are_preserved_independently() -> None:
     record = ProvisionalDiscoveryRecord(
         discovery_record_id="candidate-269",
         candidate_report_number=269,
@@ -163,12 +163,30 @@ def test_page_metadata_is_preserved_as_original_source_values() -> None:
             ),
         ),
         url_observations=(_landing_observation(),),
-        page_title_original="Reporte de conflictos sociales n.º 269 — julio 2026",
-        publication_date_original="13/08/2026",
+        source_page_title_original="Resultados de su búsqueda",
+        entry_title_original="Reporte de conflictos sociales n.º 269 — julio 2026",
+        entry_publication_date_original="13/08/2026",
+        entry_description_original=("Reporte de conflictos sociales n.º 269 — julio 2026"),
     )
 
-    assert record.page_title_original == "Reporte de conflictos sociales n.º 269 — julio 2026"
-    assert record.publication_date_original == "13/08/2026"
+    assert record.source_page_title_original == "Resultados de su búsqueda"
+    assert record.entry_title_original == "Reporte de conflictos sociales n.º 269 — julio 2026"
+    assert record.entry_publication_date_original == "13/08/2026"
+    assert record.entry_description_original == (
+        "Reporte de conflictos sociales n.º 269 — julio 2026"
+    )
+
+
+def test_v030_rejects_ambiguous_v020_page_metadata_fields() -> None:
+    with pytest.raises(ValidationError):
+        ProvisionalDiscoveryRecord.model_validate(
+            {
+                "discovery_record_id": "candidate-unknown",
+                "url_observations": [_landing_observation().model_dump()],
+                "page_title_original": "Título ambiguo de v0.2.0",
+                "publication_date_original": "13/08/2026",
+            }
+        )
 
 
 def test_null_candidates_are_valid_and_uncertainty_is_preserved() -> None:
