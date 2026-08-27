@@ -13,6 +13,9 @@ starting_surfaces:
   - id: conflict_search
     role: search
     url: https://www.defensoria.gob.pe/?s=Reporte+conflictos
+  - id: conflict_search_monthly
+    role: search
+    url: https://www.defensoria.gob.pe/?s=Reporte+Mensual+de+Conflictos+Sociales
   - id: paz_social_conflict_prevention
     role: thematic
     url: https://www.defensoria.gob.pe/areas_tematicas/paz-social-y-prevencion-de-conflictos/

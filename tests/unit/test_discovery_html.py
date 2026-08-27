@@ -29,6 +29,9 @@ def test_parser_extracts_visible_identity_metadata_file_links_and_next_page() ->
     record = parsed.records[0]
     assert record.candidate_report_number == 269
     assert record.candidate_reference_period == "2026-07"
+    assert record.page_title_original == parsed.page_title_original
+    assert record.publication_date_original == parsed.publication_date_original
+    assert record.publication_date_original == "13/08/2026"
     assert record.url_observations[0].role is UrlRole.CATALOGUE_PAGE
     assert any(item.role is UrlRole.LANDING_PAGE for item in record.url_observations)
     assert any(item.role is UrlRole.DIRECT_DOWNLOAD for item in record.url_observations)
@@ -89,6 +92,22 @@ def test_parser_uses_visible_heading_and_not_generic_html_title() -> None:
     assert parsed.records[0].candidate_reference_period == "2026-06"
 
 
+def test_parser_preserves_landing_date_with_time_without_publication_label() -> None:
+    parsed = parse_discovery_page(
+        (
+            "<html><body><h1>Reporte de conflictos sociales n.° 269 - julio 2026</h1>"
+            "<div class='box-fecha'><span>5:24 pm 13/08/2026</span></div></body></html>"
+        ),
+        page_url="https://www.defensoria.gob.pe/documentos/reporte-269/",
+        page_role=UrlRole.LANDING_PAGE,
+        observation_id="landing-269-date",
+        captured_at=CAPTURED_AT,
+    )
+
+    assert parsed.publication_date_original == "13/08/2026"
+    assert parsed.records[0].publication_date_original == "13/08/2026"
+
+
 def test_parser_does_not_treat_a_four_digit_year_as_a_report_number() -> None:
     parsed = parse_discovery_page(
         "<html><body><h1>Reporte Mensual de Conflictos Sociales 2004</h1></body></html>",
@@ -132,3 +151,39 @@ def test_parser_does_not_attach_unrelated_page_pdfs_to_every_candidate() -> None
         "reporte-268-junio-2026" not in observation.url
         for observation in parsed.records[0].url_observations
     )
+
+
+def test_parser_preserves_opaque_landing_download_as_unresolved_observation() -> None:
+    parsed = parse_discovery_page(
+        (
+            "<html><body><article><h1>Reporte de conflictos sociales n.° 263 - enero 2026</h1>"
+            "<a href='/wp-content/uploads/2026/02/10.pdf'>Descargar</a>"
+            "</article><aside><a href='/wp-content/uploads/2025/05/Global-policy.pdf'>"
+            "Política global</a></aside>"
+            "<footer><a href='/wp-content/uploads/2025/05/Organigrama.pdf'>"
+            "Organigrama</a></footer></body></html>"
+        ),
+        page_url="https://www.defensoria.gob.pe/documentos/reporte-263/",
+        page_role=UrlRole.LANDING_PAGE,
+        observation_id="landing-263-opaque",
+        captured_at=CAPTURED_AT,
+    )
+
+    assert len(parsed.records) == 2
+    candidate, unresolved = parsed.records
+    assert candidate.candidate_report_number == 263
+    assert all(
+        observation.role is not UrlRole.DIRECT_DOWNLOAD
+        for observation in candidate.url_observations
+    )
+    assert unresolved.candidate_report_number is None
+    assert any(
+        observation.role is UrlRole.DIRECT_DOWNLOAD and observation.url.endswith("/10.pdf")
+        for observation in unresolved.url_observations
+    )
+    assert all(
+        not observation.url.endswith(("/Organigrama.pdf", "/Global-policy.pdf"))
+        for record in parsed.records
+        for observation in record.url_observations
+    )
+    assert unresolved.uncertainty_notes

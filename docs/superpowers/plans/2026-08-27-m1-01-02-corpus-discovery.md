@@ -4,7 +4,7 @@
 
 **Goal:** Build and execute a source-safe, versioned, HTML-only discovery protocol for official Defensoría social-conflict reports from April 2004 onward, then stop before acquisition.
 
-**Architecture:** A separate `discovery/v0.1.0` Pydantic contract models paired identity evidence and URL roles without changing scientific schema `v0.2.0`. Pure URL/pagination/HTML functions are isolated from a serial, robots-aware standard-library client; the thin CLI writes only to Git-ignored temporary output. The live M1-02 run produces a review report, not a public Git source index or Dropbox ledger.
+**Architecture:** A separate versioned discovery contract (current `discovery/v0.2.0`, with `v0.1.0` retained) models paired identity evidence, source page metadata, and URL roles without changing scientific schema `v0.2.0`. Pure URL/pagination/HTML functions are isolated from a serial, robots-aware standard-library client; the thin CLI writes only to Git-ignored temporary output. The live M1-02 run produces a review report, not a public Git source index or Dropbox ledger.
 
 **Tech Stack:** Python 3.12-3.13, Pydantic 2, PyYAML, urllib/HTMLParser, pytest, Ruff, strict Pyright, pre-commit.
 
@@ -38,15 +38,15 @@
 - Consumes: the approved M1 boundary and live ruleset receipt.
 - Produces: the durable authorization gate and exact source/retrieval configuration used by later tasks.
 
-- [ ] **Step 1: Add the approved M1 gate and deferred M2 questions**
+- [x] **Step 1: Add the approved M1 gate and deferred M2 questions**
 
   Update the documents so `v0.2.0` is explicitly an M1-only working baseline, M2-01 owns the five named ontology questions, and M1-03 remains separately prohibited.
 
-- [ ] **Step 2: Add the official-source configuration**
+- [x] **Step 2: Add the official-source configuration**
 
   Define the two approved hosts, starting surface URLs, serial concurrency `1`, delay `2.0`, retry cap `2`, HTML content types, and binary/PDF rejection policy in `config/official_sources.yaml`.
 
-- [ ] **Step 3: Validate configuration syntax**
+- [x] **Step 3: Validate configuration syntax**
 
   Run: `uv run python -c "from pathlib import Path; import yaml; yaml.safe_load(Path('config/official_sources.yaml').read_text(encoding='utf-8'))"`
 
@@ -60,7 +60,8 @@
 - Create: `src/peru_conflicts/discovery/schema_export.py`
 - Create: `tests/unit/test_discovery_models.py`
 - Create: `tests/unit/test_discovery_schema_export.py`
-- Create: `schemas/discovery/v0.1.0/provisional_discovery_record.schema.json`
+- Create: `schemas/discovery/v0.2.0/provisional_discovery_record.schema.json`; retain the
+  generated `schemas/discovery/v0.1.0/` snapshot unchanged
 - Modify: `scripts/export_schemas.py`
 - Modify: `schemas/README.md`
 
@@ -68,37 +69,41 @@
 - Consumes: `StrictModel`, identifier/reference-period validation conventions, and the M1 evidence design.
 - Produces: `IdentityEvidence`, `UrlObservation`, `RedirectHop`, `CandidateSourceRelation`, `CoverageExpectation`, and `ProvisionalDiscoveryRecord`; `export_discovery_schemas()` and `discovery_schemas_are_current()`.
 
-- [ ] **Step 1: Write failing model tests**
+- [x] **Step 1: Write failing model tests**
 
   Tests must show that report-number/reference-period values require paired evidence, embedded-title/filename evidence cannot be the sole identity basis, landing/download/redirect roles remain distinct, null candidates are valid, source contradictions are preserved, and candidate source relations do not claim byte identity.
 
-- [ ] **Step 2: Run tests and verify the intended failure**
+- [x] **Step 2: Run tests and verify the intended failure**
 
   Run: `uv run pytest tests/unit/test_discovery_models.py -q`
 
   Expected: collection/import failure because the discovery models do not exist.
 
-- [ ] **Step 3: Implement the minimal strict models**
+- [x] **Step 3: Implement the minimal strict models**
 
-  Use `DISCOVERY_SCHEMA_VERSION = "0.1.0"`, frozen strict models, non-empty identifiers, and model validators enforcing evidence pairing and identity-source sufficiency.
+  Use a frozen strict technical discovery schema, non-empty identifiers, source-original page
+  metadata, and model validators enforcing evidence pairing and identity-source sufficiency;
+  bump the discovery version when adding fields and retain prior generated directories.
 
-- [ ] **Step 4: Run model tests to green**
+- [x] **Step 4: Run model tests to green**
 
   Run: `uv run pytest tests/unit/test_discovery_models.py -q`
 
   Expected: all model tests pass.
 
-- [ ] **Step 5: Write failing schema-export tests**
+- [x] **Step 5: Write failing schema-export tests**
 
-  Require deterministic export under `schemas/discovery/v0.1.0/`, preservation of scientific schema directories, and drift detection through the existing `scripts/export_schemas.py --check` gate.
+  Require deterministic export under the current `schemas/discovery/v0.2.0/`, preservation of
+  prior discovery and scientific schema directories, and drift detection through the existing
+  `scripts/export_schemas.py --check` gate.
 
-- [ ] **Step 6: Implement export and regenerate the schema**
+- [x] **Step 6: Implement export and regenerate the schema**
 
   Run: `uv run python scripts/export_schemas.py`
 
   Expected: scientific schemas are unchanged and the discovery schema is written deterministically.
 
-- [ ] **Step 7: Run schema tests**
+- [x] **Step 7: Run schema tests**
 
   Run: `uv run pytest tests/unit/test_discovery_models.py tests/unit/test_discovery_schema_export.py -q`
 
@@ -114,21 +119,21 @@
 - Consumes: source configuration and discovery URL/evidence models.
 - Produces: `normalize_url()`, `classify_host()`, `build_coverage_grid()`, and `PaginationTracker` with explicit stop reasons.
 
-- [ ] **Step 1: Write failing behavior tests**
+- [x] **Step 1: Write failing behavior tests**
 
   Cover scheme/host normalization, tracking-query removal without damaging meaningful search parameters, fragment removal, relative URL resolution, rejection of credentials/non-HTTP schemes, exact-host allowlisting, pending classification for other subdomains/shorteners, April-2004 coverage-grid semantics, repeated-page termination, visible-next termination, and safety-cap termination.
 
-- [ ] **Step 2: Run tests and verify failure**
+- [x] **Step 2: Run tests and verify failure**
 
   Run: `uv run pytest tests/unit/test_discovery_policy.py -q`
 
   Expected: import failure because `policy.py` is absent.
 
-- [ ] **Step 3: Implement pure policy functions**
+- [x] **Step 3: Implement pure policy functions**
 
   Keep URL normalization loss-minimizing: preserve path case and meaningful query values; never rewrite an unapproved host into an approved one.
 
-- [ ] **Step 4: Run tests to green**
+- [x] **Step 4: Run tests to green**
 
   Run: `uv run pytest tests/unit/test_discovery_policy.py -q`
 
@@ -151,35 +156,35 @@
 - Consumes: the policy functions, models, and `config/official_sources.yaml`.
 - Produces: `parse_discovery_page()`, a robots-aware `HtmlClient`, `run_reconnaissance()`, and a CLI whose output directory must be outside the protected data root.
 
-- [ ] **Step 1: Write failing HTML parser tests**
+- [x] **Step 1: Write failing HTML parser tests**
 
   Fixtures must exercise report title/publication date/file URL extraction, candidate number/month parsing from visible official metadata, visible next-page discovery, duplicate links, and non-conflict report exclusion without using PDF text.
 
-- [ ] **Step 2: Run parser tests and verify failure**
+- [x] **Step 2: Run parser tests and verify failure**
 
   Run: `uv run pytest tests/unit/test_discovery_html.py -q`
 
   Expected: import failure because the parser is absent.
 
-- [ ] **Step 3: Implement the deterministic HTML parser**
+- [x] **Step 3: Implement the deterministic HTML parser**
 
   Use `html.parser.HTMLParser`; keep Spanish source strings intact and create paired official-metadata evidence.
 
-- [ ] **Step 4: Write failing client/integration tests**
+- [x] **Step 4: Write failing client/integration tests**
 
   Use an injected fake transport to prove serial traversal, delay invocation, retry limits, `Retry-After` handling, robots rejection, PDF/body rejection, redirect evidence, output-path refusal for `CONFLICT_DATA_ROOT`, temporary JSON/JSONL output, idempotent reruns, and explicit incomplete stop reasons.
 
-- [ ] **Step 5: Run integration tests and verify failure**
+- [x] **Step 5: Run integration tests and verify failure**
 
   Run: `uv run pytest tests/integration/test_discovery_reconnaissance.py -q`
 
   Expected: import or assertion failure for missing client behavior.
 
-- [ ] **Step 6: Implement the minimal client, runner, and CLI**
+- [x] **Step 6: Implement the minimal client, runner, and CLI**
 
   The live mode must use concurrency `1`, delay `>=2.0`, retries `<=2`, and never call GET on a discovered `.pdf` or a response advertised as PDF/binary.
 
-- [ ] **Step 7: Run Task 4 tests to green**
+- [x] **Step 7: Run Task 4 tests to green**
 
   Run: `uv run pytest tests/unit/test_discovery_html.py tests/integration/test_discovery_reconnaissance.py -q`
 
@@ -199,32 +204,32 @@
 - Consumes: the complete tested discovery command and approved official surfaces.
 - Produces: a provisional temporary inventory, durable methodological receipts and coverage summary, and the exact bounded M1-03 proposal without acquiring anything.
 
-- [ ] **Step 1: Record pre-run source integrity and derived-layer state**
+- [x] **Step 1: Record pre-run source integrity and derived-layer state**
 
   Recompute the 11 approved hashes and count files under `02_extracted` through `07_releases`; retain the receipt in the review report.
 
-- [ ] **Step 2: Run official HTML-only reconnaissance**
+- [x] **Step 2: Run official HTML-only reconnaissance**
 
   Run the CLI against the reports catalogue, thematic page, official search/pagination, and discovered official document surfaces with output under `.cache/m1-discovery-2026-08-27/`. Do not request PDF bodies.
 
-- [ ] **Step 3: Review the provisional inventory**
+- [x] **Step 3: Review the provisional inventory**
 
   Summarize observed candidate coverage from April 2004, gaps, duplicate/ambiguous identities, suspected alternate source URLs, redirects/new hosts, and every stop reason. Do not assert completeness.
 
-- [ ] **Step 4: Write protocol, robots/rate-limit/terms receipt, and review report**
+- [x] **Step 4: Write protocol, robots/rate-limit/terms receipt, and review report**
 
   Include exact URLs, timestamps, page/request counts, response-header evidence, unresolved redistribution rights, schema changes, and the exact proposed first acquisition set.
 
-- [ ] **Step 5: Run the complete quality gate**
+- [x] **Step 5: Run the complete quality gate**
 
   Run: `uv sync --frozen --group dev`; `uv run ruff format --check .`; `uv run ruff check .`; `uv run pyright`; `uv run pytest`; `uv run python scripts/export_schemas.py --check`; `uv run python scripts/check_git_data_policy.py`; `uv run pre-commit run --all-files`; `git diff --check`.
 
   Expected: every command exits `0`.
 
-- [ ] **Step 6: Reverify source integrity and M1 boundary**
+- [x] **Step 6: Reverify source integrity and M1 boundary**
 
   Confirm all 11 source hashes are unchanged, no file was added to Dropbox layers `02`-`07`, no file was added to `01_raw`, and no PDF/workbook/data artifact is tracked by Git.
 
-- [ ] **Step 7: Freeze the branch and stop before M1-03**
+- [x] **Step 7: Freeze the branch and stop before M1-03**
 
   Commit and push the focused branch only after verification. Present the acquisition command/dry-run proposal with exact maximum report/URL count, concurrency, delay, retry cap, temporary location, hash-before-promote, collision/version handling, idempotency, and rollback/abandon behavior. Do not execute it.

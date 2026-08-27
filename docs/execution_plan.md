@@ -13,6 +13,14 @@ contract or benchmark gates without a written decision.
 
 Parallel work is limited to independent, read-heavy or isolated outputs. No two agents independently mutate a canonical manifest, schema, gold file, adjudication table, or identity graph.
 
+## Current execution status
+
+M0/M0.1 is merged to `main`. M1-01 (discovery protocol/source registry) and M1-02
+(read-only official-source reconnaissance) are complete on
+`codex/m1-01-02-corpus-discovery`, with their review report and integrity receipts.
+M1-03 remains blocked pending Jorge's separate acquisition-checkpoint approval;
+there has been no new raw write. M2-01 has not started.
+
 ## Global gates
 
 | Gate | Requirement |

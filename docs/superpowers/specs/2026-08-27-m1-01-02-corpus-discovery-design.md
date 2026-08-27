@@ -15,8 +15,9 @@ resolving content-model questions recorded in `docs/29_open_questions.md`.
 ## Architecture
 
 M1 discovery has a separate technical schema version from the scientific content
-schema. `discovery/v0.1.0` pairs every candidate identity value with its evidence and
-provenance, distinguishes catalogue/search/thematic/landing/download/redirect URL roles,
+schema. The current `discovery/v0.2.0` contract (with `discovery/v0.1.0` retained as the
+first snapshot) pairs every candidate identity value with its evidence and provenance,
+preserves source-original page metadata, and distinguishes catalogue/search/thematic/landing/download/redirect URL roles,
 and preserves uncertainty. It does not mutate either scientific schema directory.
 
 The read-only reconnaissance command uses the Python standard library plus the existing

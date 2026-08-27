@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import subprocess
 import sys
@@ -13,17 +14,34 @@ from peru_conflicts.discovery.schema_export import (
 from peru_conflicts.schema_export import export_json_schemas
 
 SCHEMA_FILENAME = "provisional_discovery_record.schema.json"
+DISCOVERY_V010_TREE_DIGEST = "28fc05feae0d71ce9a681e3929c8d751a2a7c4134baa4b8b5a73a6402186660f"
+
+
+def _schema_tree_digest(version_dir: Path) -> str:
+    rows = [
+        f"{path.name}:{hashlib.sha256(path.read_bytes()).hexdigest()}"
+        for path in sorted(version_dir.glob("*.schema.json"))
+    ]
+    return hashlib.sha256("\n".join(rows).encode("utf-8")).hexdigest()
+
+
+def test_repository_discovery_v010_snapshot_digest_is_retained() -> None:
+    repo_root = Path(__file__).parents[2]
+    assert (
+        _schema_tree_digest(repo_root / "schemas" / "discovery" / "v0.1.0")
+        == DISCOVERY_V010_TREE_DIGEST
+    )
 
 
 def test_discovery_export_writes_one_strict_versioned_schema(tmp_path: Path) -> None:
     written = export_discovery_schemas(tmp_path)
 
-    assert written == [tmp_path / "discovery" / "v0.1.0" / SCHEMA_FILENAME]
+    assert written == [tmp_path / "discovery" / "v0.2.0" / SCHEMA_FILENAME]
     schema = json.loads(written[0].read_text(encoding="utf-8"))
     assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
     assert schema["$id"] == (
         "https://github.com/Jorge-Zavala-D/peru-conflict-data/"
-        "schemas/discovery/v0.1.0/provisional_discovery_record.schema.json"
+        "schemas/discovery/v0.2.0/provisional_discovery_record.schema.json"
     )
     assert schema["additionalProperties"] is False
     assert all(
@@ -137,6 +155,17 @@ def test_discovery_schema_check_detects_changed_missing_and_extra_files(tmp_path
     export_discovery_schemas(tmp_path)
     (schema_dir / "stale.schema.json").write_text("{}\n", encoding="utf-8")
     assert discovery_schemas_are_current(tmp_path) is False
+
+
+def test_discovery_export_preserves_prior_discovery_schema_version(tmp_path: Path) -> None:
+    prior = tmp_path / "discovery" / "v0.1.0" / SCHEMA_FILENAME
+    prior.parent.mkdir(parents=True, exist_ok=True)
+    prior.write_bytes(b'{"version":"0.1.0"}\n')
+
+    export_discovery_schemas(tmp_path)
+
+    assert prior.read_bytes() == b'{"version":"0.1.0"}\n'
+    assert (tmp_path / "discovery" / "v0.2.0" / SCHEMA_FILENAME).exists()
 
 
 def test_existing_schema_check_gate_includes_discovery_drift(tmp_path: Path) -> None:

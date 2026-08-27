@@ -146,9 +146,29 @@ def test_qualifying_paired_evidence_supports_both_candidate_identity_values() ->
         url_observations=(_landing_observation(),),
     )
 
-    assert record.schema_version == DISCOVERY_SCHEMA_VERSION == "0.1.0"
+    assert record.schema_version == DISCOVERY_SCHEMA_VERSION == "0.2.0"
     assert record.candidate_report_number == 269
     assert record.candidate_reference_period == "2026-07"
+
+
+def test_page_metadata_is_preserved_as_original_source_values() -> None:
+    record = ProvisionalDiscoveryRecord(
+        discovery_record_id="candidate-269",
+        candidate_report_number=269,
+        identity_evidence=(
+            _identity_evidence(
+                subject=IdentitySubject.REPORT_NUMBER,
+                candidate_value="269",
+                observed_value="N.° 269",
+            ),
+        ),
+        url_observations=(_landing_observation(),),
+        page_title_original="Reporte de conflictos sociales n.º 269 — julio 2026",
+        publication_date_original="13/08/2026",
+    )
+
+    assert record.page_title_original == "Reporte de conflictos sociales n.º 269 — julio 2026"
+    assert record.publication_date_original == "13/08/2026"
 
 
 def test_null_candidates_are_valid_and_uncertainty_is_preserved() -> None:
