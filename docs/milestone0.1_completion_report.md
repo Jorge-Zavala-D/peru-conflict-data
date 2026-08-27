@@ -93,7 +93,7 @@ derived-indicator provenance semantics are documented and tested.
 
 ## Source-integrity receipt
 
-Read-only verification was rerun at `2026-08-27T11:57:50.2562736Z` UTC. All 11
+Read-only verification was rerun at `2026-08-27T12:22:51.5129357Z` UTC. All 11
 allowed external/raw inputs match their pre-M0 SHA-256 and byte sizes recorded in
 `docs/source_integrity_receipt_m0_1.md`: `Base15-26.xlsx` plus reports 260-269.
 The connected Dropbox root remains 82 directories, 110 files, and 33,453,193 bytes.

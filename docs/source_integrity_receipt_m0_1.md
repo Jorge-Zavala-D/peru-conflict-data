@@ -1,6 +1,6 @@
 # M0.1 source-integrity receipt
 
-Verification timestamp: `2026-08-27T11:29:23.7214632Z` (UTC)
+Verification timestamp: `2026-08-27T12:22:51.5129357Z` (UTC)
 
 Command: PowerShell `Get-FileHash -Algorithm SHA256` over every file recursively
 under Dropbox `00_external` and `01_raw`, followed by file/count/byte inventory of the
