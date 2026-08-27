@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from enum import StrEnum
+from itertools import pairwise
 from typing import Literal, Self
 
 from pydantic import AwareDatetime, Field, model_validator
@@ -94,6 +95,15 @@ class UrlObservation(StrictModel):
     content_type: str | None = None
     redirect_hops: tuple[RedirectHop, ...] = ()
     uncertainty_note: str | None = None
+
+    @model_validator(mode="after")
+    def bind_redirect_chain_to_observation(self) -> Self:
+        for previous, current in pairwise(self.redirect_hops):
+            if previous.to_url != current.from_url:
+                raise ValueError("redirect hops must be contiguous")
+        if self.redirect_hops and self.redirect_hops[-1].to_url != self.url:
+            raise ValueError("redirect chain must end at the observation URL")
+        return self
 
 
 class CandidateSourceRelation(StrictModel):

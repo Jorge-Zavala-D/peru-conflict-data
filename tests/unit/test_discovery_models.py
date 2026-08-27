@@ -25,6 +25,8 @@ CAPTURED_AT = datetime(2026, 8, 27, 10, 30, tzinfo=UTC)
 CATALOGUE_URL = "https://www.defensoria.gob.pe/categorias_de_documentos/reportes/"
 LANDING_URL = "https://www.defensoria.gob.pe/documentos/reporte-de-conflictos-269/"
 DOWNLOAD_URL = "https://www.defensoria.gob.pe/wp-content/uploads/2026/07/Reporte-269.pdf"
+REDIRECT_ORIGIN_URL = "https://defensoria.gob.pe/download?id=269"
+REDIRECT_INTERMEDIATE_URL = "https://www.defensoria.gob.pe/intermediate-download?id=269"
 LANDING_OBSERVATION_ID = "landing-observation-1"
 DOWNLOAD_OBSERVATION_ID = "download-observation-1"
 
@@ -203,11 +205,19 @@ def test_contradictory_source_values_are_preserved_without_reconciliation() -> N
 
 
 def test_url_roles_and_redirect_hops_remain_distinct_structured_records() -> None:
-    redirect = RedirectHop(
-        from_url="https://defensoria.gob.pe/download?id=269",
-        to_url=DOWNLOAD_URL,
-        status_code=302,
-        captured_at=CAPTURED_AT,
+    redirect_chain = (
+        RedirectHop(
+            from_url=REDIRECT_ORIGIN_URL,
+            to_url=REDIRECT_INTERMEDIATE_URL,
+            status_code=301,
+            captured_at=CAPTURED_AT,
+        ),
+        RedirectHop(
+            from_url=REDIRECT_INTERMEDIATE_URL,
+            to_url=DOWNLOAD_URL,
+            status_code=302,
+            captured_at=CAPTURED_AT,
+        ),
     )
     observations = (
         UrlObservation(
@@ -234,7 +244,7 @@ def test_url_roles_and_redirect_hops_remain_distinct_structured_records() -> Non
             role=UrlRole.DIRECT_DOWNLOAD,
             url=DOWNLOAD_URL,
             captured_at=CAPTURED_AT,
-            redirect_hops=(redirect,),
+            redirect_hops=redirect_chain,
         ),
     )
 
@@ -246,7 +256,52 @@ def test_url_roles_and_redirect_hops_remain_distinct_structured_records() -> Non
         UrlRole.DIRECT_DOWNLOAD,
     ]
     assert observations[4].redirect_hops[0].role == "redirect_hop"
-    assert observations[4].redirect_hops[0].from_url != observations[4].redirect_hops[0].to_url
+    assert observations[4].redirect_hops[0].to_url == observations[4].redirect_hops[1].from_url
+    assert observations[4].redirect_hops[-1].to_url == observations[4].url
+
+
+def test_redirect_chain_must_end_at_the_parent_observation_url() -> None:
+    unrelated_terminal = RedirectHop(
+        from_url=REDIRECT_ORIGIN_URL,
+        to_url=LANDING_URL,
+        status_code=302,
+        captured_at=CAPTURED_AT,
+    )
+
+    with pytest.raises(ValidationError, match="must end at the observation URL"):
+        UrlObservation(
+            observation_id=DOWNLOAD_OBSERVATION_ID,
+            role=UrlRole.DIRECT_DOWNLOAD,
+            url=DOWNLOAD_URL,
+            captured_at=CAPTURED_AT,
+            redirect_hops=(unrelated_terminal,),
+        )
+
+
+def test_multi_hop_redirect_chain_must_be_contiguous() -> None:
+    broken_chain = (
+        RedirectHop(
+            from_url=REDIRECT_ORIGIN_URL,
+            to_url=REDIRECT_INTERMEDIATE_URL,
+            status_code=301,
+            captured_at=CAPTURED_AT,
+        ),
+        RedirectHop(
+            from_url=LANDING_URL,
+            to_url=DOWNLOAD_URL,
+            status_code=302,
+            captured_at=CAPTURED_AT,
+        ),
+    )
+
+    with pytest.raises(ValidationError, match="must be contiguous"):
+        UrlObservation(
+            observation_id=DOWNLOAD_OBSERVATION_ID,
+            role=UrlRole.DIRECT_DOWNLOAD,
+            url=DOWNLOAD_URL,
+            captured_at=CAPTURED_AT,
+            redirect_hops=broken_chain,
+        )
 
 
 def test_candidate_source_relation_allows_only_pre_hash_same_report_claims() -> None:
