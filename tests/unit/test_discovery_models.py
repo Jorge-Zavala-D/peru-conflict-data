@@ -10,6 +10,8 @@ from peru_conflicts.discovery.models import (
     CandidateSourceRelation,
     CandidateSourceRelationType,
     CoverageExpectation,
+    DiscoveryIssue,
+    DiscoveryIssueType,
     IdentityEvidence,
     IdentityEvidenceType,
     IdentitySubject,
@@ -23,6 +25,8 @@ CAPTURED_AT = datetime(2026, 8, 27, 10, 30, tzinfo=UTC)
 CATALOGUE_URL = "https://www.defensoria.gob.pe/categorias_de_documentos/reportes/"
 LANDING_URL = "https://www.defensoria.gob.pe/documentos/reporte-de-conflictos-269/"
 DOWNLOAD_URL = "https://www.defensoria.gob.pe/wp-content/uploads/2026/07/Reporte-269.pdf"
+LANDING_OBSERVATION_ID = "landing-observation-1"
+DOWNLOAD_OBSERVATION_ID = "download-observation-1"
 
 
 def _identity_evidence(
@@ -31,13 +35,18 @@ def _identity_evidence(
     candidate_value: str,
     observed_value: str,
     evidence_type: IdentityEvidenceType = IdentityEvidenceType.OFFICIAL_METADATA,
+    evidence_id: str = "identity-evidence-1",
+    source_observation_id: str = LANDING_OBSERVATION_ID,
+    source_url: str = LANDING_URL,
 ) -> IdentityEvidence:
     return IdentityEvidence(
+        evidence_id=evidence_id,
         subject=subject,
         evidence_type=evidence_type,
         candidate_value=candidate_value,
         observed_value=observed_value,
-        source_url=LANDING_URL,
+        source_observation_id=source_observation_id,
+        source_url=source_url,
         captured_at=CAPTURED_AT,
         source_excerpt="Reporte de conflictos sociales N.° 269 — julio 2026",
     )
@@ -45,7 +54,7 @@ def _identity_evidence(
 
 def _landing_observation() -> UrlObservation:
     return UrlObservation(
-        observation_id="url-observation-1",
+        observation_id=LANDING_OBSERVATION_ID,
         role=UrlRole.LANDING_PAGE,
         url=LANDING_URL,
         captured_at=CAPTURED_AT,
@@ -129,6 +138,7 @@ def test_qualifying_paired_evidence_supports_both_candidate_identity_values() ->
                 candidate_value="2026-07",
                 observed_value="julio 2026",
                 evidence_type=IdentityEvidenceType.DOCUMENT_VISIBLE,
+                evidence_id="identity-evidence-2",
             ),
         ),
         url_observations=(_landing_observation(),),
@@ -165,6 +175,13 @@ def test_contradictory_source_values_are_preserved_without_reconciliation() -> N
         candidate_value="268",
         observed_value="Reporte-268.pdf",
         evidence_type=IdentityEvidenceType.FILENAME,
+        evidence_id="identity-evidence-2",
+    )
+    issue = DiscoveryIssue(
+        issue_id="issue-1",
+        issue_type=DiscoveryIssueType.SOURCE_INCONSISTENCY,
+        evidence_ids=("identity-evidence-1", "identity-evidence-2"),
+        classification_rationale="Official metadata and filename publish different numbers.",
     )
 
     record = ProvisionalDiscoveryRecord(
@@ -172,10 +189,16 @@ def test_contradictory_source_values_are_preserved_without_reconciliation() -> N
         candidate_report_number=269,
         identity_evidence=(official_value, contradictory_filename),
         url_observations=(_landing_observation(),),
+        discovery_issues=(issue,),
         uncertainty_notes=("Official metadata and filename disagree.",),
     )
 
     assert [evidence.candidate_value for evidence in record.identity_evidence] == ["269", "268"]
+    assert record.discovery_issues[0].issue_type is DiscoveryIssueType.SOURCE_INCONSISTENCY
+    assert record.discovery_issues[0].evidence_ids == (
+        "identity-evidence-1",
+        "identity-evidence-2",
+    )
     assert record.uncertainty_notes == ("Official metadata and filename disagree.",)
 
 
@@ -188,14 +211,26 @@ def test_url_roles_and_redirect_hops_remain_distinct_structured_records() -> Non
     )
     observations = (
         UrlObservation(
-            observation_id="surface-1",
-            role=UrlRole.DISCOVERY_SURFACE,
+            observation_id="catalogue-1",
+            role=UrlRole.CATALOGUE_PAGE,
             url=CATALOGUE_URL,
+            captured_at=CAPTURED_AT,
+        ),
+        UrlObservation(
+            observation_id="search-1",
+            role=UrlRole.SEARCH_RESULT_PAGE,
+            url="https://www.defensoria.gob.pe/?s=conflictos+sociales",
+            captured_at=CAPTURED_AT,
+        ),
+        UrlObservation(
+            observation_id="thematic-1",
+            role=UrlRole.THEMATIC_PAGE,
+            url="https://www.defensoria.gob.pe/areas_tematicas/paz-social/",
             captured_at=CAPTURED_AT,
         ),
         _landing_observation(),
         UrlObservation(
-            observation_id="download-1",
+            observation_id=DOWNLOAD_OBSERVATION_ID,
             role=UrlRole.DIRECT_DOWNLOAD,
             url=DOWNLOAD_URL,
             captured_at=CAPTURED_AT,
@@ -204,18 +239,22 @@ def test_url_roles_and_redirect_hops_remain_distinct_structured_records() -> Non
     )
 
     assert [observation.role for observation in observations] == [
-        UrlRole.DISCOVERY_SURFACE,
+        UrlRole.CATALOGUE_PAGE,
+        UrlRole.SEARCH_RESULT_PAGE,
+        UrlRole.THEMATIC_PAGE,
         UrlRole.LANDING_PAGE,
         UrlRole.DIRECT_DOWNLOAD,
     ]
-    assert observations[2].redirect_hops[0].role == "redirect_hop"
-    assert observations[2].redirect_hops[0].from_url != observations[2].redirect_hops[0].to_url
+    assert observations[4].redirect_hops[0].role == "redirect_hop"
+    assert observations[4].redirect_hops[0].from_url != observations[4].redirect_hops[0].to_url
 
 
 def test_candidate_source_relation_allows_only_pre_hash_same_report_claims() -> None:
     relation = CandidateSourceRelation(
         relation_id="relation-1",
+        source_observation_id=LANDING_OBSERVATION_ID,
         source_url=LANDING_URL,
+        related_observation_id=DOWNLOAD_OBSERVATION_ID,
         related_source_url=DOWNLOAD_URL,
         relation_type=CandidateSourceRelationType.APPEARS_SAME_REPORT,
         captured_at=CAPTURED_AT,
@@ -228,18 +267,159 @@ def test_candidate_source_relation_allows_only_pre_hash_same_report_claims() -> 
             {
                 **relation.model_dump(),
                 "relation_type": "alternate_byte_version",
-                "byte_identity": True,
             }
+        )
+    with pytest.raises(ValidationError):
+        CandidateSourceRelation.model_validate({**relation.model_dump(), "byte_identity": True})
+
+
+def test_identity_evidence_requires_an_observed_matching_source_url() -> None:
+    unobserved = _identity_evidence(
+        subject=IdentitySubject.REPORT_NUMBER,
+        candidate_value="269",
+        observed_value="N.° 269",
+        source_observation_id="missing-observation",
+    )
+    mismatched = _identity_evidence(
+        subject=IdentitySubject.REPORT_NUMBER,
+        candidate_value="269",
+        observed_value="N.° 269",
+        source_url=DOWNLOAD_URL,
+    )
+
+    with pytest.raises(ValidationError, match="unknown source observation"):
+        ProvisionalDiscoveryRecord(
+            discovery_record_id="candidate-269",
+            candidate_report_number=269,
+            identity_evidence=(unobserved,),
+            url_observations=(_landing_observation(),),
+        )
+    with pytest.raises(ValidationError, match="does not match source_url"):
+        ProvisionalDiscoveryRecord(
+            discovery_record_id="candidate-269",
+            candidate_report_number=269,
+            identity_evidence=(mismatched,),
+            url_observations=(_landing_observation(),),
         )
 
 
-def test_coverage_expectation_is_a_research_hypothesis_not_an_observation() -> None:
+def test_stable_observation_and_evidence_ids_must_be_unique_within_a_record() -> None:
+    duplicate_observation = UrlObservation(
+        observation_id=LANDING_OBSERVATION_ID,
+        role=UrlRole.DIRECT_DOWNLOAD,
+        url=DOWNLOAD_URL,
+        captured_at=CAPTURED_AT,
+    )
+    first_evidence = _identity_evidence(
+        subject=IdentitySubject.REPORT_NUMBER,
+        candidate_value="269",
+        observed_value="N.° 269",
+    )
+    duplicate_evidence = _identity_evidence(
+        subject=IdentitySubject.REFERENCE_PERIOD,
+        candidate_value="2026-07",
+        observed_value="julio 2026",
+    )
+
+    with pytest.raises(ValidationError, match="URL observation IDs must be unique"):
+        ProvisionalDiscoveryRecord(
+            discovery_record_id="candidate-unknown",
+            url_observations=(_landing_observation(), duplicate_observation),
+        )
+    with pytest.raises(ValidationError, match="identity evidence IDs must be unique"):
+        ProvisionalDiscoveryRecord(
+            discovery_record_id="candidate-unknown",
+            identity_evidence=(first_evidence, duplicate_evidence),
+            url_observations=(_landing_observation(),),
+        )
+
+
+def test_candidate_source_relation_requires_observed_matching_endpoints() -> None:
+    download = UrlObservation(
+        observation_id=DOWNLOAD_OBSERVATION_ID,
+        role=UrlRole.DIRECT_DOWNLOAD,
+        url=DOWNLOAD_URL,
+        captured_at=CAPTURED_AT,
+    )
+    relation = CandidateSourceRelation(
+        relation_id="relation-1",
+        source_observation_id=LANDING_OBSERVATION_ID,
+        source_url=LANDING_URL,
+        related_observation_id=DOWNLOAD_OBSERVATION_ID,
+        related_source_url=DOWNLOAD_URL,
+        relation_type=CandidateSourceRelationType.APPEARS_SAME_REPORT,
+        captured_at=CAPTURED_AT,
+        rationale="The official landing page links to this file URL.",
+    )
+
+    with pytest.raises(ValidationError, match="unknown related observation"):
+        ProvisionalDiscoveryRecord(
+            discovery_record_id="candidate-269",
+            url_observations=(_landing_observation(),),
+            candidate_source_relations=(relation,),
+        )
+
+    mismatched = relation.model_copy(update={"related_source_url": CATALOGUE_URL})
+    with pytest.raises(ValidationError, match="does not match related_source_url"):
+        ProvisionalDiscoveryRecord(
+            discovery_record_id="candidate-269",
+            url_observations=(_landing_observation(), download),
+            candidate_source_relations=(mismatched,),
+        )
+
+
+def test_discovery_issue_types_have_distinct_evidence_requirements() -> None:
+    with pytest.raises(ValidationError, match="at least two evidence IDs"):
+        DiscoveryIssue(
+            issue_id="issue-1",
+            issue_type=DiscoveryIssueType.SOURCE_INCONSISTENCY,
+            evidence_ids=("identity-evidence-1",),
+            classification_rationale="Two published identity values conflict.",
+        )
+
+    ambiguity = DiscoveryIssue(
+        issue_id="issue-2",
+        issue_type=DiscoveryIssueType.SOURCE_AMBIGUITY,
+        related_observation_ids=(LANDING_OBSERVATION_ID,),
+        classification_rationale="The landing page does not identify the reference month.",
+    )
+    coverage_gap = DiscoveryIssue(
+        issue_id="issue-3",
+        issue_type=DiscoveryIssueType.COVERAGE_GAP,
+        reference_periods=("2004-04",),
+        classification_rationale="No official source has yet been observed for this grid month.",
+    )
+
+    assert ambiguity.issue_type is DiscoveryIssueType.SOURCE_AMBIGUITY
+    assert coverage_gap.issue_type is DiscoveryIssueType.COVERAGE_GAP
+    with pytest.raises(ValidationError):
+        DiscoveryIssue.model_validate({**coverage_gap.model_dump(), "corrected_value": "269"})
+
+
+def test_discovery_issue_evidence_links_must_exist_in_the_record() -> None:
+    issue = DiscoveryIssue(
+        issue_id="issue-1",
+        issue_type=DiscoveryIssueType.SOURCE_INCONSISTENCY,
+        evidence_ids=("missing-1", "missing-2"),
+        classification_rationale="Two published identity values conflict.",
+    )
+
+    with pytest.raises(ValidationError, match="unknown identity evidence"):
+        ProvisionalDiscoveryRecord(
+            discovery_record_id="candidate-unknown",
+            url_observations=(_landing_observation(),),
+            discovery_issues=(issue,),
+        )
+
+
+def test_coverage_expectation_exists_independently_without_a_url_observation() -> None:
     expectation = CoverageExpectation(
         reference_period="2004-04",
         rationale="Monthly research grid begins at the project start month.",
     )
 
     assert expectation.expectation_kind == "research_coverage_grid"
+    assert "url_observations" not in expectation.model_dump()
     with pytest.raises(ValidationError):
         CoverageExpectation.model_validate(
             {

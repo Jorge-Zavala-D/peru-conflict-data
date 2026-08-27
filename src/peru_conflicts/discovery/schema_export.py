@@ -10,6 +10,34 @@ from peru_conflicts.discovery.models import DISCOVERY_SCHEMA_VERSION, Provisiona
 DISCOVERY_SCHEMA_FILENAME = "provisional_discovery_record.schema.json"
 
 
+def _qualified_evidence_condition(
+    *, candidate_field: str, candidate_type: str, subject: str
+) -> dict[str, object]:
+    return {
+        "if": {
+            "properties": {candidate_field: {"type": candidate_type}},
+            "required": [candidate_field],
+        },
+        "then": {
+            "properties": {
+                "identity_evidence": {
+                    "contains": {
+                        "properties": {
+                            "evidence_type": {"enum": ["document_visible", "official_metadata"]},
+                            "subject": {"const": subject},
+                        },
+                        "required": ["subject", "evidence_type"],
+                        "type": "object",
+                    },
+                    "minContains": 1,
+                    "minItems": 1,
+                }
+            },
+            "required": ["identity_evidence"],
+        },
+    }
+
+
 def rendered_discovery_schemas() -> dict[str, str]:
     """Render the complete discovery schema registry deterministically."""
 
@@ -18,6 +46,24 @@ def rendered_discovery_schemas() -> dict[str, str]:
     schema["$id"] = (
         "https://github.com/Jorge-Zavala-D/peru-conflict-data/"
         f"schemas/discovery/v{DISCOVERY_SCHEMA_VERSION}/{DISCOVERY_SCHEMA_FILENAME}"
+    )
+    schema["$comment"] = (
+        "JSON Schema enforces subject/type evidence sufficiency; Pydantic additionally "
+        "requires candidate_value to equal the corresponding candidate identity exactly."
+    )
+    schema.setdefault("allOf", []).extend(
+        [
+            _qualified_evidence_condition(
+                candidate_field="candidate_report_number",
+                candidate_type="integer",
+                subject="report_number",
+            ),
+            _qualified_evidence_condition(
+                candidate_field="candidate_reference_period",
+                candidate_type="string",
+                subject="reference_period",
+            ),
+        ]
     )
     return {
         DISCOVERY_SCHEMA_FILENAME: (

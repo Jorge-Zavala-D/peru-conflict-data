@@ -45,6 +45,70 @@ def test_discovery_schema_render_and_export_are_deterministic(tmp_path: Path) ->
     assert discovery_schemas_are_current(tmp_path) is True
 
 
+def test_discovery_schema_encodes_qualified_identity_evidence_conditions(
+    tmp_path: Path,
+) -> None:
+    written = export_discovery_schemas(tmp_path)
+    schema = json.loads(written[0].read_text(encoding="utf-8"))
+
+    assert schema["$comment"] == (
+        "JSON Schema enforces subject/type evidence sufficiency; Pydantic additionally "
+        "requires candidate_value to equal the corresponding candidate identity exactly."
+    )
+    assert schema["allOf"] == [
+        {
+            "if": {
+                "properties": {"candidate_report_number": {"type": "integer"}},
+                "required": ["candidate_report_number"],
+            },
+            "then": {
+                "properties": {
+                    "identity_evidence": {
+                        "contains": {
+                            "properties": {
+                                "evidence_type": {
+                                    "enum": ["document_visible", "official_metadata"]
+                                },
+                                "subject": {"const": "report_number"},
+                            },
+                            "required": ["subject", "evidence_type"],
+                            "type": "object",
+                        },
+                        "minContains": 1,
+                        "minItems": 1,
+                    }
+                },
+                "required": ["identity_evidence"],
+            },
+        },
+        {
+            "if": {
+                "properties": {"candidate_reference_period": {"type": "string"}},
+                "required": ["candidate_reference_period"],
+            },
+            "then": {
+                "properties": {
+                    "identity_evidence": {
+                        "contains": {
+                            "properties": {
+                                "evidence_type": {
+                                    "enum": ["document_visible", "official_metadata"]
+                                },
+                                "subject": {"const": "reference_period"},
+                            },
+                            "required": ["subject", "evidence_type"],
+                            "type": "object",
+                        },
+                        "minContains": 1,
+                        "minItems": 1,
+                    }
+                },
+                "required": ["identity_evidence"],
+            },
+        },
+    ]
+
+
 def test_discovery_export_preserves_scientific_schema_directories(tmp_path: Path) -> None:
     immutable = {
         tmp_path / "v0.1.0" / "sentinel.schema.json": b'{"version":"0.1.0"}\n',
