@@ -204,7 +204,7 @@ def _link_matches_candidate(
     haystack = f"{link.url} {link.text}".lower()
     if report_number is not None and re.search(rf"(?<!\d){report_number}(?!\d)", haystack):
         return True
-    return "reporte" in haystack and "conflict" in haystack
+    return False
 
 
 def _candidate_texts(parser: _MetadataParser) -> list[str]:
