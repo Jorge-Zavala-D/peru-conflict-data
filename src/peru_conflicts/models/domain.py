@@ -282,13 +282,13 @@ class DialogueEvent(VersionedModel):
     dialogue_event_id: Identifier
     report_id: Identifier
     case_id: str | None = None
-    mediation_process_id: str | None = None
+    mediation_process_id: Identifier | None = None
     event_date: date | None = None
     event_date_original: str | None = None
     event_date_precision_original: str | None = None
     description_original: str | None = None
     status_original: str | None = None
-    provenance_ids: tuple[str, ...] = ()
+    provenance_ids: tuple[Identifier, ...] = ()
 
     @model_validator(mode="after")
     def require_mediation_link_provenance(self) -> Self:
@@ -300,7 +300,7 @@ class DialogueEvent(VersionedModel):
 class MediationProcess(VersionedModel):
     mediation_process_id: Identifier
     report_id: Identifier
-    case_id: str | None = None
+    case_id: Identifier | None = None
     start_date: date | None = None
     start_date_original: str | None = None
     start_date_precision_original: str | None = None
@@ -313,6 +313,12 @@ class MediationProcess(VersionedModel):
     demands_original: str | None = None
     progress_original: str | None = None
     provenance_ids: tuple[Identifier, ...] = ()
+
+    @model_validator(mode="after")
+    def require_case_link_provenance(self) -> Self:
+        if self.case_id is not None and not self.provenance_ids:
+            raise ValueError("case_id links require provenance IDs")
+        return self
 
 
 class Agreement(VersionedModel):

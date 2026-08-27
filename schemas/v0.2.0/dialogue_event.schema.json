@@ -98,6 +98,8 @@
     "mediation_process_id": {
       "anyOf": [
         {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
           "type": "string"
         },
         {
@@ -110,6 +112,8 @@
     "provenance_ids": {
       "default": [],
       "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
         "type": "string"
       },
       "title": "Provenance Ids",

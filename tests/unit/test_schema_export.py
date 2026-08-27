@@ -102,3 +102,25 @@ def test_schema_exports_mediation_link_provenance_condition(tmp_path: Path) -> N
             },
         }
     ]
+
+
+def test_schema_exports_mediation_process_case_link_provenance_condition(tmp_path: Path) -> None:
+    export_json_schemas(tmp_path)
+    mediation_process = json.loads(
+        (tmp_path / f"v{SCHEMA_VERSION}" / "mediation_process.schema.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    assert mediation_process["allOf"] == [
+        {
+            "if": {
+                "properties": {"case_id": {"minLength": 1, "type": "string"}},
+                "required": ["case_id"],
+            },
+            "then": {
+                "properties": {"provenance_ids": {"minItems": 1}},
+                "required": ["provenance_ids"],
+            },
+        }
+    ]

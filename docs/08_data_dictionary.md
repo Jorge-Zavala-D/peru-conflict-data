@@ -275,7 +275,7 @@ This relation preserves report-269 process records such as `Fecha de inicio`, `E
 |---|---|---|---|---|---|---|
 | `mediation_process_id` | Continuing mediation/process key | id | — | 1 | Referenced by dialogue events | T |
 | `report_id` | Report key | id | — | 1 | FK to `report` | T |
-| `case_id` | Linked case when evidenced | id | N | 0..1 | Explicit link evidence | S/D |
+| `case_id` | Linked case when evidenced | id | N | 0..1 | Explicit link evidence; if populated, `provenance_ids` is required | S/D |
 | `start_date` | Parsed process start date | date | N | 0..1 | P/source-date evidence | S/D |
 | `start_date_original` | Exact `Fecha de inicio` value | orig str | N | 0..1 | P | S |
 | `start_date_precision_original` | Open source precision | orig str | N | 0..1 | P | S |

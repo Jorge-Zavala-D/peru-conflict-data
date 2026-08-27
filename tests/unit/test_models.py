@@ -96,6 +96,7 @@ def test_mediation_process_is_distinct_from_dated_dialogue_events() -> None:
         case_description_original="Descripción del caso",
         demands_original="Demandas del caso",
         progress_original="Se continúa coordinando",
+        provenance_ids=("prov_mediation",),
     )
     event = DialogueEvent(
         dialogue_event_id="dialogue_1",
@@ -120,6 +121,36 @@ def test_dialogue_mediation_link_requires_provenance() -> None:
             report_id="report_269",
             mediation_process_id="mediation_1",
             description_original="Reunión de seguimiento",
+        )
+
+
+@pytest.mark.parametrize("mediation_id", ["", "   "])
+def test_dialogue_mediation_link_rejects_blank_identifier(mediation_id: str) -> None:
+    with pytest.raises(ValidationError):
+        DialogueEvent(
+            dialogue_event_id="dialogue_3",
+            report_id="report_269",
+            mediation_process_id=mediation_id,
+            provenance_ids=("prov_dialogue_mediation",),
+        )
+
+
+def test_dialogue_mediation_link_rejects_blank_provenance_identifier() -> None:
+    with pytest.raises(ValidationError):
+        DialogueEvent(
+            dialogue_event_id="dialogue_4",
+            report_id="report_269",
+            mediation_process_id="mediation_1",
+            provenance_ids=("   ",),
+        )
+
+
+def test_mediation_process_case_link_requires_provenance() -> None:
+    with pytest.raises(ValidationError, match="provenance"):
+        MediationProcess(
+            mediation_process_id="mediation_2",
+            report_id="report_269",
+            case_id="case_1514",
         )
 
 

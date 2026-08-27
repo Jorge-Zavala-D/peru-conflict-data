@@ -83,6 +83,19 @@ def rendered_schemas() -> dict[str, str]:
                     },
                 }
             )
+        if name == "mediation_process":
+            schema.setdefault("allOf", []).append(
+                {
+                    "if": {
+                        "properties": {"case_id": {"type": "string", "minLength": 1}},
+                        "required": ["case_id"],
+                    },
+                    "then": {
+                        "required": ["provenance_ids"],
+                        "properties": {"provenance_ids": {"minItems": 1}},
+                    },
+                }
+            )
         if name == "report":
             schema.setdefault("allOf", []).extend(
                 [
