@@ -124,3 +124,11 @@ def test_parser_does_not_attach_unrelated_page_pdfs_to_every_candidate() -> None
         all("Organigrama.pdf" not in observation.url for observation in record.url_observations)
         for record in parsed.records
     )
+    assert any(
+        "reporte-269-julio-2026" in observation.url
+        for observation in parsed.records[0].url_observations
+    )
+    assert all(
+        "reporte-268-junio-2026" not in observation.url
+        for observation in parsed.records[0].url_observations
+    )

@@ -194,7 +194,11 @@ def _link_matches_candidate(
     """Associate only visibly related links; never attach every page PDF."""
 
     if link.role is UrlRole.LANDING_PAGE:
-        return link.text == candidate_text or bool(_RELEVANT_TEXT_RE.search(link.text))
+        if link.text == candidate_text:
+            return True
+        if report_number is not None:
+            return bool(re.search(rf"(?<!\d){report_number}(?!\d)", link.url))
+        return False
     if link.role is not UrlRole.DIRECT_DOWNLOAD:
         return False
     haystack = f"{link.url} {link.text}".lower()
