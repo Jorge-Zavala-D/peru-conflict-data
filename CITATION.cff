@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: Cite the software release and the eventual dataset release separately.
+title: Peru Social Conflict Data Reconstruction
+type: software
+authors:
+  - family-names: Zavala
+    given-names: Jorge
+version: 0.1.0-dev
+license: MIT
+repository-code: https://github.com/Jorge-Zavala-D/peru-conflict-data

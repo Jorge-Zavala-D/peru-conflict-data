@@ -1,0 +1,11 @@
+config_version: "1"
+regimes:
+  - regime_id: modern_260_269_candidate
+    status: benchmark_candidate_not_validated
+    report_numbers: [260, 261, 262, 263, 264, 265, 266, 267, 268, 269]
+  - regime_id: historical_unclassified
+    status: unknown
+    notes: Assign evidence-based regimes only after Milestone 5 reconnaissance.
+detection:
+  strategy: empirical_document_structure
+  forbid_year_only_branching: true

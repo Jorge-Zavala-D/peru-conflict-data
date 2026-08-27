@@ -1,0 +1,65 @@
+{
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/v0.1.0/case_location.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "case_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Case Id",
+      "type": "string"
+    },
+    "case_location_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Case Location Id",
+      "type": "string"
+    },
+    "location_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Location Id",
+      "type": "string"
+    },
+    "provenance_ids": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Provenance Ids",
+      "type": "array"
+    },
+    "relationship_original": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Relationship Original"
+    },
+    "report_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Report Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "0.1.0",
+      "default": "0.1.0",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "case_location_id",
+    "case_id",
+    "report_id",
+    "location_id"
+  ],
+  "title": "CaseLocation",
+  "type": "object"
+}

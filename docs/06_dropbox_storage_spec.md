@@ -1,0 +1,3 @@
+# External storage specification
+
+`00_external` contains externally supplied immutable files; `01_raw` the immutable source corpus/manifests; `02_extracted` mechanical text/layout/table/render/OCR evidence; `03_parsed` source-oriented objects; `04_linked` cross-report linkage/geography; `05_database` canonical Parquet/DuckDB; `06_validation` discrepancies, benchmarks, logs, and review; `07_releases` immutable releases; `99_archive` retained initialization or superseded working artifacts. Code resolves this hierarchy through `CONFLICT_DATA_ROOT`, never a user-specific absolute path. Routine writes are allowed only in `02_extracted` through `07_releases`.

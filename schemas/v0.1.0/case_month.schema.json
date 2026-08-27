@@ -1,0 +1,209 @@
+{
+  "$defs": {
+    "TransitionEvidence": {
+      "additionalProperties": false,
+      "properties": {
+        "provenance_ids": {
+          "items": {
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Provenance Ids",
+          "type": "array"
+        },
+        "transition_normalized": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Transition Normalized"
+        },
+        "transition_original": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Transition Original",
+          "type": "string"
+        }
+      },
+      "required": [
+        "transition_original",
+        "provenance_ids"
+      ],
+      "title": "TransitionEvidence",
+      "type": "object"
+    }
+  },
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/v0.1.0/case_month.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "case_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Case Id",
+      "type": "string"
+    },
+    "case_month_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Case Month Id",
+      "type": "string"
+    },
+    "conflict_type_normalized": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Conflict Type Normalized"
+    },
+    "conflict_type_original": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Conflict Type Original"
+    },
+    "monthly_facts_original": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Monthly Facts Original"
+    },
+    "name_original": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Name Original"
+    },
+    "official_code_original": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Official Code Original"
+    },
+    "phase_normalized": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Phase Normalized"
+    },
+    "phase_original": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Phase Original"
+    },
+    "provenance_ids": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Provenance Ids",
+      "type": "array"
+    },
+    "reference_period": {
+      "pattern": "^\\d{4}-\\d{2}$",
+      "title": "Reference Period",
+      "type": "string"
+    },
+    "report_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Report Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "0.1.0",
+      "default": "0.1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "stock_status_normalized": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Stock Status Normalized"
+    },
+    "stock_status_original": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Stock Status Original"
+    },
+    "transitions": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/TransitionEvidence"
+      },
+      "title": "Transitions",
+      "type": "array"
+    }
+  },
+  "required": [
+    "case_month_id",
+    "case_id",
+    "report_id",
+    "reference_period"
+  ],
+  "title": "CaseMonth",
+  "type": "object"
+}

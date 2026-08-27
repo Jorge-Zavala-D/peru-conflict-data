@@ -1,0 +1,3 @@
+# Research and data scope
+
+Coverage begins in April 2004 and eventually extends through the latest available report. Units include report, report-month aggregate, conflict case, case name, case-month, location association, actor association, demand association, protest event, case-protest link, violence event, dialogue event, agreement, Defensoría action, alert, case relationship, provenance, discrepancy, review item, and adjudication. Extract only what sources support; earlier formats may omit later fields. Analytical panels and harmonized constructs are downstream derivatives, never substitutes for source-preserving records.

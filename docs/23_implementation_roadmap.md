@@ -1,0 +1,3 @@
+# Implementation roadmap
+
+M0 repository/environment/path/schema/run-metadata/logging/QA/CI/ADR/plan foundation. M1 complete official corpus discovery and manifest. M2 human gold benchmark for reports 260-269 plus workbook overlap normalization. M3 modern parser meeting accepted gates. M4 modern longitudinal linkage. M5 historical format reconnaissance. M6 historical parsers. M7 full corpus extraction. M8 2004-present entity resolution. M9 geographic harmonization. M10 full QA/adjudication. M11 public release. M12 data paper, Defensoría handoff, and monthly update workflow. Detailed work packages are in `docs/execution_plan.md`.

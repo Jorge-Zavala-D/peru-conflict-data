@@ -1,0 +1,9 @@
+config_version: "1"
+status: intentionally_empty_until_source_evidence
+crosswalks:
+  conflict_type: {version: 0, mappings: []}
+  phase: {version: 0, mappings: []}
+  protest_measure: {version: 0, mappings: []}
+  actor_type: {version: 0, mappings: []}
+  demand_theme: {version: 0, mappings: []}
+  dp_action_type: {version: 0, mappings: []}

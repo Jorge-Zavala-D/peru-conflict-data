@@ -1,0 +1,70 @@
+{
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/v0.1.0/case_protest_link.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "case_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Case Id",
+      "type": "string"
+    },
+    "case_protest_link_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Case Protest Link Id",
+      "type": "string"
+    },
+    "confidence": {
+      "anyOf": [
+        {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Confidence"
+    },
+    "link_method": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Link Method",
+      "type": "string"
+    },
+    "protest_event_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Protest Event Id",
+      "type": "string"
+    },
+    "provenance_ids": {
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Provenance Ids",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "0.1.0",
+      "default": "0.1.0",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "case_protest_link_id",
+    "case_id",
+    "protest_event_id",
+    "link_method",
+    "provenance_ids"
+  ],
+  "title": "CaseProtestLink",
+  "type": "object"
+}

@@ -1,0 +1,3 @@
+# Repository specification
+
+Root files include `README.md`, `AGENTS.md`, contribution/security/change/citation/license metadata, `pyproject.toml`, real `uv.lock`, `Makefile`, environment/Git configuration, and CI. Durable instructions and reusable workflows live in `.codex/` and `.agents/skills/`; configuration in `config/`; decisions in `docs/adr/`; generated JSON Schemas in immutable version directories under `schemas/`; production code in `src/peru_conflicts/`; thin entry points in `scripts/`; tests in `tests/{unit,integration,regression,benchmark}`; small fixtures in `fixtures/`; diagnostics in `notebooks/diagnostics/`.

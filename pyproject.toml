@@ -1,0 +1,58 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "peru-conflict-data"
+version = "0.1.0.dev0"
+description = "Auditable reconstruction of Peru's Defensoria del Pueblo social-conflict monitoring system"
+readme = "README.md"
+requires-python = ">=3.12,<3.14"
+license = "MIT"
+authors = [{ name = "Jorge Zavala" }]
+dependencies = [
+  "pydantic>=2.11,<3",
+  "pyyaml>=6.0.2,<7",
+]
+
+[dependency-groups]
+dev = [
+  "pre-commit>=4.3,<5",
+  "pyright>=1.1.400,<2",
+  "pytest>=8.4,<10",
+  "pytest-cov>=6,<8",
+  "ruff>=0.12,<1",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/peru_conflicts"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]
+
+[tool.pyright]
+pythonVersion = "3.12"
+typeCheckingMode = "strict"
+include = ["src", "tests", "scripts"]
+exclude = [".venv", "**/__pycache__"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-config --strict-markers -m 'not external and not benchmark and not slow'"
+markers = [
+  "benchmark: requires human gold benchmark artifacts",
+  "external: requires network or external/private data",
+  "slow: intentionally expensive test",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["peru_conflicts"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
