@@ -23,6 +23,7 @@ Build a reproducible, auditable, versioned historical reconstruction of the Defe
 
 - Git stores the reproducible recipe. `CONFLICT_DATA_ROOT` stores external/raw/derived data.
 - Routine code treats `00_external`, `01_raw`, and `99_archive` as non-writable.
+- The mutable acquisition ledger belongs in Dropbox `01_raw/manifests/`; Git stores its schema, code, rules, and reviewed small indexes only.
 - Never commit PDFs, workbooks, database/data files, OCR/renders, logs, credentials, cookies, or temporary download links.
 - Do not install or enable paid/external services without Jorge's approval. Prefer the smallest trusted capability set.
 - Start Dropbox/archive inspection read-only. A filesystem ACL is not an immutability guarantee.
@@ -37,4 +38,4 @@ Build a reproducible, auditable, versioned historical reconstruction of the Defe
 
 ## Current milestone gate
 
-Milestone 0 only unless Jorge explicitly authorizes Milestone 1. During M0, inventorying reports 260-269 and workbook metadata is allowed; gold annotation, parser development, full discovery, OCR, historical taxonomy work, and entity resolution are not.
+Milestone 0.1 hardening is authorized on `codex/milestone-0-foundation`. The current working schema is `v0.2.0`; `schemas/v0.1.0/` is an immutable M0 snapshot. Milestone 1 remains prohibited unless Jorge explicitly authorizes it. During M0/M0.1, inventorying reports 260-269 and workbook metadata is allowed; gold annotation, parser development, full discovery, OCR, historical taxonomy work, entity resolution, and raw acquisition are not. M1-03 raw writes require a separate explicit checkpoint.

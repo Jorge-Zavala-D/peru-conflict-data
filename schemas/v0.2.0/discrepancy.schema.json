@@ -1,0 +1,161 @@
+{
+  "$defs": {
+    "DiscrepancyType": {
+      "enum": [
+        "PARSER_ERROR",
+        "SOURCE_INCONSISTENCY",
+        "SOURCE_AMBIGUITY",
+        "MISSING_SOURCE_EVIDENCE",
+        "CROSS_SOURCE_CONFLICT",
+        "POTENTIAL_EDITORIAL_ERROR"
+      ],
+      "title": "DiscrepancyType",
+      "type": "string"
+    }
+  },
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/v0.2.0/discrepancy.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "classification_rationale": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Classification Rationale",
+      "type": "string"
+    },
+    "discrepancy_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Discrepancy Id",
+      "type": "string"
+    },
+    "discrepancy_type": {
+      "$ref": "#/$defs/DiscrepancyType"
+    },
+    "parser_version": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Parser Version",
+      "type": "string"
+    },
+    "provenance_a_ids": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "title": "Provenance A Ids",
+      "type": "array"
+    },
+    "provenance_b_ids": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "title": "Provenance B Ids",
+      "type": "array"
+    },
+    "report_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Report Id",
+      "type": "string"
+    },
+    "review_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Review Id"
+    },
+    "schema_version": {
+      "const": "0.2.0",
+      "default": "0.2.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "severity": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Severity"
+    },
+    "status": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Status"
+    },
+    "value_a": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "integer"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Value A"
+    },
+    "value_b": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "integer"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Value B"
+    }
+  },
+  "required": [
+    "discrepancy_id",
+    "report_id",
+    "discrepancy_type",
+    "classification_rationale",
+    "parser_version"
+  ],
+  "title": "DiscrepancyRecord",
+  "type": "object"
+}

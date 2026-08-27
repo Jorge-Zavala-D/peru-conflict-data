@@ -27,6 +27,85 @@ def rendered_schemas() -> dict[str, str]:
                     "then": {"required": ["model_invocation"]},
                 }
             )
+        if name == "report_month":
+            schema.setdefault("allOf", []).extend(
+                [
+                    {
+                        "if": {
+                            "properties": {"indicator_basis": {"const": "source_reported"}},
+                            "required": ["indicator_basis"],
+                        },
+                        "then": {
+                            "required": ["provenance_ids"],
+                            "properties": {
+                                "provenance_ids": {"minItems": 1},
+                                "derivation_name": {"type": "null"},
+                                "derivation_version": {"type": "null"},
+                                "upstream_record_ids": {"maxItems": 0},
+                            },
+                        },
+                    },
+                    {
+                        "if": {
+                            "properties": {"indicator_basis": {"const": "derived"}},
+                            "required": ["indicator_basis"],
+                        },
+                        "then": {
+                            "required": [
+                                "derivation_name",
+                                "derivation_version",
+                                "upstream_record_ids",
+                            ],
+                            "properties": {
+                                "derivation_name": {"type": "string", "minLength": 1},
+                                "derivation_version": {"type": "string", "minLength": 1},
+                                "upstream_record_ids": {"minItems": 1},
+                            },
+                        },
+                    },
+                ]
+            )
+        if name == "report":
+            schema.setdefault("allOf", []).extend(
+                [
+                    {
+                        "if": {
+                            "properties": {"report_number": {"type": "integer"}},
+                            "required": ["report_number"],
+                        },
+                        "then": {
+                            "required": [
+                                "report_number_evidence_types",
+                                "report_number_provenance_ids",
+                            ],
+                            "properties": {
+                                "report_number_evidence_types": {
+                                    "contains": {"enum": ["document_visible", "official_metadata"]}
+                                },
+                                "report_number_provenance_ids": {"minItems": 1},
+                            },
+                        },
+                    },
+                    {
+                        "if": {
+                            "properties": {"reference_period": {"type": "string"}},
+                            "required": ["reference_period"],
+                        },
+                        "then": {
+                            "required": [
+                                "reference_period_evidence_types",
+                                "reference_period_provenance_ids",
+                            ],
+                            "properties": {
+                                "reference_period_evidence_types": {
+                                    "contains": {"enum": ["document_visible", "official_metadata"]}
+                                },
+                                "reference_period_provenance_ids": {"minItems": 1},
+                            },
+                        },
+                    },
+                ]
+            )
         result[f"{name}.schema.json"] = (
             json.dumps(schema, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
         )

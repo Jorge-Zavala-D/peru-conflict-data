@@ -4,6 +4,7 @@ external:
   defensoria_provided: 00_external/defensoria_provided
 raw:
   reports: 01_raw/reports
+  # Mutable discovery/download ledger: Dropbox only, never a Git mirror.
   manifests: 01_raw/manifests
 extracted:
   text: 02_extracted/text

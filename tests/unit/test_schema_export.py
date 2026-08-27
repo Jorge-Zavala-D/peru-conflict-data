@@ -59,3 +59,26 @@ def test_schema_check_detects_drift(tmp_path: Path) -> None:
     written[0].write_text("{}\n", encoding="utf-8")
 
     assert schemas_are_current(tmp_path) is False
+
+
+def test_schema_exports_indicator_and_report_identity_safety_conditions(tmp_path: Path) -> None:
+    export_json_schemas(tmp_path)
+
+    report_month = json.loads(
+        (tmp_path / f"v{SCHEMA_VERSION}" / "report_month.schema.json").read_text(encoding="utf-8")
+    )
+    report = json.loads(
+        (tmp_path / f"v{SCHEMA_VERSION}" / "report.schema.json").read_text(encoding="utf-8")
+    )
+
+    assert len(report_month["allOf"]) == 2
+    assert len(report["allOf"]) == 2
+    source_guard, derived_guard = report_month["allOf"]
+    assert source_guard["if"]["properties"]["indicator_basis"]["const"] == "source_reported"
+    assert derived_guard["if"]["properties"]["indicator_basis"]["const"] == "derived"
+    assert {
+        "document_visible",
+        "official_metadata",
+    } == set(
+        report["allOf"][0]["then"]["properties"]["report_number_evidence_types"]["contains"]["enum"]
+    )

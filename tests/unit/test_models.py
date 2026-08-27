@@ -9,18 +9,28 @@ from peru_conflicts.models import (
     MODEL_REGISTRY,
     Actor,
     AdjudicationRecord,
+    Agreement,
+    Alert,
     CaseMonth,
     CaseProtestLink,
     CaseRelationship,
     CasualtyComponent,
     ConflictCase,
+    DefensoriaAction,
+    Demand,
+    DialogueEvent,
     DiscrepancyRecord,
     DiscrepancyType,
     ExtractionMethod,
+    IndicatorBasis,
+    Location,
     ManualReviewItem,
+    MediationProcess,
     ModelInvocation,
     ProtestEvent,
     ProvenanceRecord,
+    ReportIdentityEvidenceType,
+    ReportMonthAggregate,
     ReportRecord,
     SourceBBox,
     TransitionEvidence,
@@ -53,6 +63,201 @@ def test_original_and_normalized_actor_values_are_distinct() -> None:
 
     assert actor.name_original == "Federación Nativa"
     assert actor.name_normalized == "federacion nativa"
+
+
+def test_demand_preserves_distinct_source_dimensions() -> None:
+    demand = Demand(
+        demand_id="demand_1",
+        text_original="Demanda de atención",
+        theme_original="Servicios públicos",
+        category_original="Educación",
+        competent_entity_original="Ministerio de Educación",
+        category_normalized="education",
+    )
+
+    assert demand.theme_original != demand.category_original
+    assert demand.category_original == "Educación"
+    assert demand.competent_entity_original == "Ministerio de Educación"
+    assert demand.category_normalized == "education"
+
+
+def test_mediation_process_is_distinct_from_dated_dialogue_events() -> None:
+    process = MediationProcess(
+        mediation_process_id="mediation_1",
+        report_id="report_269",
+        case_id="case_1514",
+        start_date_original="15/07/2026",
+        start_date_precision_original="day",
+        status_original="En proceso",
+        requester_original="Comunidad X",
+        actors_original="Comunidad X; Empresa Y",
+        mediation_type_original="Mesa de diálogo",
+        mediator_original="Defensoría del Pueblo",
+        case_description_original="Descripción del caso",
+        demands_original="Demandas del caso",
+        progress_original="Se continúa coordinando",
+    )
+    event = DialogueEvent(
+        dialogue_event_id="dialogue_1",
+        report_id="report_269",
+        case_id="case_1514",
+        mediation_process_id=process.mediation_process_id,
+        event_date_original="22/07/2026",
+        event_date_precision_original="day",
+        description_original="Reunión de seguimiento",
+    )
+
+    assert process.progress_original == "Se continúa coordinando"
+    assert event.mediation_process_id == process.mediation_process_id
+    assert event.event_date_original == "22/07/2026"
+
+
+def test_agreement_separates_text_follow_up_and_optional_responsibility() -> None:
+    agreement = Agreement(
+        agreement_id="agreement_1",
+        report_id="report_269",
+        case_id="case_1514",
+        case_description_original="Descripción del caso: comunidad y empresa",
+        text_original="Acuerdos: instalar una comisión",
+        compliance_progress_original="Avances de cumplimiento: pendiente",
+        responsibility_original="Gobierno Regional",
+        deadline_original="30 de agosto de 2026",
+    )
+
+    assert agreement.case_description_original == "Descripción del caso: comunidad y empresa"
+    assert agreement.text_original != agreement.compliance_progress_original
+    assert agreement.responsibility_original == "Gobierno Regional"
+    assert agreement.deadline_original == "30 de agosto de 2026"
+
+
+def test_source_safe_subtypes_and_original_geography_are_preserved() -> None:
+    action = DefensoriaAction(
+        dp_action_id="action_1",
+        report_id="report_269",
+        action_type_original="Intermediación",
+        intervention_category_original="Intermediación",
+        intervention_subtype_original="Participación en espacios de diálogo",
+        intervention_hierarchy_original=(
+            "Intervenciones defensoriales",
+            "Intermediación",
+            "Participación en espacios de diálogo",
+        ),
+    )
+    location = Location(
+        location_id="location_1",
+        location_text_original="Centro poblado X, distrito Y, provincia Z, departamento W",
+        department_original="W",
+        province_original="Z",
+        district_original="Y",
+        population_center_original="Centro poblado X",
+    )
+    alert = Alert(
+        alert_id="alert_1",
+        report_id="report_269",
+        alert_type_original="Alerta temprana",
+        risk_original="Alto",
+        location_text_original="Distrito Y",
+    )
+
+    assert action.intervention_hierarchy_original[-1] == "Participación en espacios de diálogo"
+    assert location.department_original == "W"
+    assert alert.risk_original == "Alto"
+
+
+def test_event_date_precision_and_violence_type_remain_open_source_values() -> None:
+    protest = ProtestEvent(
+        protest_event_id="protest_1",
+        report_id="report_269",
+        event_date_original="julio de 2026",
+        event_date_precision_original="month",
+    )
+    violence = ViolenceEvent(
+        violence_event_id="violence_1",
+        report_id="report_269",
+        violence_type_original="Enfrentamiento",
+        event_date_original="22/07/2026",
+        event_date_precision_original="day",
+    )
+
+    assert protest.event_date_precision_original == "month"
+    assert violence.violence_type_original == "Enfrentamiento"
+
+
+def test_monthly_indicator_basis_preserves_source_and_derived_rows() -> None:
+    source = ReportMonthAggregate(
+        report_month_id="indicator_source_1",
+        report_id="report_269",
+        metric_original="Estado del diálogo",
+        indicator_basis=IndicatorBasis.SOURCE_REPORTED,
+        value="En proceso",
+        provenance_ids=("prov_indicator",),
+    )
+    derived = ReportMonthAggregate(
+        report_month_id="indicator_derived_1",
+        report_id="report_269",
+        metric_original="Violencia acumulada",
+        indicator_basis=IndicatorBasis.DERIVED,
+        value=12,
+        derivation_name="sum_violence_events",
+        derivation_version="v1",
+        upstream_record_ids=("violence_1",),
+    )
+
+    assert source.indicator_basis is IndicatorBasis.SOURCE_REPORTED
+    assert source.value == "En proceso"
+    assert derived.indicator_basis is IndicatorBasis.DERIVED
+    assert source.report_month_id != derived.report_month_id
+
+    with pytest.raises(ValidationError, match="provenance"):
+        ReportMonthAggregate(
+            report_month_id="indicator_source_2",
+            report_id="report_269",
+            metric_original="Diálogo",
+            indicator_basis=IndicatorBasis.SOURCE_REPORTED,
+            value=1,
+        )
+    with pytest.raises(ValidationError, match="derivation"):
+        ReportMonthAggregate(
+            report_month_id="indicator_derived_2",
+            report_id="report_269",
+            metric_original="Diálogo",
+            indicator_basis=IndicatorBasis.DERIVED,
+            value=1,
+        )
+
+
+def test_report_identity_rejects_stale_embedded_pdf_title_as_sole_evidence() -> None:
+    with pytest.raises(ValidationError, match="document-visible or official metadata"):
+        ReportRecord(
+            report_id="report_269",
+            source_version_id="source_269_a",
+            report_number=269,
+            title_original="RCS N° 126",
+            report_number_evidence_types=(ReportIdentityEvidenceType.EMBEDDED_PDF_TITLE,),
+            report_number_provenance_ids=("prov_pdf_title",),
+            source_filename="report-269.pdf",
+            sha256=SHA,
+            byte_size=10,
+        )
+
+
+def test_report_identity_accepts_document_visible_evidence() -> None:
+    report = ReportRecord(
+        report_id="report_269",
+        source_version_id="source_269_a",
+        report_number=269,
+        reference_period="2026-07",
+        report_number_evidence_types=(ReportIdentityEvidenceType.DOCUMENT_VISIBLE,),
+        reference_period_evidence_types=(ReportIdentityEvidenceType.OFFICIAL_METADATA,),
+        report_number_provenance_ids=("prov_number",),
+        reference_period_provenance_ids=("prov_period",),
+        source_filename="report-269.pdf",
+        sha256=SHA,
+        byte_size=10,
+    )
+
+    assert report.report_number == 269
+    assert report.reference_period == "2026-07"
 
 
 def test_stock_status_and_transitions_are_distinct_and_nullable() -> None:
@@ -185,7 +390,7 @@ def test_adjudication_is_versioned_append_only_data() -> None:
     )
 
     assert decision.supersedes_adjudication_id == "adj_1"
-    assert decision.schema_version == "0.1.0"
+    assert decision.schema_version == "0.2.0"
 
 
 def test_adjudication_rejects_invalid_review_chain() -> None:
@@ -251,6 +456,7 @@ def test_registry_covers_every_canonical_foundation_entity() -> None:
         "case_relationship",
         "demand",
         "dialogue_event",
+        "mediation_process",
         "discrepancy",
         "dp_action",
         "location",

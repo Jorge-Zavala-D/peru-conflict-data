@@ -23,11 +23,23 @@ from peru_conflicts.models.common import (
 )
 
 
+class ReportIdentityEvidenceType(StrEnum):
+    """Evidence classes allowed to support report number or reference period."""
+
+    DOCUMENT_VISIBLE = "document_visible"
+    OFFICIAL_METADATA = "official_metadata"
+    EMBEDDED_PDF_TITLE = "embedded_pdf_title"
+
+
 class ReportRecord(VersionedModel):
     report_id: Identifier
     source_version_id: Identifier
     report_number: int | None = Field(default=None, ge=1)
     reference_period: ReferencePeriod | None = None
+    report_number_evidence_types: tuple[ReportIdentityEvidenceType, ...] = ()
+    report_number_provenance_ids: tuple[Identifier, ...] = ()
+    reference_period_evidence_types: tuple[ReportIdentityEvidenceType, ...] = ()
+    reference_period_provenance_ids: tuple[Identifier, ...] = ()
     publication_date: date | None = None
     title_original: str | None = None
     source_url_original: str | None = None
@@ -40,15 +52,81 @@ class ReportRecord(VersionedModel):
     native_text_status: str | None = None
     format_regime: str | None = None
     supersedes_source_version_id: str | None = None
+    provenance_ids: tuple[Identifier, ...] = ()
+
+    @model_validator(mode="after")
+    def require_qualified_identity_evidence(self) -> Self:
+        qualifying = {
+            ReportIdentityEvidenceType.DOCUMENT_VISIBLE,
+            ReportIdentityEvidenceType.OFFICIAL_METADATA,
+        }
+        for label, value, evidence_types, provenance_ids in (
+            (
+                "report number",
+                self.report_number,
+                self.report_number_evidence_types,
+                self.report_number_provenance_ids,
+            ),
+            (
+                "reference period",
+                self.reference_period,
+                self.reference_period_evidence_types,
+                self.reference_period_provenance_ids,
+            ),
+        ):
+            if value is None:
+                continue
+            if not set(evidence_types).intersection(qualifying):
+                raise ValueError(
+                    f"{label} requires document-visible or official metadata evidence; "
+                    "an embedded PDF title is not sufficient"
+                )
+            if not provenance_ids:
+                raise ValueError(f"{label} requires provenance IDs")
+        return self
+
+
+class IndicatorBasis(StrEnum):
+    """Whether a monthly indicator is copied from a source or calculated."""
+
+    SOURCE_REPORTED = "source_reported"
+    DERIVED = "derived"
 
 
 class ReportMonthAggregate(VersionedModel):
     report_month_id: Identifier
     report_id: Identifier
     metric_original: Identifier
-    value: int | float | None = None
+    indicator_basis: IndicatorBasis
+    value: ScalarValue = None
     unit_original: str | None = None
-    provenance_ids: tuple[str, ...] = ()
+    provenance_ids: tuple[Identifier, ...] = ()
+    derivation_name: Identifier | None = None
+    derivation_version: Identifier | None = None
+    upstream_record_ids: tuple[Identifier, ...] = ()
+
+    @model_validator(mode="after")
+    def validate_indicator_basis(self) -> Self:
+        has_derivation = (
+            self.derivation_name is not None
+            or self.derivation_version is not None
+            or bool(self.upstream_record_ids)
+        )
+        if self.indicator_basis is IndicatorBasis.SOURCE_REPORTED:
+            if not self.provenance_ids:
+                raise ValueError("source_reported indicators require provenance IDs")
+            if has_derivation:
+                raise ValueError("source_reported indicators cannot include derivation metadata")
+        else:
+            if (
+                self.derivation_name is None
+                or self.derivation_version is None
+                or not self.upstream_record_ids
+            ):
+                raise ValueError(
+                    "derived indicators require derivation name, version, and upstream records"
+                )
+        return self
 
 
 class ConflictCase(VersionedModel):
@@ -57,6 +135,7 @@ class ConflictCase(VersionedModel):
     canonical_name: str | None = None
     identity_method: str | None = None
     identity_confidence: Confidence | None = None
+    provenance_ids: tuple[Identifier, ...] = ()
 
 
 class CaseName(VersionedModel):
@@ -89,6 +168,10 @@ class CaseMonth(VersionedModel):
 class Location(VersionedModel):
     location_id: Identifier
     location_text_original: Identifier
+    department_original: str | None = None
+    province_original: str | None = None
+    district_original: str | None = None
+    population_center_original: str | None = None
     department_normalized: str | None = None
     province_normalized: str | None = None
     district_normalized: str | None = None
@@ -97,6 +180,7 @@ class Location(VersionedModel):
     match_method: str | None = None
     crosswalk_version: str | None = None
     match_confidence: Confidence | None = None
+    provenance_ids: tuple[Identifier, ...] = ()
 
 
 class CaseLocation(VersionedModel):
@@ -114,6 +198,7 @@ class Actor(VersionedModel):
     name_normalized: str | None = None
     actor_type_original: str | None = None
     actor_type_normalized: str | None = None
+    provenance_ids: tuple[Identifier, ...] = ()
 
 
 class CaseActor(VersionedModel):
@@ -132,7 +217,10 @@ class Demand(VersionedModel):
     text_normalized: str | None = None
     theme_original: str | None = None
     theme_normalized: str | None = None
+    category_original: str | None = None
+    category_normalized: str | None = None
     competent_entity_original: str | None = None
+    provenance_ids: tuple[Identifier, ...] = ()
 
 
 class CaseDemand(VersionedModel):
@@ -147,6 +235,8 @@ class ProtestEvent(VersionedModel):
     protest_event_id: Identifier
     report_id: Identifier
     event_date: date | None = None
+    event_date_original: str | None = None
+    event_date_precision_original: str | None = None
     measure_type_original: str | None = None
     measure_type_normalized: str | None = None
     actors_text_original: str | None = None
@@ -177,6 +267,9 @@ class ViolenceEvent(VersionedModel):
     case_id: str | None = None
     protest_event_id: str | None = None
     event_date: date | None = None
+    event_date_original: str | None = None
+    event_date_precision_original: str | None = None
+    violence_type_original: str | None = None
     description_original: str | None = None
     fatalities_total: int | None = Field(default=None, ge=0)
     injured_total: int | None = Field(default=None, ge=0)
@@ -188,10 +281,31 @@ class DialogueEvent(VersionedModel):
     dialogue_event_id: Identifier
     report_id: Identifier
     case_id: str | None = None
+    mediation_process_id: str | None = None
     event_date: date | None = None
+    event_date_original: str | None = None
+    event_date_precision_original: str | None = None
     description_original: str | None = None
     status_original: str | None = None
     provenance_ids: tuple[str, ...] = ()
+
+
+class MediationProcess(VersionedModel):
+    mediation_process_id: Identifier
+    report_id: Identifier
+    case_id: str | None = None
+    start_date: date | None = None
+    start_date_original: str | None = None
+    start_date_precision_original: str | None = None
+    status_original: str | None = None
+    requester_original: str | None = None
+    actors_original: str | None = None
+    mediation_type_original: str | None = None
+    mediator_original: str | None = None
+    case_description_original: str | None = None
+    demands_original: str | None = None
+    progress_original: str | None = None
+    provenance_ids: tuple[Identifier, ...] = ()
 
 
 class Agreement(VersionedModel):
@@ -199,7 +313,13 @@ class Agreement(VersionedModel):
     report_id: Identifier
     case_id: str | None = None
     agreement_date: date | None = None
+    agreement_date_original: str | None = None
+    agreement_date_precision_original: str | None = None
+    case_description_original: str | None = None
     text_original: str | None = None
+    compliance_progress_original: str | None = None
+    responsibility_original: str | None = None
+    deadline_original: str | None = None
     provenance_ids: tuple[str, ...] = ()
 
 
@@ -209,6 +329,11 @@ class DefensoriaAction(VersionedModel):
     case_id: str | None = None
     action_date: date | None = None
     action_type_original: str | None = None
+    intervention_category_original: str | None = None
+    intervention_category_normalized: str | None = None
+    intervention_subtype_original: str | None = None
+    intervention_subtype_normalized: str | None = None
+    intervention_hierarchy_original: tuple[str, ...] = ()
     description_original: str | None = None
     provenance_ids: tuple[str, ...] = ()
 
@@ -219,6 +344,9 @@ class Alert(VersionedModel):
     case_id: str | None = None
     alert_date: date | None = None
     text_original: str | None = None
+    alert_type_original: str | None = None
+    risk_original: str | None = None
+    location_text_original: str | None = None
     provenance_ids: tuple[str, ...] = ()
 
 

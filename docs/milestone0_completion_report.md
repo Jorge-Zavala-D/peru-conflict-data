@@ -1,5 +1,9 @@
 # Milestone 0 completion report
 
+> Historical receipt for the pre-hardening M0 commit. The owner-approved M0.1 pass
+> supersedes its provisional schema/manifest recommendations; see
+> `docs/milestone0.1_completion_report.md` and the v0.1.0-to-v0.2.0 migration note.
+
 Completion date: 2026-08-27 (Europe/Berlin)
 
 Branch: `codex/milestone-0-foundation`

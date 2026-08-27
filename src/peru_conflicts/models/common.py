@@ -14,7 +14,7 @@ from pydantic import (
     model_validator,
 )
 
-SCHEMA_VERSION = "0.1.0"
+SCHEMA_VERSION = "0.2.0"
 Identifier = Annotated[str, StringConstraints(min_length=1, pattern=r".*\S.*")]
 Sha256 = Annotated[str, StringConstraints(pattern=r"^[a-f0-9]{64}$")]
 ScalarValue = str | int | float | bool | None
@@ -51,7 +51,7 @@ class StrictModel(BaseModel):
 
 
 class VersionedModel(StrictModel):
-    schema_version: Literal["0.1.0"] = SCHEMA_VERSION
+    schema_version: Literal["0.2.0"] = SCHEMA_VERSION
 
 
 class SourceBBox(StrictModel):

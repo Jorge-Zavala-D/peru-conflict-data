@@ -1,10 +1,10 @@
 # Execution plan: Milestones 1-12
 
-Version: 0.1.0 (Milestone 0 planning baseline)
+Version: 0.2.0 (Milestone 0.1 hardening baseline; future-work plan only)
 
 ## Plan contract
 
-This document describes future work; it does not authorize it. Milestone 1 begins only after Jorge approves M0 and resolves the approval items in the M0 completion report. Each work package produces reviewable artifacts on a focused branch. No package may weaken the research contract or benchmark gates without a written decision.
+This document describes future work; it does not authorize it. Milestone 1 begins only after Jorge reviews this M0.1 result and explicitly authorizes it. M1-03 raw acquisition additionally requires the separate checkpoint in `docs/m1_acquisition_checkpoint.md`. Each work package produces reviewable artifacts on a focused branch. No package may weaken the research contract or benchmark gates without a written decision.
 
 Parallel work is limited to independent, read-heavy or isolated outputs. No two agents independently mutate a canonical manifest, schema, gold file, adjudication table, or identity graph.
 
@@ -29,7 +29,7 @@ Parallel work is limited to independent, read-heavy or isolated outputs. No two 
 | Goal | Define reproducible official-source search, retrieval, retry, and evidence rules before acquiring anything |
 | Dependencies | M0 approval; decision on redistribution/storage and canonical official domains |
 | Inputs | M0 inventories, Defensoría site structure, existing raw filenames |
-| Outputs | Versioned discovery protocol, source-domain allowlist, manifest schema migration if required |
+| Outputs | Versioned discovery protocol, source-domain allowlist, operational-manifest schema migration if required |
 | Tests | URL normalization; retrieval timestamps; official-domain checks; nullable report/month handling; alternate-version representation |
 | Acceptance | Independent reviewer can reproduce the protocol on a small predeclared sample without altering raw files |
 | Human review | Jorge approves official-domain and rights assumptions |
@@ -56,14 +56,14 @@ Parallel work is limited to independent, read-heavy or isolated outputs. No two 
 
 | Field | Plan |
 |---|---|
-| Goal | Acquire approved official files into raw storage without overwriting any byte version |
+| Goal | Acquire approved official files into raw storage without overwriting any byte version, only after the separately approved M1-03 checkpoint |
 | Dependencies | M1-02; explicit acquisition authorization |
 | Inputs | Approved provisional discovery records |
-| Outputs | Immutable raw objects, retrieval receipts, SHA-256, sizes, MIME signatures, version relationships |
+| Outputs | Immutable raw objects, Dropbox operational-ledger receipts, SHA-256, sizes, MIME signatures, version relationships |
 | Tests | Atomic download; hash-before-promote; same-name/different-byte handling; interrupted download recovery; raw-write guard exceptions limited to acquisition command |
 | Acceptance | Every acquired byte object has a receipt; repeated runs are idempotent; alternate official versions are retained |
 | Human review | Review all collisions and non-PDF content |
-| Tools | Deterministic downloader with rate limits; Dropbox raw storage |
+| Tools | Deterministic downloader with rate limits; Dropbox raw storage and `01_raw/manifests/` operational ledger |
 | Compute/cost risk | Medium network/storage; no paid service |
 | Parallelization | Downloads may be bounded-parallel; manifest and collision adjudication remain serialized |
 

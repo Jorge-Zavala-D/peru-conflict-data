@@ -8,7 +8,7 @@ Permissive hand-written schema stubs could silently accept drift and omitted sev
 
 ## Decision
 
-Use frozen Pydantic models with strict/non-coercing values, finite numbers, `extra=forbid`, and schema version `0.1.0`. Generate deterministic JSON Schemas for all 23 M0 entities under `schemas/v0.1.0/` and preserve earlier version directories. Keep historical classifications, source-original transitions, and relationship vocabulary open until evidenced. Close only pipeline-controlled extraction-method and discrepancy vocabularies. Python validation is authoritative for semantic cross-field rules; generated schema explicitly carries the probabilistic-model metadata condition.
+Use frozen Pydantic models with strict/non-coercing values, finite numbers, `extra=forbid`, and versioned schemas. Preserve the 23-entity M0 snapshot under `schemas/v0.1.0/`; the source-evidenced v0.2.0 contract adds `mediation_process`, source-level dimensions, identity-evidence guards, and explicit source-reported/derived indicators under `schemas/v0.2.0/`. Keep historical classifications, source-original transitions, and relationship vocabulary open until evidenced. Close only pipeline-controlled extraction-method, discrepancy, indicator-basis, and identity-evidence controls. Python validation is authoritative for semantic cross-field rules; generated schemas carry the key conditional guards.
 
 ## Consequences
 

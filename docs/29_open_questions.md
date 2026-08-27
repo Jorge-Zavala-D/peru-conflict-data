@@ -8,3 +8,5 @@
 - Source-document and derived-data redistribution rights.
 - Acceptable future OCR/model budgets and benchmark annotation depth.
 - Whether missing Java/Tesseract Spanish/qpdf/Ghostscript should be installed for a later measured need.
+- Exact M1-03 acquisition command, dry-run bounds, rate limits, and raw-write checkpoint approval.
+- Which report-269 alert and case-timing observations are confirmed source inconsistencies after independent page-level benchmark review.
