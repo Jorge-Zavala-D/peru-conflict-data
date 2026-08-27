@@ -1,16 +1,16 @@
 # Milestone 0.1 hardening completion report
 
-Status: **local hardening complete; remote pull-request verification pending**.
+Status: **M0.1 hardening complete; pull request open; remote CI passed; not merged**.
 This report records the owner-authorized M0.1 pass on
 `codex/milestone-0-foundation`. It does not authorize Milestone 1. M1-01, M1-02,
 and M1-03 remain stopped; M1-03 still requires its separate acquisition checkpoint.
 
 Date: 2026-08-27 (Europe/Berlin)
 Branch: `codex/milestone-0-foundation`
-Implementation commit at local/remote verification: `3fcb5fdfb10233334cf365348b90d33a61f3f387`
+Branch head at PR creation: `d46602e3c6559c16ba03b21e1f1afa0bbfce7a9e`
 Base: `origin/main` at `14b913f390056a74b598de08742be1120515dda6`
-Pull request: pending creation; no merge performed
-Remote Actions: pending pull-request run
+Pull request: [#1](https://github.com/Jorge-Zavala-D/peru-conflict-data/pull/1), open, targeting `main`; no merge performed
+Remote Actions: [run 33072659760](https://github.com/Jorge-Zavala-D/peru-conflict-data/actions/runs/33072659760), workflow `quality`, passed
 
 ## Scope and outcome
 
@@ -114,8 +114,10 @@ added to a derived-data layer.
   unchanged.
 - The diff contains only repository code, tests, schemas, configuration, and
   documentation. No source or credential files are tracked.
-- Pull-request and independent GitHub Actions identifiers will be filled in after
-  the owner-confirmed browser submission and completion of the remote workflow.
+- PR #1 was created from `codex/milestone-0-foundation` to `main` and remains open.
+- Independent GitHub Actions run `33072659760` completed successfully. Its exact
+  matrix checks were `quality (3.12)` and `quality (3.13)`; both completed with
+  conclusion `success`.
 
 ## Decisions requiring Jorge before M1
 
