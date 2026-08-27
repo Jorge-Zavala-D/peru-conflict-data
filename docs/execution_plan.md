@@ -1,10 +1,15 @@
 # Execution plan: Milestones 1-12
 
-Version: 0.2.0 (Milestone 0.1 hardening baseline; future-work plan only)
+Version: 0.2.0 (M1-only working content baseline; not the final M2 gold schema)
 
 ## Plan contract
 
-This document describes future work; it does not authorize it. Milestone 1 begins only after Jorge reviews this M0.1 result and explicitly authorizes it. M1-03 raw acquisition additionally requires the separate checkpoint in `docs/m1_acquisition_checkpoint.md`. Each work package produces reviewable artifacts on a focused branch. No package may weaken the research contract or benchmark gates without a written decision.
+M1-01 and M1-02 are authorized read-only work; this document does not authorize
+any other package. M1-03 raw acquisition remains separately prohibited and requires
+the explicit checkpoint in `docs/m1_acquisition_checkpoint.md`. Schema `v0.2.0` is
+the M1-only working content baseline, not the final M2 gold schema. Each work package
+produces reviewable artifacts on a focused branch. No package may weaken the research
+contract or benchmark gates without a written decision.
 
 Parallel work is limited to independent, read-heavy or isolated outputs. No two agents independently mutate a canonical manifest, schema, gold file, adjudication table, or identity graph.
 
@@ -27,7 +32,7 @@ Parallel work is limited to independent, read-heavy or isolated outputs. No two 
 | Field | Plan |
 |---|---|
 | Goal | Define reproducible official-source search, retrieval, retry, and evidence rules before acquiring anything |
-| Dependencies | M0.1 completion review and Jorge's explicit authorization; decision on redistribution/storage and canonical official domains |
+| Dependencies | Approved M1 boundary; decision on redistribution/storage and canonical official domains |
 | Inputs | M0 inventories, Defensoría site structure, existing raw filenames |
 | Outputs | Versioned discovery protocol, source-domain allowlist, operational-manifest schema migration if required |
 | Tests | URL normalization; retrieval timestamps; official-domain checks; nullable report/month handling; alternate-version representation |
@@ -84,11 +89,16 @@ Parallel work is limited to independent, read-heavy or isolated outputs. No two 
 
 ## Milestone 2: human gold benchmark and workbook overlap
 
+M2-01 owns the five deferred ontology questions in `docs/29_open_questions.md`:
+case/protest units, status/transitions, violence/casualty semantics,
+dialogue/mediation/agreement/action/alert units, and case-relationship vocabulary.
+M1 does not resolve them.
+
 ### M2-01 — benchmark protocol and sampling units
 
 | Field | Plan |
 |---|---|
-| Goal | Freeze the annotation unit, field dictionary, page-evidence contract, adjudication process, and accuracy metrics for reports 260-269 |
+| Goal | Resolve the five deferred ontology questions and freeze the annotation unit, field dictionary, page-evidence contract, adjudication process, and accuracy metrics for reports 260-269 |
 | Dependencies | M1 accepted; benchmark reports' byte versions fixed |
 | Inputs | Reports 260-269, schemas, research contract |
 | Outputs | Annotation handbook, gold schemas, annotator forms, critical-field list, metric implementation spec |

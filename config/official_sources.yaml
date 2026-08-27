@@ -1,0 +1,31 @@
+config_version: "1"
+
+# M1-01/M1-02 authority boundary. Do not promote redirect destinations or other
+# subdomains to authoritative status without a reviewed configuration change.
+approved_hosts:
+  - defensoria.gob.pe
+  - www.defensoria.gob.pe
+
+starting_surfaces:
+  - id: reports_catalogue
+    role: catalogue
+    url: https://www.defensoria.gob.pe/categorias_de_documentos/reportes/
+  - id: conflict_search
+    role: search
+    url: https://www.defensoria.gob.pe/?s=Reporte+conflictos
+  - id: paz_social_conflict_prevention
+    role: thematic
+    url: https://www.defensoria.gob.pe/areas_tematicas/paz-social-y-prevencion-de-conflictos/
+
+retrieval:
+  concurrency: 1
+  delay_seconds: 2.0
+  retry_cap: 2
+  allowed_content_types:
+    - text/html
+    - application/xhtml+xml
+  rejection_policy:
+    reject_pdf: true
+    reject_binary: true
+    reject_unlisted_content_types: true
+    body_retrieval: html_only

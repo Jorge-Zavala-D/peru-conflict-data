@@ -1,24 +1,34 @@
-# Proposed `main` branch protection (not applied)
+# Approved `main` branch ruleset configuration
 
-The repository currently reports `main` as unprotected. Do not apply these settings
-without Jorge's explicit repository-administrator approval. Confirm the exact check names
-from the first M0.1 pull request before saving a rule.
+Jorge authorized this single-maintainer configuration after the M0/M0.1 squash merge.
+The exact required check names were verified from pull request #1 as `quality (3.12)` and
+`quality (3.13)`. Record the live ruleset identifier and API receipt after application;
+do not add a documentation-only commit merely to chase a workflow run produced by that
+same commit.
 
-## Recommended ruleset
+## Live ruleset receipt
 
-- Target branch: `main`.
-- Require a pull request before merging; require at least one approving review, dismiss
-  stale approvals after new commits, and require resolution of review conversations.
-- Require the repository quality checks for both supported Python versions (the matrix
-  checks currently appear as `quality (3.12)` and `quality (3.13)`; verify their exact
-  names in GitHub after the PR run).
-- Require branches to be up to date before merge if the repository is small enough for the
-  queue cost; otherwise use merge queue after a measured need.
-- Block force-push and branch deletion on `main`; allow ordinary pushes only through the
-  pull-request rule.
-- Keep the ruleset in “evaluate” mode for a short dry period if GitHub exposes that mode,
-  then enforce after review. Do not require signed commits or CODEOWNERS until ownership
-  and signing workflows are explicitly agreed.
+- Ruleset ID: `21658925`; enforcement status: active.
+- Target branch: `refs/heads/main`.
+- Pull requests require zero approving reviews; review-conversation resolution is required.
+- Required checks: `quality (3.12)` and `quality (3.13)`; strict/up-to-date is `true`.
+- Deletion and force pushes are blocked.
+- Bypass actors: none.
+- Signed commits, CODEOWNERS, and merge queue rules are absent.
+- `require_extra_approval_for_unattributed_changes` is explicitly `false`.
 
-This proposal is a governance recommendation only. No GitHub-admin setting, ruleset,
-branch protection, merge queue, or auto-merge configuration was changed during M0.1.
+## Approved ruleset
+
+- Target branch: `main`; enforcement status: active (live ref: `refs/heads/main`).
+- Require changes through pull requests, with **zero required approving reviews** while
+  this remains a single-maintainer user-owned repository.
+- Require resolution of review conversations.
+- Require `quality (3.12)` and `quality (3.13)` and require the branch to be up to date
+  before merge.
+- Block force pushes and deletion of `main`.
+- Do not require signed commits, CODEOWNERS, a merge queue, or extra approval for
+  unattributed changes.
+- Do not configure bypass actors.
+
+This file records the approved target configuration and the live receipt captured after
+application.
