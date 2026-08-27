@@ -90,15 +90,17 @@ Parallel work is limited to independent, read-heavy or isolated outputs. No two 
 ## Milestone 2: human gold benchmark and workbook overlap
 
 M2-01 owns the five deferred ontology questions in `docs/29_open_questions.md`:
-case/protest units, status/transitions, violence/casualty semantics,
-dialogue/mediation/agreement/action/alert units, and case-relationship vocabulary.
-M1 does not resolve them.
+whether `Demand.text_original` must be nullable for structured demand rows;
+source-reported case-level dialogue/mechanism and cumulative-violence fields; a
+source-level case/problem description distinct from monthly facts; longitudinal
+mediation-process identity/observation semantics; and any additional fields evidenced
+across reports 260-269. M1 makes no speculative resolution of these questions.
 
 ### M2-01 — benchmark protocol and sampling units
 
 | Field | Plan |
 |---|---|
-| Goal | Resolve the five deferred ontology questions and freeze the annotation unit, field dictionary, page-evidence contract, adjudication process, and accuracy metrics for reports 260-269 |
+| Goal | Resolve the five deferred ontology questions from source evidence and freeze the annotation unit, field dictionary, page-evidence contract, adjudication process, and accuracy metrics for reports 260-269 |
 | Dependencies | M1 accepted; benchmark reports' byte versions fixed |
 | Inputs | Reports 260-269, schemas, research contract |
 | Outputs | Annotation handbook, gold schemas, annotator forms, critical-field list, metric implementation spec |

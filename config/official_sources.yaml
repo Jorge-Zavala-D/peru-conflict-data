@@ -29,3 +29,15 @@ retrieval:
     reject_binary: true
     reject_unlisted_content_types: true
     body_retrieval: html_only
+
+# Robots retrieval is separately scoped: it may retrieve only a host's robots.txt
+# as plain text and does not widen the normal HTML-only body policy above.
+robots:
+  path: /robots.txt
+  allowed_content_types:
+    - text/plain
+  body_retrieval: robots_txt_only
+  rejection_policy:
+    reject_pdf: true
+    reject_binary: true
+    reject_unlisted_content_types: true

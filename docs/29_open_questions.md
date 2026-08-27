@@ -2,20 +2,15 @@
 
 ## Deferred M2-01 ontology questions
 
-M2-01 owns these five questions. They remain unresolved during M1; their answers
-require review of all ten fixed benchmark reports (260-269), source evidence, and
-the M2-01 annotation protocol.
+M2-01 owns these five questions. They remain unresolved during M1; no speculative
+resolution is permitted in M1. Their answers require review of all ten fixed benchmark
+reports (260-269), source evidence, and the M2-01 annotation protocol.
 
-1. What is the source-grounded unit of a conflict case, and when is a protest event
-   a distinct entity rather than evidence or an attribute of that case?
-2. Which source classifications represent a stock status, and which represent a
-   transition, including the original Spanish strings to retain?
-3. What event boundary and component semantics govern violence, injuries, deaths,
-   and unknown casualty totals?
-4. Which source statements distinguish dialogue, mediation, agreements, Defensoría
-   actions, and alerts, and what are their appropriate units of observation?
-5. Which continuation, rename, merge, split, reactivation, and related-case
-   relationships are supportable from source evidence without forcing identity?
+1. Whether `Demand.text_original` must be nullable for structured demand rows.
+2. Source-reported case-level dialogue/mechanism and cumulative-violence fields.
+3. A source-level case/problem description distinct from monthly facts.
+4. Longitudinal mediation-process identity/observation semantics.
+5. Any additional fields evidenced across reports 260-269.
 
 ## Other evidence and approval questions
 
