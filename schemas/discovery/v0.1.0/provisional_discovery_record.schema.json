@@ -1,0 +1,415 @@
+{
+  "$defs": {
+    "CandidateSourceRelation": {
+      "additionalProperties": false,
+      "description": "An uncertain relation between official URLs before byte hashing is authorized.",
+      "properties": {
+        "captured_at": {
+          "format": "date-time",
+          "title": "Captured At",
+          "type": "string"
+        },
+        "rationale": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Rationale",
+          "type": "string"
+        },
+        "related_source_url": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Related Source Url",
+          "type": "string"
+        },
+        "relation_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Relation Id",
+          "type": "string"
+        },
+        "relation_type": {
+          "$ref": "#/$defs/CandidateSourceRelationType"
+        },
+        "source_url": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Source Url",
+          "type": "string"
+        },
+        "uncertainty_note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Uncertainty Note"
+        }
+      },
+      "required": [
+        "relation_id",
+        "source_url",
+        "related_source_url",
+        "relation_type",
+        "captured_at",
+        "rationale"
+      ],
+      "title": "CandidateSourceRelation",
+      "type": "object"
+    },
+    "CandidateSourceRelationType": {
+      "description": "Pre-hash source relations permitted during M1 discovery.",
+      "enum": [
+        "appears_same_report"
+      ],
+      "title": "CandidateSourceRelationType",
+      "type": "string"
+    },
+    "CoverageExpectation": {
+      "additionalProperties": false,
+      "description": "A research coverage-grid hypothesis, separate from observed source records.",
+      "properties": {
+        "expectation_kind": {
+          "const": "research_coverage_grid",
+          "default": "research_coverage_grid",
+          "title": "Expectation Kind",
+          "type": "string"
+        },
+        "rationale": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Rationale",
+          "type": "string"
+        },
+        "reference_period": {
+          "pattern": "^\\d{4}-\\d{2}$",
+          "title": "Reference Period",
+          "type": "string"
+        }
+      },
+      "required": [
+        "reference_period",
+        "rationale"
+      ],
+      "title": "CoverageExpectation",
+      "type": "object"
+    },
+    "IdentityEvidence": {
+      "additionalProperties": false,
+      "description": "One observed value paired with its candidate identity interpretation.",
+      "properties": {
+        "candidate_value": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Candidate Value",
+          "type": "string"
+        },
+        "captured_at": {
+          "format": "date-time",
+          "title": "Captured At",
+          "type": "string"
+        },
+        "evidence_type": {
+          "$ref": "#/$defs/IdentityEvidenceType"
+        },
+        "observed_value": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Observed Value",
+          "type": "string"
+        },
+        "source_excerpt": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Excerpt"
+        },
+        "source_url": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Source Url",
+          "type": "string"
+        },
+        "subject": {
+          "$ref": "#/$defs/IdentitySubject"
+        },
+        "uncertainty_note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Uncertainty Note"
+        }
+      },
+      "required": [
+        "subject",
+        "evidence_type",
+        "candidate_value",
+        "observed_value",
+        "source_url",
+        "captured_at"
+      ],
+      "title": "IdentityEvidence",
+      "type": "object"
+    },
+    "IdentityEvidenceType": {
+      "description": "Technical classes of evidence encountered before acquisition.",
+      "enum": [
+        "document_visible",
+        "official_metadata",
+        "filename",
+        "embedded_pdf_title"
+      ],
+      "title": "IdentityEvidenceType",
+      "type": "string"
+    },
+    "IdentitySubject": {
+      "description": "Candidate identity fields that discovery evidence may support.",
+      "enum": [
+        "report_number",
+        "reference_period"
+      ],
+      "title": "IdentitySubject",
+      "type": "string"
+    },
+    "RedirectHop": {
+      "additionalProperties": false,
+      "description": "One structured HTTP redirect edge, without retrieving a binary body.",
+      "properties": {
+        "captured_at": {
+          "format": "date-time",
+          "title": "Captured At",
+          "type": "string"
+        },
+        "from_url": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "From Url",
+          "type": "string"
+        },
+        "role": {
+          "const": "redirect_hop",
+          "default": "redirect_hop",
+          "title": "Role",
+          "type": "string"
+        },
+        "status_code": {
+          "maximum": 399,
+          "minimum": 300,
+          "title": "Status Code",
+          "type": "integer"
+        },
+        "to_url": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "To Url",
+          "type": "string"
+        }
+      },
+      "required": [
+        "from_url",
+        "to_url",
+        "status_code",
+        "captured_at"
+      ],
+      "title": "RedirectHop",
+      "type": "object"
+    },
+    "UrlObservation": {
+      "additionalProperties": false,
+      "description": "One encountered URL with a single explicit discovery role.",
+      "properties": {
+        "captured_at": {
+          "format": "date-time",
+          "title": "Captured At",
+          "type": "string"
+        },
+        "content_type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Content Type"
+        },
+        "http_status": {
+          "anyOf": [
+            {
+              "maximum": 599,
+              "minimum": 100,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Http Status"
+        },
+        "observation_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Observation Id",
+          "type": "string"
+        },
+        "redirect_hops": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/RedirectHop"
+          },
+          "title": "Redirect Hops",
+          "type": "array"
+        },
+        "role": {
+          "$ref": "#/$defs/UrlRole"
+        },
+        "uncertainty_note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Uncertainty Note"
+        },
+        "url": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Url",
+          "type": "string"
+        }
+      },
+      "required": [
+        "observation_id",
+        "role",
+        "url",
+        "captured_at"
+      ],
+      "title": "UrlObservation",
+      "type": "object"
+    },
+    "UrlRole": {
+      "description": "Distinct roles an observed URL may play during discovery.",
+      "enum": [
+        "discovery_surface",
+        "landing_page",
+        "direct_download"
+      ],
+      "title": "UrlRole",
+      "type": "string"
+    }
+  },
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/discovery/v0.1.0/provisional_discovery_record.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "A provisional report candidate assembled solely from discovery evidence.",
+  "properties": {
+    "candidate_reference_period": {
+      "anyOf": [
+        {
+          "pattern": "^\\d{4}-\\d{2}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Candidate Reference Period"
+    },
+    "candidate_report_number": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Candidate Report Number"
+    },
+    "candidate_source_relations": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/CandidateSourceRelation"
+      },
+      "title": "Candidate Source Relations",
+      "type": "array"
+    },
+    "coverage_expectations": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/CoverageExpectation"
+      },
+      "title": "Coverage Expectations",
+      "type": "array"
+    },
+    "discovery_record_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Discovery Record Id",
+      "type": "string"
+    },
+    "identity_evidence": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/IdentityEvidence"
+      },
+      "title": "Identity Evidence",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "0.1.0",
+      "default": "0.1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "uncertainty_notes": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "title": "Uncertainty Notes",
+      "type": "array"
+    },
+    "url_observations": {
+      "items": {
+        "$ref": "#/$defs/UrlObservation"
+      },
+      "minItems": 1,
+      "title": "Url Observations",
+      "type": "array"
+    }
+  },
+  "required": [
+    "discovery_record_id",
+    "url_observations"
+  ],
+  "title": "ProvisionalDiscoveryRecord",
+  "type": "object"
+}
