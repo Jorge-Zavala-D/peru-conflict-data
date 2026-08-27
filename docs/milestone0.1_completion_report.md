@@ -7,10 +7,10 @@ and M1-03 remain stopped; M1-03 still requires its separate acquisition checkpoi
 
 Date: 2026-08-27 (Europe/Berlin)
 Branch: `codex/milestone-0-foundation`
-Branch head at PR creation: `d46602e3c6559c16ba03b21e1f1afa0bbfce7a9e`
+Branch head verified by PR CI run 2: `582c9e69419354802256763f274db85d6064f869`
 Base: `origin/main` at `14b913f390056a74b598de08742be1120515dda6`
 Pull request: [#1](https://github.com/Jorge-Zavala-D/peru-conflict-data/pull/1), open, targeting `main`; no merge performed
-Remote Actions: [run 33072659760](https://github.com/Jorge-Zavala-D/peru-conflict-data/actions/runs/33072659760), workflow `quality`, passed
+Remote Actions: [run 33072659760](https://github.com/Jorge-Zavala-D/peru-conflict-data/actions/runs/33072659760) and [run 33072798437](https://github.com/Jorge-Zavala-D/peru-conflict-data/actions/runs/33072798437), workflow `quality`, both passed
 
 ## Scope and outcome
 
@@ -118,6 +118,9 @@ added to a derived-data layer.
 - Independent GitHub Actions run `33072659760` completed successfully. Its exact
   matrix checks were `quality (3.12)` and `quality (3.13)`; both completed with
   conclusion `success`.
+- The receipt-only follow-up head `582c9e69419354802256763f274db85d6064f869`
+  was independently verified by Actions run `33072798437`; `quality (3.12)` and
+  `quality (3.13)` again completed with conclusion `success`.
 
 ## Decisions requiring Jorge before M1
 
