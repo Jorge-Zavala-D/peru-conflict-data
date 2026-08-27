@@ -12,6 +12,7 @@ from peru_conflicts.discovery.models import UrlRole
 from peru_conflicts.discovery.reconnaissance import run_reconnaissance
 from peru_conflicts.discovery.settings import (
     OfficialSourceConfiguration,
+    ReviewedTargetedLanding,
     StartingSurface,
     load_official_source_config,
     resolve_runtime_limits,
@@ -45,6 +46,23 @@ def select_starting_surfaces(
     return tuple(by_id[surface_id] for surface_id in requested_ids)
 
 
+def select_targeted_landings(
+    configuration: OfficialSourceConfiguration,
+    requested_ids: tuple[str, ...] | None,
+) -> tuple[ReviewedTargetedLanding, ...]:
+    """Select only exact reviewed targets; absence means no targeted requests."""
+
+    if not requested_ids:
+        return ()
+    if len(set(requested_ids)) != len(requested_ids):
+        raise ValueError("duplicate targeted landing ID in --targeted-landing-id arguments")
+    by_id = {target.id: target for target in configuration.reviewed_targeted_landings}
+    unknown = [target_id for target_id in requested_ids if target_id not in by_id]
+    if unknown:
+        raise ValueError(f"unknown targeted landing ID: {', '.join(unknown)}")
+    return tuple(by_id[target_id] for target_id in requested_ids)
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     """Validate the safety envelope before constructing a live HTTP client."""
 
@@ -60,6 +78,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--delay-seconds", type=float, default=None)
     parser.add_argument("--retry-cap", type=int, default=None)
     parser.add_argument("--surface-id", action="append", default=None)
+    parser.add_argument("--targeted-landing-id", action="append", default=None)
     arguments = parser.parse_args(argv)
 
     repo_root = Path(__file__).resolve().parents[3]
@@ -79,15 +98,24 @@ def main(argv: Sequence[str] | None = None) -> int:
         tuple(arguments.surface_id) if arguments.surface_id is not None else None
     )
     selected_surfaces = select_starting_surfaces(configuration, requested_surface_ids)
+    requested_target_ids = (
+        tuple(arguments.targeted_landing_id) if arguments.targeted_landing_id is not None else None
+    )
+    selected_targets = select_targeted_landings(configuration, requested_target_ids)
     role_names = {
         "catalogue": UrlRole.CATALOGUE_PAGE,
         "search": UrlRole.SEARCH_RESULT_PAGE,
         "thematic": UrlRole.THEMATIC_PAGE,
     }
-    start_urls = tuple(surface.url for surface in selected_surfaces)
+    start_urls = tuple(surface.url for surface in (*selected_surfaces, *selected_targets))
     roles = {surface.url: role_names[surface.role] for surface in selected_surfaces}
+    roles.update({target.url: UrlRole.LANDING_PAGE for target in selected_targets})
     verified = {surface.url: surface.pagination_contract_verified for surface in selected_surfaces}
+    verified.update(
+        {target.url: target.pagination_contract_verified for target in selected_targets}
+    )
     pagination_modes = {surface.url: surface.pagination_mode for surface in selected_surfaces}
+    pagination_modes.update({target.url: target.pagination_mode for target in selected_targets})
     retrieval = configuration.retrieval
     client = HtmlClient(
         frozenset(configuration.approved_hosts),

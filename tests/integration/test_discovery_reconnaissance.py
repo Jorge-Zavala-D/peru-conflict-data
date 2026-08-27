@@ -629,3 +629,69 @@ def test_single_page_surface_does_not_follow_a_visible_next_link(tmp_path: Path)
     assert traversal.stop_reason.value == "single_page"
     assert traversal.reached_local_terminal is True
     assert traversal.pagination_exhausted is False
+
+
+def test_explicit_targeted_landing_bypasses_no_cap_and_is_never_fetched_twice(
+    tmp_path: Path,
+) -> None:
+    thematic = f"{BASE}/areas_tematicas/paz-social-y-prevencion-de-conflictos/"
+    targeted = f"{BASE}/documentos/reporte-mensual-de-conflictos-sociales-n-175/"
+    thematic_body = (
+        "<html><body><h1>Paz social y prevención de conflictos</h1>"
+        "<div class='card'><h4>Reporte Mensual de Conflictos Sociales N° 175</h4>"
+        "<a href='/documentos/reporte-mensual-de-conflictos-sociales-n-175/'>"
+        "Ver documento</a></div></body></html>"
+    )
+    targeted_body = (
+        "<html><body><main><h1>Reporte Mensual de Conflictos Sociales N° 175</h1>"
+        "<a href='/wp-content/uploads/2018/10/reporte-175.pdf'>"
+        "Conflictos Sociales N° 175 - Septiembre 2018</a></main></body></html>"
+    )
+    transport = FakeTransport(
+        {
+            ROBOTS: [_response(ROBOTS, "User-agent: *\nAllow: /\n", content_type="text/plain")],
+            thematic: [_response(thematic, thematic_body)],
+            targeted: [_response(targeted, targeted_body)],
+        }
+    )
+    client = HtmlClient(
+        frozenset({"defensoria.gob.pe", "www.defensoria.gob.pe"}),
+        transport=transport,
+        delay_seconds=0.0,
+        utc_clock=lambda: CAPTURED_AT,
+    )
+
+    summary = run_reconnaissance(
+        (thematic, targeted),
+        output_dir=tmp_path / ".cache" / "targeted-landing",
+        client=client,
+        surface_roles={thematic: UrlRole.THEMATIC_PAGE, targeted: UrlRole.LANDING_PAGE},
+        surface_pagination_modes={thematic: "single_page", targeted: "single_page"},
+        pagination_contract_verified={thematic: True, targeted: True},
+        page_cap=1,
+        max_landing_pages=0,
+        captured_at=CAPTURED_AT,
+        utc_clock=lambda: CAPTURED_AT,
+        repo_root=tmp_path,
+    )
+
+    assert [url for method, url in transport.calls if method == "GET" and url == targeted] == [
+        targeted
+    ]
+    assert summary.pages_visited == 2
+    assert summary.landing_pages.discovered == 0
+    assert summary.landing_pages.selected == 0
+    assert summary.landing_pages.fetched == 0
+    records = [
+        json.loads(line)
+        for line in (tmp_path / ".cache/targeted-landing/records.jsonl")
+        .read_text(encoding="utf-8")
+        .splitlines()
+    ]
+    report_175 = [
+        row
+        for row in records
+        if row["candidate_report_number"] == 175 and row["candidate_reference_period"] == "2018-09"
+    ]
+    assert len(report_175) == 1
+    assert all(not url.lower().endswith(".pdf") for _, url in transport.calls)

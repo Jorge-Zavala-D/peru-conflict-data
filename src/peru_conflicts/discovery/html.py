@@ -61,13 +61,28 @@ _REPORT_NUMBER_PATTERNS: Final[tuple[re.Pattern[str], ...]] = (
 )
 _REPORT_SOURCE_PATTERNS: Final[tuple[re.Pattern[str], ...]] = (
     re.compile(
-        r"\breporte(?:\s+mensual)?\s+de\s+conflictos?\s+sociales\b",
+        r"\breporte(?:\s+mensual)?\s+de\s+(?:conflictos?|conflcitos)\s+sociales\b",
         re.IGNORECASE,
     ),
     re.compile(r"\breporte\s+conflictos?\s+sociales\b", re.IGNORECASE),
     re.compile(
         r"\breporte\s+mensual(?:\s+n\s*[.º°oª]*\s*\d{1,4})?\s+"
         r"conflictos?\s+sociales\b",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"\breporte\s+mensual\s+de\s+conflictos\s+"
+        r"n\s*[.º°oª]*\s*[-:]?\s*\d{1,4}\b",
+        re.IGNORECASE,
+    ),
+)
+_BOUNDED_IDENTITY_DETAIL_PATTERNS: Final[tuple[re.Pattern[str], ...]] = (
+    re.compile(
+        r"\breporte\s+mensual\s+n\s*[.º°oª]*\s*[-:]?\s*\d{1,4}\b",
+        re.IGNORECASE,
+    ),
+    re.compile(
+        r"\bconflictos?\s+sociales\s+n\s*[.º°oª]*\s*[-:]?\s*\d{1,4}\b",
         re.IGNORECASE,
     ),
 )
@@ -300,6 +315,10 @@ def _is_report_source_text(text: str) -> bool:
     return any(pattern.search(text) for pattern in _REPORT_SOURCE_PATTERNS)
 
 
+def _is_bounded_identity_detail(text: str) -> bool:
+    return any(pattern.search(text) for pattern in _BOUNDED_IDENTITY_DETAIL_PATTERNS)
+
+
 def _link_role(url: str) -> UrlRole | None:
     parsed = urlsplit(url)
     path = parsed.path.lower()
@@ -475,7 +494,9 @@ def _candidate_scopes(parser: _TreeParser, page_role: UrlRole) -> list[_Node]:
     return []
 
 
-def _scope_metadata(scope: _Node) -> tuple[str, str | None, str | None, str | None]:
+def _scope_metadata(
+    scope: _Node,
+) -> tuple[str, str | None, str | None, str | None, str | None, str | None]:
     excluded = frozenset({"nav", "header", "aside"})
     descendants = [
         node for node in _iter_scope_descendants(scope) if not node.has_ancestor_tag(excluded)
@@ -492,11 +513,58 @@ def _scope_metadata(scope: _Node) -> tuple[str, str | None, str | None, str | No
 
     scope_text = scope.text() if scope.tag in {"h1", "h2", "h3", "h4", "h5", "h6", "a"} else ""
     title = headings[0].text() if headings else anchors[0].text() if anchors else scope_text
-    description = paragraphs[0].text() if paragraphs else None
-    identity_text = _clean_text(" ".join(part for part in (title, description) if part))
+    title_number, _ = _parse_report_number(title)
+    eligible_paragraphs: list[_Node] = []
+    for node in paragraphs:
+        paragraph_text = node.text()
+        paragraph_number, _ = _parse_report_number(paragraph_text)
+        if (
+            title_number is not None
+            and paragraph_number is not None
+            and paragraph_number != title_number
+        ):
+            continue
+        eligible_paragraphs.append(node)
+    description = eligible_paragraphs[0].text() if eligible_paragraphs else None
+    identity_parts = [part for part in (title, description) if part]
+    identity_text = _clean_text(" ".join(identity_parts))
+    number_source_excerpt = next(
+        (part for part in identity_parts if _parse_report_number(part)[0] is not None), None
+    )
+    report_number, _ = _parse_report_number(number_source_excerpt or "")
+    reference_source_excerpt = None
+    if report_number is not None:
+        identity_tags = {"a", "p", "h1", "h2", "h3", "h4", "h5", "h6"}
+        local_identity_nodes = ([scope] if scope.tag in identity_tags else []) + [
+            node for node in descendants if node.tag in identity_tags
+        ]
+        for node in local_identity_nodes:
+            local_text = node.text()
+            local_number, _ = _parse_report_number(local_text)
+            local_period, _ = _parse_reference_period(local_text)
+            series_qualified = _is_report_source_text(local_text)
+            locally_qualified = series_qualified or _is_bounded_identity_detail(local_text)
+            identity_matches_report = local_number == report_number or (
+                local_number is None and series_qualified
+            )
+            if identity_matches_report and local_period is not None and locally_qualified:
+                reference_source_excerpt = local_text
+                if local_text not in identity_parts:
+                    identity_parts.append(local_text)
+                if description is None and node.tag == "p":
+                    description = local_text
+                identity_text = _clean_text(" ".join(identity_parts))
+                break
     publication_text = _scope_visible_text(scope, excluded)
     publication_date = _extract_date(publication_text)
-    return identity_text, title or None, publication_date, description
+    return (
+        identity_text,
+        title or None,
+        publication_date,
+        description,
+        number_source_excerpt,
+        reference_source_excerpt,
+    )
 
 
 def _scope_links(
@@ -622,6 +690,15 @@ def _direct_link_visibly_matches(link: DiscoveredLink, report_number: int | None
     return bool(re.search(rf"(?<!\d){report_number}(?!\d)", f"{link.url} {link.text}"))
 
 
+def _link_visibly_conflicts(link: DiscoveredLink, report_number: int | None) -> bool:
+    """Reject only a link whose visible label explicitly names another report."""
+
+    if report_number is None:
+        return False
+    linked_number, _ = _parse_report_number(link.text)
+    return linked_number is not None and linked_number != report_number
+
+
 def parse_discovery_page(
     html: str,
     *,
@@ -668,13 +745,20 @@ def parse_discovery_page(
     unresolved_downloads: list[tuple[str, DiscoveredLink]] = []
 
     for scope in _candidate_scopes(parser, page_role):
-        identity_text, entry_title, entry_date, entry_description = _scope_metadata(scope)
+        (
+            identity_text,
+            entry_title,
+            entry_date,
+            entry_description,
+            number_source_excerpt,
+            reference_source_excerpt,
+        ) = _scope_metadata(scope)
         if not identity_text:
             continue
         if page_role is UrlRole.LANDING_PAGE and entry_date is None:
             entry_date = parser.publication_metadata
-        report_number, number_observed = _parse_report_number(identity_text)
-        reference_period, period_observed = _parse_reference_period(identity_text)
+        report_number, number_observed = _parse_report_number(number_source_excerpt or "")
+        reference_period, period_observed = _parse_reference_period(reference_source_excerpt or "")
         record_key = _stable_id(
             "discovery",
             normalized_page_url,
@@ -691,6 +775,8 @@ def parse_discovery_page(
                 page_links.append(scoped_link)
         linked: list[DiscoveredLink] = []
         for link in scoped_links:
+            if _link_visibly_conflicts(link, report_number):
+                continue
             if (
                 page_role is UrlRole.LANDING_PAGE
                 and link.role is UrlRole.DIRECT_DOWNLOAD
@@ -742,7 +828,7 @@ def parse_discovery_page(
                     source_observation_id=observation_id,
                     source_url=normalized_page_url,
                     captured_at=captured_at,
-                    source_excerpt=identity_text,
+                    source_excerpt=number_source_excerpt or identity_text,
                 )
             )
         if reference_period is not None and period_observed is not None:
@@ -756,7 +842,7 @@ def parse_discovery_page(
                     source_observation_id=observation_id,
                     source_url=normalized_page_url,
                     captured_at=captured_at,
-                    source_excerpt=identity_text,
+                    source_excerpt=reference_source_excerpt or identity_text,
                 )
             )
         uncertainty_notes: list[str] = []

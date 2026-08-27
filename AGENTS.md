@@ -28,6 +28,21 @@ Build a reproducible, auditable, versioned historical reconstruction of the Defe
 - Do not install or enable paid/external services without Jorge's approval. Prefer the smallest trusted capability set.
 - Start Dropbox/archive inspection read-only. A filesystem ACL is not an immutability guarantee.
 
+### Credential and integration boundary
+
+- Agents must never invoke `git credential fill` or otherwise query or inspect OS
+  credential helpers, keychains, password managers, environment secrets, stored
+  OAuth/API tokens, or similar credential stores. Agents must never extract a user
+  secret into a process variable or manually
+  construct an Authorization header to bypass the selected integration's permissions.
+- Normal `git push` and `git fetch` through preconfigured Git authentication are
+  allowed when the repository action itself is authorized because Git handles the
+  credential without exposing it to the agent.
+- If an app or connector cannot perform an explicitly authorized GitHub action,
+  use the authenticated browser UI only after explicit user confirmation when that
+  route is available; otherwise stop and ask the user. Respect least privilege and
+  the permission boundary of the selected integration.
+
 ## Development discipline
 
 - Python 3.12-3.13, `uv`, Pydantic, pytest, Ruff, Pyright, and pre-commit.

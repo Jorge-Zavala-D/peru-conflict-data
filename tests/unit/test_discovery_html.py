@@ -127,6 +127,33 @@ def test_parser_uses_visible_heading_and_not_generic_html_title() -> None:
     assert parsed.records[0].candidate_reference_period == "2026-06"
 
 
+@pytest.mark.parametrize("scope_tag", ["a", "h4"])
+def test_bare_candidate_scope_retains_its_node_local_reference_period(
+    scope_tag: str,
+) -> None:
+    href = " href='/documentos/reporte-269/'" if scope_tag == "a" else ""
+    parsed = parse_discovery_page(
+        (
+            f"<html><body><{scope_tag}{href}>"
+            "Reporte de conflictos sociales N.° 269 - julio 2026"
+            f"</{scope_tag}></body></html>"
+        ),
+        page_url=CATALOGUE_URL,
+        page_role=UrlRole.CATALOGUE_PAGE,
+        observation_id=f"bare-{scope_tag}-scope",
+        captured_at=CAPTURED_AT,
+    )
+
+    assert len(parsed.records) == 1
+    record = parsed.records[0]
+    assert record.candidate_report_number == 269
+    assert record.candidate_reference_period == "2026-07"
+    period_evidence = next(
+        item for item in record.identity_evidence if item.subject.value == "reference_period"
+    )
+    assert period_evidence.source_excerpt == ("Reporte de conflictos sociales N.° 269 - julio 2026")
+
+
 def test_parser_preserves_landing_date_with_time_without_publication_label() -> None:
     parsed = parse_discovery_page(
         (
@@ -687,3 +714,220 @@ def test_heading_fragments_are_aggregated_once_across_h3_through_h6() -> None:
     )
     assert parsed.records[0].entry_publication_date_original == "marzo 07,2007"
     assert parsed.records[0].candidate_reference_period == "2007-02"
+
+
+def test_parser_recognizes_exact_historical_gap_variants_without_correcting_source() -> None:
+    parsed = parse_discovery_page(
+        _fixture("thematic_historical_gap_variants.html"),
+        page_url=(
+            "https://www.defensoria.gob.pe/areas_tematicas/paz-social-y-prevencion-de-conflictos/"
+        ),
+        page_role=UrlRole.THEMATIC_PAGE,
+        observation_id="thematic-historical-gap-variants",
+        captured_at=CAPTURED_AT,
+    )
+
+    by_number = {record.candidate_report_number: record for record in parsed.records}
+    assert {number: record.candidate_reference_period for number, record in by_number.items()} == {
+        122: "2014-04",
+        125: "2014-07",
+        136: "2015-06",
+        172: "2018-06",
+    }
+    assert by_number[122].entry_description_original == (
+        "Reporte Mensual de Conflcitos Sociales N° 122 – abril 2014"
+    )
+    assert by_number[125].entry_description_original == (
+        "Reporte Mensual de Conflcitos Sociales N° 125 – julio 2014"
+    )
+    assert by_number[136].entry_description_original == (
+        "Reporte mensual de conflictos N° 136 – junio 2015"
+    )
+    assert by_number[172].entry_description_original == ("Reporte Mensual N° 172 – junio 2018")
+
+
+def test_bounded_secondary_span_must_repeat_the_qualified_report_number() -> None:
+    parsed = parse_discovery_page(
+        _fixture("thematic_historical_gap_variants.html"),
+        page_url=(
+            "https://www.defensoria.gob.pe/areas_tematicas/paz-social-y-prevencion-de-conflictos/"
+        ),
+        page_role=UrlRole.THEMATIC_PAGE,
+        observation_id="thematic-bounded-secondary-evidence",
+        captured_at=CAPTURED_AT,
+    )
+
+    record = next(item for item in parsed.records if item.candidate_report_number == 172)
+    period_evidence = next(
+        item for item in record.identity_evidence if item.subject.value == "reference_period"
+    )
+    assert period_evidence.candidate_value == "2018-06"
+    assert period_evidence.observed_value == "junio 2018"
+    assert period_evidence.source_excerpt == "Reporte Mensual N° 172 – junio 2018"
+    assert "mayo 2018" not in period_evidence.source_excerpt
+    assert "julio 16,2018" not in period_evidence.source_excerpt
+    assert all("reporte-173" not in observation.url for observation in record.url_observations)
+    assert all(
+        "reporte-173" not in relation.related_source_url
+        for relation in record.candidate_source_relations
+    )
+    assert any("reporte-173" in link.url for link in parsed.links)
+
+
+def test_mismatched_secondary_report_cannot_supply_a_reference_period() -> None:
+    parsed = parse_discovery_page(
+        (
+            "<html><body><div class='card'><h4>"
+            "Reporte Mensual de Conflictos Sociales N° 172</h4>"
+            "<p>Reporte Mensual de Conflictos Sociales N° 173 – mayo 2018</p>"
+            "<a href='/documentos/reporte-173/'>"
+            "Reporte Mensual N° 173 – mayo 2018</a></div></body></html>"
+        ),
+        page_url=(
+            "https://www.defensoria.gob.pe/areas_tematicas/paz-social-y-prevencion-de-conflictos/"
+        ),
+        page_role=UrlRole.THEMATIC_PAGE,
+        observation_id="mismatched-secondary-report",
+        captured_at=CAPTURED_AT,
+    )
+
+    record = parsed.records[0]
+    assert record.candidate_report_number == 172
+    assert record.candidate_reference_period is None
+    assert record.entry_description_original is None
+    assert all(item.subject.value != "reference_period" for item in record.identity_evidence)
+    assert all("reporte-173" not in item.url for item in record.url_observations)
+    assert record.candidate_source_relations == ()
+    assert any("reporte-173" in link.url for link in parsed.links)
+
+
+def test_reference_period_cannot_be_synthesized_across_visible_nodes() -> None:
+    parsed = parse_discovery_page(
+        (
+            "<html><body><div class='card'><h4>"
+            "Reporte Mensual de Conflictos Sociales N° 172 – junio</h4>"
+            "<p>2018 Reporte mensual de conflictos sociales</p>"
+            "</div></body></html>"
+        ),
+        page_url=(
+            "https://www.defensoria.gob.pe/areas_tematicas/paz-social-y-prevencion-de-conflictos/"
+        ),
+        page_role=UrlRole.THEMATIC_PAGE,
+        observation_id="cross-node-period-negative",
+        captured_at=CAPTURED_AT,
+    )
+
+    record = parsed.records[0]
+    assert record.candidate_report_number == 172
+    assert record.candidate_reference_period is None
+    assert all(item.subject.value != "reference_period" for item in record.identity_evidence)
+
+
+def test_numbered_heading_pairs_with_numberless_series_qualified_description() -> None:
+    parsed = parse_discovery_page(
+        _fixture("thematic_report_117_split_identity.html"),
+        page_url=(
+            "https://www.defensoria.gob.pe/areas_tematicas/paz-social-y-prevencion-de-conflictos/"
+        ),
+        page_role=UrlRole.THEMATIC_PAGE,
+        observation_id="thematic-report-117-split-identity",
+        captured_at=CAPTURED_AT,
+    )
+
+    assert len(parsed.records) == 1
+    record = parsed.records[0]
+    assert record.candidate_report_number == 117
+    assert record.candidate_reference_period == "2013-11"
+    assert record.entry_title_original == "Reporte Nº 117"
+    assert record.entry_description_original == (
+        "Reporte mensual de conflictos sociales – noviembre 2013."
+    )
+    assert record.entry_publication_date_original == "diciembre 13,2013"
+    number_evidence = next(
+        item for item in record.identity_evidence if item.subject.value == "report_number"
+    )
+    period_evidence = next(
+        item for item in record.identity_evidence if item.subject.value == "reference_period"
+    )
+    assert number_evidence.source_excerpt == "Reporte Nº 117"
+    assert period_evidence.source_excerpt == (
+        "Reporte mensual de conflictos sociales – noviembre 2013."
+    )
+
+
+def test_numberless_unqualified_month_cannot_supply_a_reference_period() -> None:
+    parsed = parse_discovery_page(
+        (
+            "<html><body><div class='card'><h4>"
+            "Reporte Mensual de Conflictos Sociales Nº 117</h4>"
+            "<p>Publicación institucional – noviembre 2013.</p>"
+            "</div></body></html>"
+        ),
+        page_url=(
+            "https://www.defensoria.gob.pe/areas_tematicas/paz-social-y-prevencion-de-conflictos/"
+        ),
+        page_role=UrlRole.THEMATIC_PAGE,
+        observation_id="unqualified-numberless-month-negative",
+        captured_at=CAPTURED_AT,
+    )
+
+    record = parsed.records[0]
+    assert record.candidate_report_number == 117
+    assert record.candidate_reference_period is None
+    assert all(item.subject.value != "reference_period" for item in record.identity_evidence)
+
+
+def test_historical_tolerance_does_not_admit_unrelated_institutional_reports() -> None:
+    parsed = parse_discovery_page(
+        _fixture("thematic_historical_gap_variants.html"),
+        page_url=(
+            "https://www.defensoria.gob.pe/areas_tematicas/paz-social-y-prevencion-de-conflictos/"
+        ),
+        page_role=UrlRole.THEMATIC_PAGE,
+        observation_id="thematic-historical-negative-controls",
+        captured_at=CAPTURED_AT,
+    )
+
+    observed_numbers = {record.candidate_report_number for record in parsed.records}
+    assert observed_numbers == {122, 125, 136, 172}
+    assert 999 not in observed_numbers
+
+
+def test_missing_sociales_tolerance_requires_observed_plural_conflictos() -> None:
+    parsed = parse_discovery_page(
+        (
+            "<html><body><div class='card'><h4>Boletín institucional</h4>"
+            "<p>Reporte mensual de conflicto N° 998 – junio 2015</p>"
+            "</div></body></html>"
+        ),
+        page_url=(
+            "https://www.defensoria.gob.pe/areas_tematicas/paz-social-y-prevencion-de-conflictos/"
+        ),
+        page_role=UrlRole.THEMATIC_PAGE,
+        observation_id="unsupported-singular-conflicto",
+        captured_at=CAPTURED_AT,
+    )
+
+    assert parsed.records == ()
+
+
+def test_landing_visible_same_number_label_supplies_reference_period() -> None:
+    parsed = parse_discovery_page(
+        _fixture("landing_report_175_visible_label.html"),
+        page_url=(
+            "https://www.defensoria.gob.pe/documentos/reporte-mensual-de-conflictos-sociales-n-175/"
+        ),
+        page_role=UrlRole.LANDING_PAGE,
+        observation_id="landing-report-175-visible-label",
+        captured_at=CAPTURED_AT,
+    )
+
+    record = next(item for item in parsed.records if item.candidate_report_number == 175)
+    period_evidence = next(
+        item for item in record.identity_evidence if item.subject.value == "reference_period"
+    )
+    assert record.candidate_reference_period == "2018-09"
+    assert record.entry_publication_date_original == "octubre 15,2018"
+    assert period_evidence.observed_value == "Septiembre 2018"
+    assert period_evidence.source_excerpt == "Conflictos Sociales N° 175 - Septiembre 2018"
+    assert "Octubre 2018" not in period_evidence.source_excerpt

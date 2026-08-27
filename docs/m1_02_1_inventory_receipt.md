@@ -1,88 +1,152 @@
-# M1-02.1 definitive inventory receipt
+# M1 discovery inventory receipt
 
-Status: reviewed read-only reconnaissance evidence for the M1-02.1 pull request.
-This is not a corpus-completeness claim, a public source index, an acquisition
-ledger, or authorization for M1-03.
+Status: the M1-02.1 inventory is preserved below as superseded historical
+evidence. The current M1-02.2 reportable evidence consists of one complete
+bounded HTML-only traversal plus one final-parser targeted supplement. This is
+not a corpus-completeness claim, a public source index, an acquisition ledger, or
+authorization for M1-03.
 
-## Definitive run
+## Why M1-02.1 was superseded
 
-The final reviewed parser snapshot was run from
-`codex/m1-01-02-corpus-discovery` on 2026-08-27. The command was:
+The independent research-owner audit found official HTML entries that the
+M1-02.1 parser had missed: reports 122, 125, and 136, plus visible reference
+months for reports 172 and 175. The old artifact hashes remain valid for that
+observation and are not rewritten:
 
-```powershell
-uv run python scripts/discover_official_sources.py `
-  --output .cache/m1-discovery-2026-08-27-m1-02-1-final-reviewed `
-  --page-cap 120 `
-  --max-landing-pages 24 `
-  --delay-seconds 2.0 `
-  --retry-cap 2
-```
-
-Run ID: `reconnaissance-aeadfcf0e96c1654`. Start:
-`2026-08-27T21:18:56.748687Z`. Completion:
-`2026-08-27T21:25:09.375267Z`. Schema: discovery `v0.3.0`.
-
-The full mutable files remain Git-ignored in the repository `.cache/`. Their
-durable audit identifiers are:
-
-| Artifact | Bytes | Records | SHA-256 |
+| Superseded M1-02.1 artifact | Bytes | Lines | SHA-256 |
 |---|---:|---:|---|
 | `records.jsonl` | 1,992,166 | 739 | `712136ef2010fcd93e5e113c0be7cd9ee0a8a4247ff00898fd451a261feefd3b` |
 | `requests.jsonl` | 162,928 | 165 | `3a76412dd10ecd19e0c9de5e634c00fe34bcc564772dfbfa1d14d612cb982991` |
-| `summary.json` | 14,036 | 1 | `b2302f441a0d53609283e8e934e966a9929c96e2cbab347d296e5787cdb6ee39` |
+| `summary.json` | 14,036 | 213 | `b2302f441a0d53609283e8e934e966a9929c96e2cbab347d296e5787cdb6ee39` |
 
-These hashes identify this exact live observation. A later run may differ because
-the official site is mutable; that would be a new observation, not a replacement
-for this receipt.
+That run observed 244 distinct report numbers and 242 distinct months. Those
+coverage statements are superseded parser outputs, not official-source gaps.
 
-## Request and traversal audit
+## M1-02.2 complete bounded traversal
 
-- 165 actual attempts: 164 HTML requests and one exact-host robots request.
-- All 165 returned HTTP 200 on `https://www.defensoria.gob.pe`.
-- Successful MIME types were `text/html; charset=UTF-8` and
-  `text/plain; charset=UTF-8` for robots.
-- Every permitted body is complete and has a byte count and SHA-256.
-- Zero retries, redirect hops, non-HTTPS URLs, off-allowlist hosts, PDF/direct-file
-  requests, binary requests, unapproved successful MIME types, cookies, or
-  authorization fields occurred.
-- The reports catalogue traversed pages 1-120 and stopped at its verified
-  no-next terminal. The two official searches traversed 10 and 9 pages and also
-  stopped at verified no-next terminals. The thematic page used its declared
-  single-page contract.
-- Twenty-four of 129 discovered landing URLs were fetched under the approved cap;
-  105 were intentionally skipped. Reaching local pagination terminals does not
-  establish corpus completeness, which remains `not_assessed`.
+After source-faithful RED/GREEN tests and independent read-only review, the four
+ordinary surfaces and the exact reviewed report-175 landing page were traversed
+once:
 
-## Observed source coverage
+```powershell
+uv run python scripts/discover_official_sources.py `
+  --targeted-landing-id report_175_reference_period `
+  --page-cap 120 `
+  --max-landing-pages 24 `
+  --delay-seconds 2.0 `
+  --retry-cap 2 `
+  --output .cache/m1-discovery-2026-08-28-m1-02-2-definitive
+```
 
-The run produced 739 provisional records: 234 catalogue, 231 search-result, 245
-thematic, and 29 landing-page or unresolved landing-download records. It observed
-244 distinct candidate report numbers from 23 through 269. Numbers 122, 125, and
-136 were not observed on the traversed surfaces. It observed 242 distinct
-candidate reference months from 2006-01 through 2026-07; the unobserved month
-positions inside that interval are 2014-04, 2014-07, 2015-06, 2018-06, and
-2018-09. These are discovery gaps, not evidence that a report did not exist.
+Run ID: `reconnaissance-24df69cdc9ef9156`. Start:
+`2026-08-27T22:52:57.279081Z`. Completion:
+`2026-08-27T22:59:08.876287Z`. Schema: discovery `v0.3.0`.
 
-The site independently exposes unnumbered 2004 and 2005 conflict-report entries.
-They remain bundle/document leads with null candidate reference month. No report
-numbers 1-22 and no monthly rows for 2004/2005 were inferred. Reports 172 and 175
-are visible by number but their scoped HTML entries do not visibly state a
-reference month, so those month values remain null.
+| Complete-traversal artifact | Bytes | Lines | SHA-256 |
+|---|---:|---:|---|
+| `records.jsonl` | 1,970,685 | 746 | `dd3d4e71245e0d7e94459f7b318fa5245cb731b05cc57ad5f98cfa9ecf52d5de` |
+| `requests.jsonl` | 163,939 | 166 | `9b5aab045a81808f462655b907c59f90f9b0d86ffb45ef73271f3b80b044772f` |
+| `summary.json` | 14,597 | 226 | `27aebe5abbbc62c3f644c619c84c0914dc55497f89749da45337daa74b9dead1` |
 
-The only candidate groups exposing more than one distinct direct-file URL are
-reports 69, 153, and 169. In each case the official thematic card includes one
-plausibly matching URL and one URL whose visible filename refers to another report.
-Both links are preserved as source-page ambiguity; no byte-version relationship
-is asserted because no linked body was retrieved.
+The run made 165 HTML requests and one robots request. All returned HTTP 200
+from the approved HTTPS host, all permitted bodies were complete and hashed, and
+there were zero retries, redirect hops, errors, PDF/ZIP requests, other binary
+requests, or Dropbox writes. It visited 141 start/pagination pages. Catalogue
+pagination reached its verified no-next terminal after 120 pages; the two search
+surfaces reached verified no-next terminals after 10 and 9 pages; the thematic
+and targeted pages used single-page contracts. The ordinary landing queue
+discovered 128 URLs, fetched 24, and deliberately skipped 104 at the reviewed
+cap. The explicit report-175 target was fetched once outside that queue.
 
-## Retention boundary and superseded attempts
+This traversal produced 746 records: 237 catalogue, 231 search, 248 thematic,
+and 30 landing-page records. It observed 129 distinct landing URLs and 251
+distinct direct-file URLs without requesting a linked file body.
 
-Earlier bounded attempts in `.cache/` exposed the live WP-PageNavi catalogue
-structure, malformed nested catalogue cards, and historical month spelling. Their
-findings became regression tests, but those provisional outputs are superseded and
-are not the reportable inventory. Only the final reviewed artifact hashes above
-are carried into durable documentation.
+## Final-parser targeted supplement
 
-The operational acquisition ledger still belongs in Dropbox
-`01_raw/manifests/` only after a write-capable milestone is authorized. No full
-inventory is committed to Git, and no Dropbox path was used as an output target.
+Audit of the complete traversal exposed one further bounded source structure:
+the report-117 card separates `Reporte Nº 117` from
+`Reporte mensual de conflictos sociales – noviembre 2013.`. The latter is a
+single, independently series-qualified visible span; it is not a publication
+date and contains no conflicting number. The final parser accepts this narrow
+entry-scoped pairing while continuing to reject mismatched numbers, cross-node
+month/year synthesis, and unqualified numberless month text.
+
+The complete traversal was not repeated. After another offline gate and
+independent parser review, a two-page HTML-only supplement re-observed the
+thematic page and pinned report-175 landing:
+
+```powershell
+uv run python scripts/discover_official_sources.py `
+  --surface-id paz_social_conflict_prevention `
+  --targeted-landing-id report_175_reference_period `
+  --page-cap 1 `
+  --max-landing-pages 0 `
+  --delay-seconds 2.0 `
+  --retry-cap 2 `
+  --output .cache/m1-discovery-2026-08-28-m1-02-2-targeted-gap-supplement
+```
+
+Run ID: `reconnaissance-155898df773d1808`. Start:
+`2026-08-27T23:04:05.058851Z`. Completion:
+`2026-08-27T23:04:13.312078Z`.
+
+| Targeted-supplement artifact | Bytes | Lines | SHA-256 |
+|---|---:|---:|---|
+| `records.jsonl` | 692,970 | 249 | `c05afd73f85986a281c5fad1b38ac0ab00e7ea7da0d7836644bb89515484ac6e` |
+| `requests.jsonl` | 2,964 | 3 | `e5a325c59f91fc6156bc7f5f64cd7bab938f0961a3fa00ba77258464843f370a` |
+| `summary.json` | 1,758 | 51 | `22e2464616c67989881fbeec0d4a1975c13b65dec1b3e1cfba346b93e6024474` |
+
+The supplement made one robots request and two HTML requests, all HTTP 200 and
+fully hashed, with zero retries, redirects, errors, PDF/ZIP requests, binary
+requests, or Dropbox writes. An earlier M1-02.2 targeted diagnostic at
+`.cache/m1-discovery-2026-08-28-m1-02-2-targeted-gap-verification` is
+superseded because it preceded the report-117 refinement; it is not part of the
+reportable evidence bundle.
+
+## Observed source evidence
+
+The complete traversal plus final-parser supplement directly observe these
+previously unresolved pairs:
+
+| Report | Reference month | Exact visible supporting span | Official HTML source |
+|---:|---|---|---|
+| 117 | `2013-11` | `Reporte mensual de conflictos sociales – noviembre 2013.` | Paz Social thematic page |
+| 122 | `2014-04` | `Reporte Mensual de Conflcitos Sociales N° 122 – abril 2014` | Catalogue and thematic page |
+| 125 | `2014-07` | `Reporte Mensual de Conflcitos Sociales N° 125 – julio 2014` | Catalogue and thematic page |
+| 136 | `2015-06` | `Reporte mensual de conflictos N° 136 – junio 2015` | Catalogue and thematic page |
+| 172 | `2018-06` | `Reporte Mensual N° 172 – junio 2018` | Catalogue and thematic page |
+| 175 | `2018-09` | `Conflictos Sociales N° 175 - Septiembre 2018` | Reviewed report-175 landing page |
+
+As an observed consequence—not an encoded expected answer—the evidence bundle
+contains 247 distinct candidate report numbers from 23 through 269 and 247
+distinct candidate reference months from 2006-01 through 2026-07. There are no
+internal number/month holes or competing report-month mappings in those observed
+ranges. This does not establish corpus completeness, byte availability, or a
+monthly structure before 2006.
+
+The official site separately exposes unnumbered 2004 and 2005 bundle/document
+leads. Reports 1-22 and any month-level decomposition of those bundles remain
+unobserved and are not inferred.
+
+## Ambiguities retained
+
+Overlapping catalogue, search, thematic, and landing records remain separate
+observations. Identical URLs are not treated as identical bytes. Reports 69, 153,
+and 169 each retain two direct-file URLs because the official card includes one
+plausible match and one visibly mismatched filename. No byte-version relationship
+is asserted without authorized retrieval and hashing.
+
+The stale embedded PDF title `RCS N° 126` remains unusable as sole identity
+evidence. The report-269 alert 58-versus-34 totals and case `1514-0726` saying
+it entered as new in August 2026 inside the July 2026 report remain M2
+source-discrepancy candidates. No PDF body was opened or interpreted.
+
+## Retention and manifest boundary
+
+All reportable JSON/JSONL artifacts remain Git-ignored in repository `.cache`;
+their exact byte counts and hashes above make the observation bundle auditable
+across sessions. No mutable inventory is committed. The operational acquisition
+ledger remains reserved for Dropbox `01_raw/manifests/` only after write
+authorization. The reviewed reports-260–269 pilot remains a small public-URL
+recipe in Git with `authorization_status: not_authorized`.

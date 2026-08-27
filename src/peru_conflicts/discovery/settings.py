@@ -47,6 +47,17 @@ REVIEWED_STARTING_SURFACES = (
         True,
     ),
 )
+REVIEWED_TARGETED_LANDINGS = (
+    (
+        "report_175_reference_period",
+        "landing",
+        "https://www.defensoria.gob.pe/documentos/reporte-mensual-de-conflictos-sociales-n-175/",
+        "single_page",
+        True,
+        "Official landing page visibly supplies the otherwise missing September 2018 "
+        "reference period for report 175.",
+    ),
+)
 _REVIEWED_REJECTION_POLICY = {
     "reject_pdf": True,
     "reject_binary": True,
@@ -161,14 +172,35 @@ class StartingSurface(StrictModel):
         return self
 
 
+class ReviewedTargetedLanding(StrictModel):
+    """One exact, reviewed HTML landing page selected by ID rather than URL."""
+
+    id: Identifier
+    role: Literal["landing"]
+    url: Identifier
+    pagination_mode: Literal["single_page"]
+    pagination_contract_verified: Literal[True]
+    review_rationale: Identifier
+
+    @model_validator(mode="after")
+    def require_authoritative_https_default_port(self) -> Self:
+        parts = urlsplit(self.url)
+        if parts.scheme != "https" or parts.port not in {None, 443}:
+            raise ValueError("reviewed targeted landing must use authoritative HTTPS")
+        return self
+
+
 class OfficialSourceConfiguration(StrictModel):
-    config_version: Literal["2"]
+    config_version: Literal["3"]
     approved_hosts: tuple[Identifier, ...] = Field(min_length=1)
     starting_surfaces: tuple[StartingSurface, ...] = Field(min_length=1)
+    reviewed_targeted_landings: tuple[ReviewedTargetedLanding, ...] = Field(min_length=1)
     retrieval: RetrievalConfiguration
     robots: RobotsConfiguration
 
-    @field_validator("approved_hosts", "starting_surfaces", mode="before")
+    @field_validator(
+        "approved_hosts", "starting_surfaces", "reviewed_targeted_landings", mode="before"
+    )
     @classmethod
     def freeze_sequences(cls, value: object) -> object:
         return tuple(cast(list[object], value)) if isinstance(value, list) else value
@@ -195,6 +227,24 @@ class OfficialSourceConfiguration(StrictModel):
         )
         if observed_surfaces != REVIEWED_STARTING_SURFACES:
             raise ValueError("configuration must contain the exact reviewed starting surfaces")
+        if any(
+            classify_host(target.url, approved) != "authoritative"
+            for target in self.reviewed_targeted_landings
+        ):
+            raise ValueError("reviewed targeted landing must be an authoritative HTTPS URL")
+        observed_targets = tuple(
+            (
+                target.id,
+                target.role,
+                target.url,
+                target.pagination_mode,
+                target.pagination_contract_verified,
+                target.review_rationale,
+            )
+            for target in self.reviewed_targeted_landings
+        )
+        if observed_targets != REVIEWED_TARGETED_LANDINGS:
+            raise ValueError("configuration must contain the exact reviewed targeted landing")
         return self
 
 

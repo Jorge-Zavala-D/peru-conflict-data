@@ -169,3 +169,77 @@ def test_repeatable_surface_selector_rejects_unknown_and_duplicate_ids() -> None
             configuration,
             ("conflict_search_monthly", "conflict_search_monthly"),
         )
+
+
+def test_reviewed_targeted_landing_is_exact_and_selected_only_by_id() -> None:
+    from peru_conflicts.discovery.cli import select_targeted_landings
+
+    configuration = load_official_source_config(Path("config/official_sources.yaml"))
+
+    assert configuration.config_version == "3"
+    assert len(configuration.reviewed_targeted_landings) == 1
+    target = configuration.reviewed_targeted_landings[0]
+    assert target.id == "report_175_reference_period"
+    assert target.url == (
+        "https://www.defensoria.gob.pe/documentos/reporte-mensual-de-conflictos-sociales-n-175/"
+    )
+    assert target.role == "landing"
+    assert target.pagination_mode == "single_page"
+    assert target.pagination_contract_verified is True
+    assert select_targeted_landings(configuration, None) == ()
+    assert select_targeted_landings(configuration, ("report_175_reference_period",)) == (target,)
+
+    with pytest.raises(ValueError, match="unknown targeted landing ID"):
+        select_targeted_landings(configuration, ("unreviewed_official_url",))
+    with pytest.raises(ValueError, match="duplicate targeted landing ID"):
+        select_targeted_landings(
+            configuration,
+            ("report_175_reference_period", "report_175_reference_period"),
+        )
+
+
+@pytest.mark.parametrize(
+    "replacement_url",
+    [
+        "http://www.defensoria.gob.pe/documentos/reporte-mensual-175/",
+        "https://www.defensoria.gob.pe:444/documentos/reporte-mensual-175/",
+        "https://www.defensoria.gob.pe/wp-admin/",
+        "https://example.org/documentos/reporte-mensual-175/",
+    ],
+)
+def test_reviewed_targeted_landing_cannot_be_replaced_by_arbitrary_url(
+    tmp_path: Path,
+    replacement_url: str,
+) -> None:
+    payload = yaml.safe_load(Path("config/official_sources.yaml").read_text(encoding="utf-8"))
+    payload["reviewed_targeted_landings"][0]["url"] = replacement_url
+    path = tmp_path / "unreviewed-target.yaml"
+    path.write_text(yaml.safe_dump(payload), encoding="utf-8")
+
+    with pytest.raises(ValidationError, match="reviewed targeted landing"):
+        load_official_source_config(path)
+
+
+def test_cli_rejects_unknown_targeted_id_and_exposes_no_arbitrary_url_flag() -> None:
+    from peru_conflicts.discovery.cli import main
+
+    output = Path(".cache/test-unknown-targeted-landing")
+    with pytest.raises(ValueError, match="unknown targeted landing ID"):
+        main(
+            [
+                "--output",
+                str(output),
+                "--targeted-landing-id",
+                "not_reviewed",
+            ]
+        )
+    with pytest.raises(SystemExit):
+        main(
+            [
+                "--output",
+                str(output),
+                "--targeted-landing-url",
+                "https://www.defensoria.gob.pe/documentos/unreviewed/",
+            ]
+        )
+    assert not output.exists()

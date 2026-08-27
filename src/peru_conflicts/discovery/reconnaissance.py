@@ -126,6 +126,7 @@ def run_reconnaissance(
     role_by_url = surface_roles or {}
     verified_by_url = pagination_contract_verified or {}
     pagination_mode_by_url = surface_pagination_modes or {}
+    explicit_start_urls = {normalize_url(url) for url in start_urls}
     records: list[ProvisionalDiscoveryRecord] = []
     discovered_landing_urls: list[str] = []
     seen_landing_urls: set[str] = set()
@@ -178,7 +179,11 @@ def run_reconnaissance(
                 break
             records.extend(parsed.records)
             for link in parsed.links:
-                if link.role is UrlRole.LANDING_PAGE and link.url not in seen_landing_urls:
+                if (
+                    link.role is UrlRole.LANDING_PAGE
+                    and link.url not in explicit_start_urls
+                    and link.url not in seen_landing_urls
+                ):
                     seen_landing_urls.add(link.url)
                     discovered_landing_urls.append(link.url)
             if pagination_mode == "single_page":

@@ -1,6 +1,6 @@
 # M1-03 raw-acquisition checkpoint (not authorized)
 
-M1-01/M1-02.1 are read-only. This document and the pilot recipe do not authorize
+M1-01/M1-02.2 are read-only. This document and the pilot recipe do not authorize
 network retrieval of PDF bodies, writes to Dropbox, or raw promotion. M1-03 is the
 first exceptional workflow that could write `01_raw` and requires Jorge's separate
 explicit approval after review of this checkpoint.
@@ -31,9 +31,15 @@ The plan is fixed to:
 The Pydantic model, generated JSON Schema, and tests pin these values. Changing
 the YAML alone fails validation and does not widen authority.
 
+The pinned M1-02 receipt and Git SHA above are historical inputs to pilot v1,
+not a final pre-network baseline. After M1 discovery is merged, M1-03 must create
+a separately reviewed versioned plan or authorization artifact tied to the
+latest merged source-integrity receipt and merged Git SHA. It must not silently
+mutate the fingerprinted, `not_authorized` v1 recipe.
+
 ## Proposed command and bounded dry run
 
-The future acquisition entry point is deliberately not implemented in M1-02.1.
+The future acquisition entry point is deliberately not implemented in M1-02.2.
 If M1-03 is authorized, its exact proposed dry-run command is:
 
 ```powershell

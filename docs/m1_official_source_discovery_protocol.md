@@ -1,7 +1,7 @@
 # M1-01 official-source discovery protocol
 
-Status: M1-01 is approved and this protocol is hardened for the corrective
-M1-02.1 review, 2026-08-27. It is read-only. It does not authorize M1-03
+Status: M1-01 is approved and this protocol is hardened through the corrective
+M1-02.2 review, 2026-08-28. It is read-only. It does not authorize M1-03
 acquisition, writes to Dropbox, PDF or binary retrieval, OCR, content extraction,
 or a corpus-completeness claim.
 
@@ -21,6 +21,12 @@ discovered from those surfaces. A different subdomain, redirect destination,
 shortener, mirror, or third-party host is recorded as pending review and is not
 automatically authoritative. Internet Archive is fallback evidence only after an
 official-source gap is demonstrated.
+
+One source-policy configuration version 3 target is separately pinned for
+reviewed gap verification: the exact official report-175 landing page. The CLI
+selects it only by its reviewed identifier and exposes no arbitrary target-URL
+option. It is a single-page start, excluded from the discovered landing queue,
+and does not raise or consume the ordinary landing cap.
 
 The bare host and `www` host are not interchangeable in practice: the read-only
 audit found a Zimbra login at the bare-host root. The public WordPress discovery
@@ -55,6 +61,15 @@ visible span, accepts only evidenced Spanish month forms and separators, and
 rejects forward/reverse calendar dates and compact identifiers. A day-like token
 is exempted from date rejection only when its exact span is a recognized report
 number, which protects reports 23-31.
+
+Identity values are parsed from exact individual visible nodes, never from text
+concatenated across nodes. A local span with an explicit report number must match
+the entry's established number. A numberless period span is eligible only inside
+an already numbered bounded entry when that one span independently names the
+complete conflict-report series. This preserves report 117's split heading and
+description without admitting generic months, mismatched reports, or publication
+dates. Visible links naming another report remain page-level discoveries but are
+not attached as same-report relations.
 
 URL roles are separate structured observations: `catalogue_page`,
 `search_result_page`, `thematic_page`, `landing_page`, and `direct_download`.
@@ -107,7 +122,7 @@ an apex host to `www` or promote a new host through normalization.
 
 ## Responsible retrieval
 
-M1-02.1 uses the standard-library client and a stable identifying user agent.
+M1-02 uses the standard-library client and a stable identifying user agent.
 Requests are serial (`concurrency=1`) with at least 2.0 seconds between requests
 and at most two retries after the initial attempt. Ordinary CLI inputs cannot
 lower the delay or raise retry, page, or landing limits beyond the reviewed

@@ -16,9 +16,10 @@ Parallel work is limited to independent, read-heavy or isolated outputs. No two 
 ## Current execution status
 
 M0/M0.1 is merged to `main`. M1-01 (discovery protocol/source registry) is
-approved. M1-02.1 (historical read-only discovery hardening) is complete for
-pull-request review on `codex/m1-01-02-corpus-discovery`, with a definitive
-inventory checksum receipt and a separate source-integrity receipt. M1-03 remains
+approved. M1-02.2 (historical read-only discovery reconciliation and credential
+hardening) is complete for pull-request review on
+`codex/m1-01-02-corpus-discovery`, with a complete-traversal plus targeted-
+supplement checksum receipt and a separate source-integrity receipt. M1-03 remains
 blocked pending Jorge's separate acquisition-checkpoint approval; there has been
 no new raw write. M1-04 and M2-01 have not started.
 

@@ -1,4 +1,4 @@
-config_version: "2"
+config_version: "3"
 
 # M1-01/M1-02 authority boundary. Do not promote redirect destinations or other
 # subdomains to authoritative status without a reviewed configuration change.
@@ -27,6 +27,16 @@ starting_surfaces:
     url: https://www.defensoria.gob.pe/areas_tematicas/paz-social-y-prevencion-de-conflictos/
     pagination_mode: single_page
     pagination_contract_verified: true
+
+# Reviewed one-off HTML landing pages used only for bounded source-gap
+# verification. The CLI selects these by ID; it never accepts an arbitrary URL.
+reviewed_targeted_landings:
+  - id: report_175_reference_period
+    role: landing
+    url: https://www.defensoria.gob.pe/documentos/reporte-mensual-de-conflictos-sociales-n-175/
+    pagination_mode: single_page
+    pagination_contract_verified: true
+    review_rationale: Official landing page visibly supplies the otherwise missing September 2018 reference period for report 175.
 
 retrieval:
   concurrency: 1

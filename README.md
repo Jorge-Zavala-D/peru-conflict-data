@@ -2,7 +2,7 @@
 
 Research-data infrastructure for a defensible historical reconstruction of Peru's Defensoría del Pueblo Social Conflicts Monitoring System, April 2004-present.
 
-Status: **M1-01 approved; M1-02.1 read-only discovery hardening ready for review; M1-03 prohibited pending approval**. The repository does not yet contain a historical dataset or benchmark parser. Scientific schema `v0.2.0` is the M1 working baseline, while the technical discovery contract is `schemas/discovery/v0.3.0/`; every earlier schema directory remains immutable. Reports 260-269 are inventoried source material for a future independently annotated benchmark. No new raw file was acquired, and M2 remains out of scope.
+Status: **M1-01 approved; M1-02.2 read-only discovery reconciliation ready for review; M1-03 prohibited pending approval**. The repository does not yet contain a historical dataset or benchmark parser. Scientific schema `v0.2.0` is the M1 working baseline, while the technical discovery contract is `schemas/discovery/v0.3.0/`; every earlier schema directory remains immutable. Reports 260-269 are inventoried source material for a future independently annotated benchmark. No new raw file was acquired, and M2 remains out of scope.
 
 ## Storage boundary
 
@@ -16,4 +16,4 @@ uv run pytest
 
 Do not point `CONFLICT_DATA_ROOT` at this repository. Routine code refuses writes beneath `00_external`, `01_raw`, and `99_archive`.
 
-Start with [AGENTS.md](AGENTS.md), [project charter](docs/01_project_charter.md), [architecture](docs/04_architecture.md), [canonical model](docs/07_canonical_data_model.md), the [execution plan](docs/execution_plan.md), the [M1 discovery protocol](docs/m1_official_source_discovery_protocol.md), the [M1-01/M1-02.1 review report](docs/m1_01_02_review_report.md), and the [definitive inventory receipt](docs/m1_02_1_inventory_receipt.md). M1-03 requires the separate [acquisition checkpoint](docs/m1_acquisition_checkpoint.md).
+Start with [AGENTS.md](AGENTS.md), [project charter](docs/01_project_charter.md), [architecture](docs/04_architecture.md), [canonical model](docs/07_canonical_data_model.md), the [execution plan](docs/execution_plan.md), the [M1 discovery protocol](docs/m1_official_source_discovery_protocol.md), the [M1-01/M1-02.2 review report](docs/m1_01_02_review_report.md), and the [inventory receipt](docs/m1_02_1_inventory_receipt.md). M1-03 requires the separate [acquisition checkpoint](docs/m1_acquisition_checkpoint.md).
