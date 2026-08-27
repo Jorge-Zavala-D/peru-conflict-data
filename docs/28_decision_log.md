@@ -1,0 +1,3 @@
+# Decision log
+
+Accepted foundation decisions are Git/Dropbox separation; official PDFs as primary published source; workbook as complementary evidence; Parquet plus DuckDB canonical storage; immutable hashed raw sources; material-field provenance; no silent correction; stock/transition and case/protest separation; explicit case genealogy; deterministic before probabilistic extraction; reports 260-269 as the first benchmark; empirical historical regimes; scale gated on benchmark; strict Pydantic models as schema source; minimal M0 dependencies; v0.1.0 schema retention; v0.2.0 source-evidenced additions; operational manifests in Dropbox `01_raw/manifests/`; and explicit source-reported versus derived indicators. Formal rationale and consequences are in `docs/adr/`.

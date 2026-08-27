@@ -1,0 +1,129 @@
+{
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/v0.1.0/location.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "crosswalk_version": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Crosswalk Version"
+    },
+    "department_normalized": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Department Normalized"
+    },
+    "district_normalized": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "District Normalized"
+    },
+    "location_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Location Id",
+      "type": "string"
+    },
+    "location_text_original": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Location Text Original",
+      "type": "string"
+    },
+    "match_confidence": {
+      "anyOf": [
+        {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Match Confidence"
+    },
+    "match_method": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Match Method"
+    },
+    "population_center_normalized": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Population Center Normalized"
+    },
+    "province_normalized": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Province Normalized"
+    },
+    "schema_version": {
+      "const": "0.1.0",
+      "default": "0.1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "ubigeo": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Ubigeo"
+    }
+  },
+  "required": [
+    "location_id",
+    "location_text_original"
+  ],
+  "title": "Location",
+  "type": "object"
+}

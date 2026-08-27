@@ -1,0 +1,19 @@
+config_version: "1"
+benchmark_id: modern_reports_260_269_v1
+status: inventory_only
+report_numbers: [260, 261, 262, 263, 264, 265, 266, 267, 268, 269]
+gold_standard:
+  status: not_created
+  required_source: independent_human_annotation
+  external_storage: 06_validation/benchmark_results
+acceptance_targets:
+  central_deterministic_fields_exact_accuracy: 0.99
+  case_detection_recall: 0.99
+  case_detection_precision: 0.99
+  source_page_attribution_accuracy: 0.99
+  unresolved_critical_parser_errors_allowed: 0
+  arithmetic_discrepancies_classified: true
+  medium_confidence_links_reviewed: true
+gates:
+  full_corpus_processing_before_acceptance: false
+  changes_require_jorge_approval: true

@@ -1,0 +1,25 @@
+config_version: "1"
+global:
+  preserve_source_text: true
+  preserve_page_number: true
+  preserve_bbox_when_available: true
+  overwrite_original_value: false
+  infer_zero_from_absence: false
+method_precedence:
+  - native_text
+  - layout
+  - rule_based
+  - table
+  - probabilistic_model
+  - manual
+ocr:
+  enabled_by_default: false
+  selection_unit: page
+  requires_native_text_forensics: true
+semantic_extraction:
+  enabled_by_default: false
+  require_segmented_input: true
+  require_json_schema: true
+  require_source_quote_or_span: true
+  require_model_and_prompt_metadata: true
+  unsupported_fields_are_null: true

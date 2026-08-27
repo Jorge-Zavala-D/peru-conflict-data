@@ -1,0 +1,35 @@
+config_version: "1"
+# Resolve this tree beneath CONFLICT_DATA_ROOT. Do not put an absolute user path here.
+external:
+  defensoria_provided: 00_external/defensoria_provided
+raw:
+  reports: 01_raw/reports
+  # Mutable discovery/download ledger: Dropbox only, never a Git mirror.
+  manifests: 01_raw/manifests
+extracted:
+  text: 02_extracted/text
+  layout: 02_extracted/layout
+  tables: 02_extracted/tables
+  page_images: 02_extracted/page_images
+  ocr: 02_extracted/ocr
+parsed:
+  reports: 03_parsed/reports
+  cases: 03_parsed/cases
+  protests: 03_parsed/protests
+  violence: 03_parsed/violence
+  dialogue: 03_parsed/dialogue
+  demands: 03_parsed/demands
+linked:
+  case_month: 04_linked/case_month
+  entity_resolution: 04_linked/entity_resolution
+  geography: 04_linked/geography
+database:
+  parquet: 05_database/parquet
+  duckdb: 05_database/duckdb
+validation:
+  discrepancies: 06_validation/discrepancies
+  manual_review: 06_validation/manual_review
+  benchmark_results: 06_validation/benchmark_results
+  logs: 06_validation/logs
+releases: 07_releases
+archive: 99_archive

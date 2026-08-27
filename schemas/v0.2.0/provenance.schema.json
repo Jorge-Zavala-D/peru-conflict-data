@@ -1,0 +1,384 @@
+{
+  "$defs": {
+    "ExtractionMethod": {
+      "enum": [
+        "native_text",
+        "layout",
+        "table",
+        "ocr",
+        "rule_based",
+        "probabilistic_model",
+        "manual"
+      ],
+      "title": "ExtractionMethod",
+      "type": "string"
+    },
+    "ModelInvocation": {
+      "additionalProperties": false,
+      "properties": {
+        "inference_settings": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ModelSetting"
+          },
+          "title": "Inference Settings",
+          "type": "array"
+        },
+        "model": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Model",
+          "type": "string"
+        },
+        "output_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Output Hash",
+          "type": "string"
+        },
+        "output_schema_version": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Output Schema Version",
+          "type": "string"
+        },
+        "prompt_version": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Prompt Version",
+          "type": "string"
+        },
+        "provider": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Provider",
+          "type": "string"
+        },
+        "source_span_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Source Span Hash",
+          "type": "string"
+        }
+      },
+      "required": [
+        "provider",
+        "model",
+        "prompt_version",
+        "output_schema_version",
+        "source_span_hash",
+        "output_hash"
+      ],
+      "title": "ModelInvocation",
+      "type": "object"
+    },
+    "ModelSetting": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Name",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        }
+      },
+      "required": [
+        "name",
+        "value"
+      ],
+      "title": "ModelSetting",
+      "type": "object"
+    },
+    "SourceBBox": {
+      "additionalProperties": false,
+      "properties": {
+        "x0": {
+          "title": "X0",
+          "type": "number"
+        },
+        "x1": {
+          "title": "X1",
+          "type": "number"
+        },
+        "y0": {
+          "title": "Y0",
+          "type": "number"
+        },
+        "y1": {
+          "title": "Y1",
+          "type": "number"
+        }
+      },
+      "required": [
+        "x0",
+        "y0",
+        "x1",
+        "y1"
+      ],
+      "title": "SourceBBox",
+      "type": "object"
+    },
+    "SourceSpan": {
+      "additionalProperties": false,
+      "properties": {
+        "end": {
+          "minimum": 0,
+          "title": "End",
+          "type": "integer"
+        },
+        "start": {
+          "minimum": 0,
+          "title": "Start",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ],
+      "title": "SourceSpan",
+      "type": "object"
+    }
+  },
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/v0.2.0/provenance.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "extraction_method": {
+            "const": "probabilistic_model"
+          }
+        },
+        "required": [
+          "extraction_method"
+        ]
+      },
+      "then": {
+        "required": [
+          "model_invocation"
+        ]
+      }
+    }
+  ],
+  "properties": {
+    "confidence": {
+      "anyOf": [
+        {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Confidence"
+    },
+    "extraction_method": {
+      "$ref": "#/$defs/ExtractionMethod"
+    },
+    "extractor_name": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Extractor Name"
+    },
+    "extractor_version": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Extractor Version"
+    },
+    "field_name": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Field Name",
+      "type": "string"
+    },
+    "model_invocation": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ModelInvocation"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "object_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Object Id",
+      "type": "string"
+    },
+    "object_type": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Object Type",
+      "type": "string"
+    },
+    "parser_version": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Parser Version"
+    },
+    "provenance_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Provenance Id",
+      "type": "string"
+    },
+    "review_status": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Review Status"
+    },
+    "schema_version": {
+      "const": "0.2.0",
+      "default": "0.2.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "source_bbox": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SourceBBox"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "source_page": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Source Page"
+    },
+    "source_report_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Source Report Id",
+      "type": "string"
+    },
+    "source_section": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Source Section"
+    },
+    "source_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Source Sha256",
+      "type": "string"
+    },
+    "source_span": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SourceSpan"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "source_table": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Source Table"
+    },
+    "source_text": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Source Text"
+    }
+  },
+  "required": [
+    "provenance_id",
+    "object_type",
+    "object_id",
+    "field_name",
+    "source_report_id",
+    "source_sha256",
+    "extraction_method"
+  ],
+  "title": "ProvenanceRecord",
+  "type": "object"
+}

@@ -1,0 +1,3 @@
+# Project charter
+
+Create research-grade public data infrastructure reconstructing the longitudinal history of social conflict as monitored and published by Peru's Defensoría del Pueblo. Success requires a near-complete official-source inventory, immutable hashed corpus, empirically documented parser regimes, a human-verified modern benchmark, auditable longitudinal linkage, field-level provenance, explicit uncertainty and contradictions, reproducible releases, and documentation sufficient for external researchers and Defensoría. Causal analysis and substantive trend claims are out of scope during foundation and reconstruction.

@@ -1,0 +1,153 @@
+{
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/v0.2.0/dialogue_event.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "mediation_process_id": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "mediation_process_id"
+        ]
+      },
+      "then": {
+        "properties": {
+          "provenance_ids": {
+            "minItems": 1
+          }
+        },
+        "required": [
+          "provenance_ids"
+        ]
+      }
+    }
+  ],
+  "properties": {
+    "case_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Case Id"
+    },
+    "description_original": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Description Original"
+    },
+    "dialogue_event_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Dialogue Event Id",
+      "type": "string"
+    },
+    "event_date": {
+      "anyOf": [
+        {
+          "format": "date",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Event Date"
+    },
+    "event_date_original": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Event Date Original"
+    },
+    "event_date_precision_original": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Event Date Precision Original"
+    },
+    "mediation_process_id": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Mediation Process Id"
+    },
+    "provenance_ids": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "title": "Provenance Ids",
+      "type": "array"
+    },
+    "report_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Report Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "0.2.0",
+      "default": "0.2.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "status_original": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Status Original"
+    }
+  },
+  "required": [
+    "dialogue_event_id",
+    "report_id"
+  ],
+  "title": "DialogueEvent",
+  "type": "object"
+}

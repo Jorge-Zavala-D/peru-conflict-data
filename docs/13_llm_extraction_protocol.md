@@ -1,0 +1,3 @@
+# Model-assisted extraction protocol
+
+Model use is reserved for source units whose semantic difficulty remains after deterministic parsing, such as actor/demand decomposition, agreements, harmonized classification, or linkage candidates. Preconditions are an explicitly authorized milestone, minimal segmented evidence, strict output schema, source metadata, unsupported fields set to null, and separation of extraction from harmonization. Cache by source-span plus prompt/schema/model/settings identity and record output hashes/cost. Never transmit restricted data or add a paid service without approval.

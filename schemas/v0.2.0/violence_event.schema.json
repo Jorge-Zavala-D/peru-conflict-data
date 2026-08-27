@@ -1,0 +1,208 @@
+{
+  "$defs": {
+    "CasualtyComponent": {
+      "additionalProperties": false,
+      "properties": {
+        "component_original": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Component Original",
+          "type": "string"
+        },
+        "fatalities": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fatalities"
+        },
+        "injured": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Injured"
+        },
+        "schema_version": {
+          "const": "0.2.0",
+          "default": "0.2.0",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "component_original"
+      ],
+      "title": "CasualtyComponent",
+      "type": "object"
+    }
+  },
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/v0.2.0/violence_event.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "case_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Case Id"
+    },
+    "casualty_components": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/CasualtyComponent"
+      },
+      "title": "Casualty Components",
+      "type": "array"
+    },
+    "description_original": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Description Original"
+    },
+    "event_date": {
+      "anyOf": [
+        {
+          "format": "date",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Event Date"
+    },
+    "event_date_original": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Event Date Original"
+    },
+    "event_date_precision_original": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Event Date Precision Original"
+    },
+    "fatalities_total": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Fatalities Total"
+    },
+    "injured_total": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Injured Total"
+    },
+    "protest_event_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Protest Event Id"
+    },
+    "provenance_ids": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Provenance Ids",
+      "type": "array"
+    },
+    "report_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Report Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "0.2.0",
+      "default": "0.2.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "violence_event_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Violence Event Id",
+      "type": "string"
+    },
+    "violence_type_original": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Violence Type Original"
+    }
+  },
+  "required": [
+    "violence_event_id",
+    "report_id"
+  ],
+  "title": "ViolenceEvent",
+  "type": "object"
+}

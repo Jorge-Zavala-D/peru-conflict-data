@@ -1,0 +1,53 @@
+{
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/v0.1.0/case_demand.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "case_demand_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Case Demand Id",
+      "type": "string"
+    },
+    "case_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Case Id",
+      "type": "string"
+    },
+    "demand_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Demand Id",
+      "type": "string"
+    },
+    "provenance_ids": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Provenance Ids",
+      "type": "array"
+    },
+    "report_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Report Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "0.1.0",
+      "default": "0.1.0",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "case_demand_id",
+    "case_id",
+    "report_id",
+    "demand_id"
+  ],
+  "title": "CaseDemand",
+  "type": "object"
+}

@@ -1,0 +1,3 @@
+# Codex agent orchestration
+
+The main agent owns research-contract interpretation, architecture, integration, and final validation. Useful read-heavy roles are source scout, PDF engineer, data-model auditor, QA auditor, and entity-resolution reviewer. Parallelize independent inspection, summarization, and verification; do not allow concurrent agents to edit the same schema, manifest, or identity graph. Subagents return evidence, candidates, and uncertainty. Current Codex supports repository-scoped `.codex/agents/*.toml` files with `name`, `description`, and `developer_instructions`; project configuration loads only when the repository is trusted.

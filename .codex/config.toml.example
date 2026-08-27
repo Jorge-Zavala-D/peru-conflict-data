@@ -1,0 +1,8 @@
+# Example project layer only. Codex loads it only after the repository is trusted.
+# Copy to .codex/config.toml only after review; that local file is gitignored.
+
+[agents]
+max_concurrent_threads_per_session = 4
+
+# GitHub, Dropbox, Context7, Playwright, and OpenAI Docs are user/workspace
+# capabilities in the audited environment. Do not duplicate their registrations here.

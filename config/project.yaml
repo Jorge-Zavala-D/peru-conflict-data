@@ -1,0 +1,18 @@
+config_version: "1"
+project:
+  slug: peru-conflict-data
+  country: Peru
+  source_institution: Defensoria del Pueblo
+  coverage_start: "2004-04"
+  canonical_table_format: parquet
+  canonical_query_engine: duckdb
+principles:
+  raw_immutable: true
+  field_level_provenance: true
+  preserve_original_strings: true
+  allow_silent_source_correction: false
+  missing_is_zero: false
+  deterministic_before_probabilistic: true
+  manual_review_is_data: true
+benchmark:
+  recent_report_numbers: [260, 261, 262, 263, 264, 265, 266, 267, 268, 269]

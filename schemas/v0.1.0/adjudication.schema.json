@@ -1,0 +1,132 @@
+{
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/v0.1.0/adjudication.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "adjudication_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Adjudication Id",
+      "type": "string"
+    },
+    "decided_at": {
+      "format": "date-time",
+      "title": "Decided At",
+      "type": "string"
+    },
+    "decision_action": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Decision Action",
+      "type": "string"
+    },
+    "decision_original": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Decision Original",
+      "type": "string"
+    },
+    "decision_payload_json": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Decision Payload Json"
+    },
+    "evidence_provenance_ids": {
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Evidence Provenance Ids",
+      "type": "array"
+    },
+    "parser_version": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Parser Version",
+      "type": "string"
+    },
+    "rationale": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Rationale",
+      "type": "string"
+    },
+    "review_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Review Id",
+      "type": "string"
+    },
+    "reviewer_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Reviewer Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "0.1.0",
+      "default": "0.1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "second_reviewed_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Second Reviewed At"
+    },
+    "second_reviewer_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Second Reviewer Id"
+    },
+    "supersedes_adjudication_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Supersedes Adjudication Id"
+    }
+  },
+  "required": [
+    "adjudication_id",
+    "review_id",
+    "decision_original",
+    "decision_action",
+    "rationale",
+    "reviewer_id",
+    "decided_at",
+    "parser_version",
+    "evidence_provenance_ids"
+  ],
+  "title": "AdjudicationRecord",
+  "type": "object"
+}

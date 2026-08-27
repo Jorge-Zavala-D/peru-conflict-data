@@ -1,0 +1,3 @@
+# Institutional context
+
+Defensoría's conflict-prevention/governability office stated that monitoring dates to April 2004 and that its data systems are being digitized and standardized. It supplied a 2015-2026 workbook containing selected monthly state/phase, geography, Defensoría presence/role, violence, and dialogue information. Prior profiling suggests it is not the complete thematic universe. Maintain a respectful distinction between reconstructing published information, identifying reproducible QA discrepancies, creating research harmonizations, and asserting errors in internal systems. Eventual outputs may be shared back with Defensoría after review.
