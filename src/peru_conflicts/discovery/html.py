@@ -202,9 +202,9 @@ def _link_matches_candidate(
     if link.role is not UrlRole.DIRECT_DOWNLOAD:
         return False
     haystack = f"{link.url} {link.text}".lower()
-    if report_number is not None and re.search(rf"(?<!\d){report_number}(?!\d)", haystack):
-        return True
-    return False
+    return report_number is not None and bool(
+        re.search(rf"(?<!\d){report_number}(?!\d)", haystack)
+    )
 
 
 def _candidate_texts(parser: _MetadataParser) -> list[str]:
