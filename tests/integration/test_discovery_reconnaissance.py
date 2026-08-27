@@ -199,6 +199,16 @@ def test_client_rejects_pdf_content_type_before_decoding_body() -> None:
 
 def test_client_retries_transient_response_and_honors_retry_after() -> None:
     sleeps: list[float] = []
+    monotonic_now = 0.0
+
+    def monotonic_clock() -> float:
+        return monotonic_now
+
+    def record_sleep(seconds: float) -> None:
+        nonlocal monotonic_now
+        sleeps.append(seconds)
+        monotonic_now += seconds
+
     transport = FakeTransport(
         {
             ROBOTS: [_response(ROBOTS, "User-agent: *\nAllow: /\n", content_type="text/plain")],
@@ -213,7 +223,8 @@ def test_client_retries_transient_response_and_honors_retry_after() -> None:
         transport=transport,
         delay_seconds=2.0,
         retry_cap=2,
-        sleep=sleeps.append,
+        sleep=record_sleep,
+        clock=monotonic_clock,
     )
 
     fetched = client.fetch_html(CATALOGUE, role=UrlRole.CATALOGUE_PAGE)
