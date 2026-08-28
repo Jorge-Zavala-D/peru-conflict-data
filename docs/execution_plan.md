@@ -4,8 +4,9 @@ Version: 0.2.0 (M1-only working content baseline; not the final M2 gold schema)
 
 ## Plan contract
 
-M1-01 and M1-02 are authorized read-only work; this document does not authorize
-any other package. M1-03 raw acquisition remains separately prohibited and requires
+M1-01 and M1-02 are merged. M1-03A is authorized only for acquisition-engine
+implementation, synthetic tests, and a zero-network/zero-Dropbox dry run. M1-03B
+network comparison and every raw mutation remain separately prohibited and require
 the explicit checkpoint in `docs/m1_acquisition_checkpoint.md`. Schema `v0.2.0` is
 the M1-only working content baseline, not the final M2 gold schema. Each work package
 produces reviewable artifacts on a focused branch. No package may weaken the research
@@ -15,13 +16,12 @@ Parallel work is limited to independent, read-heavy or isolated outputs. No two 
 
 ## Current execution status
 
-M0/M0.1 is merged to `main`. M1-01 (discovery protocol/source registry) is
-approved. M1-02.2 (historical read-only discovery reconciliation and credential
-hardening) is complete for pull-request review on
-`codex/m1-01-02-corpus-discovery`, with a complete-traversal plus targeted-
-supplement checksum receipt and a separate source-integrity receipt. M1-03 remains
-blocked pending Jorge's separate acquisition-checkpoint approval; there has been
-no new raw write. M1-04 and M2-01 have not started.
+M0/M0.1 and M1-01/M1-02.2 are merged to `main`. M1-03A is implemented for review
+on `codex/m1-03-source-acquisition`; its real preflight only hashes existing
+protected sources and writes an ignored plan beneath repository `.cache`. It makes
+zero network requests and zero Dropbox writes. M1-03B remains blocked pending
+Jorge's separate network-authorization review. There has been no acquisition or
+raw write. M1-04 and M2-01 have not started.
 
 ## Global gates
 
@@ -71,8 +71,8 @@ no new raw write. M1-04 and M2-01 have not started.
 
 | Field | Plan |
 |---|---|
-| Goal | Acquire approved official files into raw storage without overwriting any byte version, only after the separately approved M1-03 checkpoint |
-| Dependencies | M1-02; explicit acquisition authorization |
+| Goal | First prove the acquisition engine through M1-03A without network/Dropbox mutation; later acquire approved official files without overwriting any byte version only after M1-03B authorization |
+| Dependencies | M1-02; M1-03A implementation/dry-run approval; separate explicit M1-03B network authorization |
 | Inputs | Approved provisional discovery records |
 | Outputs | Immutable raw objects, Dropbox operational-ledger receipts, SHA-256, sizes, MIME signatures, version relationships |
 | Tests | Atomic download; hash-before-promote; same-name/different-byte handling; interrupted download recovery; raw-write guard exceptions limited to acquisition command |

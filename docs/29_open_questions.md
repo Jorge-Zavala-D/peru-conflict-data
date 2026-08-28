@@ -22,5 +22,10 @@ reports (260-269), source evidence, and the M2-01 annotation protocol.
 - Source-document and derived-data redistribution rights.
 - Acceptable future OCR/model budgets and benchmark annotation depth.
 - Whether missing Java/Tesseract Spanish/qpdf/Ghostscript should be installed for a later measured need.
-- Exact M1-03 acquisition command, dry-run bounds, rate limits, and raw-write checkpoint approval.
+- M1-03B network authorization artifact, final merged pre-network baseline, and any
+  later raw-write/promotion approval; M1-03A fixed the command, bounds, and rate-limit
+  design without authorizing network or Dropbox mutation.
+- M1-03B hard-kill/power-loss recovery: durable pre-publication intent and startup
+  reconciliation must be designed and tested before raw promotion; M1-03A's typed
+  recovery guarantee is limited to catchable in-process errors and interruptions.
 - Which report-269 alert and case-timing observations are confirmed source inconsistencies after independent page-level benchmark review.

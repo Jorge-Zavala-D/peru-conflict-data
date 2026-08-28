@@ -1,0 +1,199 @@
+{
+  "$defs": {
+    "DryRunAction": {
+      "additionalProperties": false,
+      "description": "One deterministic validation or future-operation action.",
+      "properties": {
+        "action": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Action",
+          "type": "string"
+        },
+        "phase": {
+          "enum": [
+            "preflight",
+            "future_network",
+            "future_disposition"
+          ],
+          "title": "Phase",
+          "type": "string"
+        },
+        "relative_path": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": ".*\\S.*",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Relative Path"
+        },
+        "report_number": {
+          "anyOf": [
+            {
+              "maximum": 269,
+              "minimum": 260,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Report Number"
+        },
+        "sequence": {
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": ".*\\S.*",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Url"
+        },
+        "url_role": {
+          "anyOf": [
+            {
+              "enum": [
+                "landing",
+                "direct_download"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Url Role"
+        }
+      },
+      "required": [
+        "sequence",
+        "phase",
+        "action"
+      ],
+      "title": "DryRunAction",
+      "type": "object"
+    }
+  },
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/acquisition/v0.1.0/dry_run_result.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Deterministic proof that M1-03A planned actions without side effects.",
+  "properties": {
+    "actions": {
+      "items": {
+        "$ref": "#/$defs/DryRunAction"
+      },
+      "title": "Actions",
+      "type": "array"
+    },
+    "baseline_git_commit": {
+      "pattern": "^[0-9a-f]{40}$",
+      "title": "Baseline Git Commit",
+      "type": "string"
+    },
+    "baseline_receipt_path": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Baseline Receipt Path",
+      "type": "string"
+    },
+    "baseline_receipt_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Baseline Receipt Sha256",
+      "type": "string"
+    },
+    "dropbox_writes": {
+      "const": 0,
+      "title": "Dropbox Writes",
+      "type": "integer"
+    },
+    "logical_url_count": {
+      "const": 20,
+      "title": "Logical Url Count",
+      "type": "integer"
+    },
+    "network_requests": {
+      "const": 0,
+      "title": "Network Requests",
+      "type": "integer"
+    },
+    "plan_file_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Plan File Sha256",
+      "type": "string"
+    },
+    "plan_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Plan Id",
+      "type": "string"
+    },
+    "plan_semantic_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Plan Semantic Sha256",
+      "type": "string"
+    },
+    "run_type": {
+      "const": "m1_03a_dry_run",
+      "title": "Run Type",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "0.1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "target_set_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Target Set Sha256",
+      "type": "string"
+    },
+    "verified_source_bytes": {
+      "minimum": 1,
+      "title": "Verified Source Bytes",
+      "type": "integer"
+    },
+    "verified_source_count": {
+      "const": 10,
+      "title": "Verified Source Count",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "schema_version",
+    "run_type",
+    "plan_id",
+    "plan_file_sha256",
+    "plan_semantic_sha256",
+    "target_set_sha256",
+    "baseline_git_commit",
+    "baseline_receipt_path",
+    "baseline_receipt_sha256",
+    "verified_source_count",
+    "verified_source_bytes",
+    "logical_url_count",
+    "network_requests",
+    "dropbox_writes",
+    "actions"
+  ],
+  "title": "DryRunResult",
+  "type": "object"
+}

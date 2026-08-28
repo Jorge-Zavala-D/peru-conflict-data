@@ -33,6 +33,7 @@ PROHIBITED_EXTENSIONS = frozenset(
         ".tsv",
         ".xls",
         ".xlsx",
+        ".zip",
     }
 )
 SECRET_FILENAMES = frozenset(

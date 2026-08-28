@@ -6,6 +6,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+from peru_conflicts.acquisition.schema_export import export_acquisition_schemas
 from peru_conflicts.discovery.schema_export import (
     PILOT_ACQUISITION_PLAN_SCHEMA_FILENAME,
     discovery_schemas_are_current,
@@ -25,6 +26,7 @@ SCHEMA_FILENAMES = {
 }
 DISCOVERY_V010_TREE_DIGEST = "28fc05feae0d71ce9a681e3929c8d751a2a7c4134baa4b8b5a73a6402186660f"
 DISCOVERY_V020_TREE_DIGEST = "83f1a25cc72830c69491b5df26451a2f7091e9dfa1c649aa942cd92564244e01"
+DISCOVERY_V030_TREE_DIGEST = "00cbf40848c24d24eea454e25682061d5725abe01c24c6479ffa6d30fffd821b"
 
 
 def _schema_tree_digest(version_dir: Path) -> str:
@@ -48,6 +50,14 @@ def test_repository_discovery_v020_snapshot_digest_is_retained() -> None:
     assert (
         _schema_tree_digest(repo_root / "schemas" / "discovery" / "v0.2.0")
         == DISCOVERY_V020_TREE_DIGEST
+    )
+
+
+def test_repository_discovery_v030_snapshot_digest_is_retained() -> None:
+    repo_root = Path(__file__).parents[2]
+    assert (
+        _schema_tree_digest(repo_root / "schemas" / "discovery" / "v0.3.0")
+        == DISCOVERY_V030_TREE_DIGEST
     )
 
 
@@ -224,6 +234,7 @@ def test_existing_schema_check_gate_includes_discovery_drift(tmp_path: Path) -> 
     repo_root = Path(__file__).parents[2]
     export_json_schemas(tmp_path)
     written = export_discovery_schemas(tmp_path)
+    export_acquisition_schemas(tmp_path)
     command = [
         sys.executable,
         "scripts/export_schemas.py",
