@@ -6,9 +6,11 @@ Status: **complete for pull-request review; M1-03B remains prohibited**.
 
 PR #2 was squash-merged before this work. The verified M1 baseline is `main` commit
 `9281ebb2fcfbb6626dfcbebff98347a7ff9291d2`; merge-triggered GitHub Actions run
-`33154108607` passed `quality (3.12)` and `quality (3.13)`. The protected-main
-ruleset remained active. M1-03A was developed from that exact commit on
-`codex/m1-03-source-acquisition`.
+`33154108607` passed jobs labeled `quality (3.12)` and `quality (3.13)`. A later
+release-gate audit established that the old workflow let `uv` follow the local
+Python 3.12 default in both jobs, so that run is not treated as Python 3.13 runtime
+evidence. The protected-main ruleset remained active. M1-03A was developed from
+that exact commit on `codex/m1-03-source-acquisition`.
 
 M1-03A implemented only an acquisition engine, synthetic future-behavior tests,
 and a real preflight that made zero network requests and zero Dropbox writes. It
@@ -56,7 +58,9 @@ The only output was ignored repository file `.cache/m1-03a/dry-run-plan.json`,
 The complete source receipt is `docs/source_integrity_receipt_m1_03a.md`.
 The handle-relative writer was replayed after final hardening at
 `2026-08-28T13:05:46.6943786Z`; it reproduced the identical output hash while the
-complete data-root snapshot remained byte-for-byte unchanged.
+complete data-root snapshot remained byte-for-byte unchanged. The M1-03A.1 CI
+correction replay at `2026-08-28T15:13:17.3345689Z` again reproduced the same
+10,733-byte output and SHA-256 without a network request or Dropbox write.
 
 Before and after the run, Dropbox contained 82 directories, 111 files, and
 33,453,193 bytes. All eleven protected source inputs matched the M1-02.2 baseline.
@@ -96,18 +100,40 @@ remained absent; and the pre-existing `01_raw/manifests/` directory remained emp
 
 ## Verification and independent review
 
-The complete local test suite passes with **412 passed and 2 platform-capability
-skips**. Ruff formatting/lint, strict Pyright for both Windows and Linux,
-all acquisition, scientific, and discovery schema-drift checks, repository data
-policy, staged-blob policy, pre-commit, and Git diff checks pass. The frozen
-dependency environment is unchanged and installs with
-`uv sync --frozen --group dev`.
+The M1-03A.1 validation correction binds each CI environment to the matrix
+interpreter, asserts the active major/minor version before quality checks, and
+passes both the intended Python version and intended platform to strict Pyright.
+The platform argument is a static-analysis setting and is not described as
+Windows runtime execution.
+
+On the local Windows kernel, the complete suite passes under both CPython 3.12.13
+and CPython 3.13.5 with **414 passed and 2 platform-capability skips** in each
+environment. The two mandatory native Windows smoke tests run without skips and
+exercise retained-handle child create/write/read, no-replace rename, cleanup, and
+the native publication path using synthetic bytes in pytest temporary directories.
+Strict Pyright passes for all four explicit version/platform combinations: Python
+3.12 and 3.13, each evaluated for Windows and Linux.
+
+GitHub Actions now also defines a separate job named
+`windows-acquisition-safety` on `windows-latest`. It asserts a real Python 3.12
+runtime, runs the mandatory native smoke tests, the focused acquisition suite,
+the complete suite, schema-drift checks, and the repository data-policy guard.
+The exact-head remote run and interpreter evidence belong in PR metadata after
+the code head is frozen; they are not committed back into this report.
+
+Ruff formatting/lint, all acquisition, scientific, and discovery schema-drift
+checks, repository data policy, staged-blob policy, pre-commit, and Git diff
+checks pass. The frozen dependency environment is unchanged and installs with
+`uv sync --frozen --group dev` for each explicitly selected interpreter.
 
 Independent read-only reviews tested the exact integrated authorization, dry-run,
 ledger, and storage boundaries. Findings concerning cloneable grants, redirect
 chain provenance, selected-header bounds, raw-path grammar, directory-swap races,
 and post-publication interruption were corrected and converted into regression
-tests. No Critical or Important issue remains in the reviewed areas.
+tests. A separate exact-snapshot M1-03A.1 review confirmed truthful matrix binding,
+mandatory native Windows execution, and no weakened production behavior or
+authorization boundary. No Critical or Important issue remains in the reviewed
+areas.
 
 ## Stop and next authorization
 

@@ -11,7 +11,11 @@ from typing import BinaryIO
 
 import pytest
 
-from peru_conflicts.acquisition.engine import AcquisitionClient, DownloadByteBudget
+from peru_conflicts.acquisition.engine import (
+    AcquisitionClient,
+    DownloadByteBudget,
+    StreamingTransport,
+)
 from peru_conflicts.acquisition.models import NetworkAuthorizationArtifact
 from peru_conflicts.acquisition.plan import load_reviewed_pilot_plan
 from peru_conflicts.acquisition.policy import require_network_authorization
@@ -152,7 +156,11 @@ def _client(
         approved_by="synthetic-test-owner",
         approved_at=datetime(2026, 8, 28, tzinfo=UTC),
     )
-    grant = require_network_authorization(loaded, artifact, lambda: transport)
+
+    def transport_factory() -> StreamingTransport:
+        return transport
+
+    grant = require_network_authorization(loaded, artifact, transport_factory)
     return AcquisitionClient(
         grant=grant,
         system_temp_root=system_temp_root or tmp_path / "system-temp",
