@@ -1,44 +1,129 @@
-# M1-03 raw-acquisition checkpoint (not yet authorized)
+# M1-03 raw-acquisition checkpoint (not authorized)
 
-M1-01 and M1-02 may be authorized independently, but no discovery or acquisition is
-authorized by this document. M1-03 is the first exceptional workflow allowed to write to
-Dropbox `01_raw` and requires Jorge's explicit approval after review of the design below.
+M1-01/M1-02.2 are read-only. This document and the pilot recipe do not authorize
+network retrieval of PDF bodies, writes to Dropbox, or raw promotion. M1-03 is the
+first exceptional workflow that could write `01_raw` and requires Jorge's separate
+explicit approval after review of this checkpoint.
 
-## Proposed command and scope
+## Reviewed machine-readable input
 
-Use a versioned, resumable acquisition command that consumes a reviewed source-discovery
-record and writes only the specific official URL/report-version records approved for the
-bounded run. A dry-run must print planned requests, destination paths, existing-byte
-comparisons, rate-limit schedule, and expected manifest mutations without network writes or
-filesystem promotion.
+The proposed first pilot consumes only
+`config/acquisition_pilots/m1_03_reports_260_269_v1.yaml`, not an ephemeral
+`.cache/.../records.jsonl`. The plan contains public official URLs and the already
+documented paths, byte counts, and SHA-256 values of the ten existing benchmark
+PDFs. It is an immutable acquisition recipe, not the mutable operational ledger.
 
-## Required safety behavior
+The plan is fixed to:
 
-1. Download to a uniquely named temporary file outside the final report path.
-2. Stream bytes while recording HTTP status, headers, redirect chain, URL, attempt number,
-   timestamps, and tool/version metadata.
-3. Hash the completed temporary bytes before promotion.
-4. Atomically promote the file only after hash and content-type/size checks pass; never
-   overwrite an existing byte version.
-5. If the same report filename already exists with different bytes, retain both under
-   distinct source-version identities and record collision evidence in the operational
-   ledger. Same bytes may be idempotently acknowledged without a second copy.
-6. Use bounded retries with exponential backoff, an explicit request timeout, a declared
-   user agent, and a host rate limit. Retry decisions and failures are receipt records.
-7. Resume safely after interruption by verifying temporary-file and final-file hashes;
-   never treat a partial file as an acquired source.
+- reports 260-269, exactly 10 landing URLs and 10 direct-file candidates;
+- authoritative hosts `defensoria.gob.pe` and `www.defensoria.gob.pe` only;
+- association uncertainty for the opaque report-261 `10.pdf.pdf` and report-263
+  `10.pdf` URLs;
+- `authorization_status: not_authorized` and null expected remote hashes;
+- target-set fingerprint
+  `721cf0e307c122facad5fdd64228b5a9c3789cc159b8a77e3b0e1536677594e1`;
+- plan-file SHA-256
+  `59480d3845ba3fb2ce14f0d1fce01b93472ca1c86e189a4a67d6fa9d9599a6b7`;
+- baseline receipt `docs/source_integrity_receipt_m1_02.md` at Git commit
+  `85a91ebba407610931e7e37b21b0ddddc15edbd1`, whose SHA-256 is
+  `cfab73b44aded55a803e8bda000fd2e67ae4b7eca904769f73e96b317e615837`.
 
-## Operational ledger boundary
+The Pydantic model, generated JSON Schema, and tests pin these values. Changing
+the YAML alone fails validation and does not widen authority.
 
-All mutable discovery, request, retry, local-path, collision, alternate-byte, and
-acquisition-status records belong in Dropbox `01_raw/manifests/`. Git contains the schema,
-code, official-domain allowlist, tests, and methodology only. A later reviewed manifest
-index may be small and immutable; it is not the operational ledger.
+The pinned M1-02 receipt and Git SHA above are historical inputs to pilot v1,
+not a final pre-network baseline. After M1 discovery is merged, M1-03 must create
+a separately reviewed versioned plan or authorization artifact tied to the
+latest merged source-integrity receipt and merged Git SHA. It must not silently
+mutate the fingerprinted, `not_authorized` v1 recipe.
 
-## Bounded dry-run acceptance
+## Proposed command and bounded dry run
 
-Before any raw write, the checkpoint review must show the exact command, source allowlist,
-maximum URL/report count, concurrency (default one request at a time), delay, retry cap,
-temporary directory, expected hashes if known, and rollback/abandon behavior. The dry run
-must complete with zero promoted files and a receipt suitable for review. A successful dry
-run does not itself authorize promotion.
+The future acquisition entry point is deliberately not implemented in M1-02.2.
+If M1-03 is authorized, its exact proposed dry-run command is:
+
+```powershell
+uv run python scripts/acquire_official_sources.py `
+  --plan config/acquisition_pilots/m1_03_reports_260_269_v1.yaml `
+  --require-plan-sha256 59480d3845ba3fb2ce14f0d1fce01b93472ca1c86e189a4a67d6fa9d9599a6b7 `
+  --mode dry-run
+```
+
+`dry-run` means exactly zero network requests, zero Dropbox writes, and zero
+promotions. It validates the plan/schema/digest, approved hosts, baseline source
+paths/sizes/hashes, request budget, temporary/staging paths, and then prints the
+ordered plan and proposed ledger mutations. A successful dry run is evidence for
+review; it does not authorize the later network or promotion mode.
+
+## Hard request envelope
+
+The reviewed pilot cannot exceed:
+
+| Control | Bound |
+|---|---:|
+| Reports | 10 |
+| Logical landing/direct URLs | 20 |
+| Concurrency | 1 |
+| Inter-request delay | at least 2.0 seconds |
+| Retries after an initial attempt | 2 per request |
+| Request timeout | 30 seconds |
+| Redirect hops | 5 per URL |
+| Total transport attempts | 60 |
+| One accepted PDF | 1,024-50,000,000 bytes |
+| Total downloaded bytes | 500,000,000 bytes |
+
+Robots requests, initial requests, redirect hops, and retries all consume the
+single 60-attempt budget. The client must stop before issuing an attempt that
+would exceed the budget; a retry allowance never overrides the global cap.
+
+## Required validation and disposition
+
+Before any network request, validate in order: authorization status; plan schema
+and digest; approved hosts; and every existing raw path, size, and SHA-256 against
+the pinned baseline. For each eventual response, validate in order: approved host
+and redirect chain; robots permission; 2xx status; PDF Content-Type; reasonable
+size; `%PDF-` magic signature; and streamed SHA-256. Never interpret a response
+body before its type and bounds permit the read, and never retain credentials or
+cookies in receipts.
+
+Every completed temporary object is compared with the existing pinned raw hash
+before any raw promotion:
+
+- **Different bytes:** stop for human review. Do not overwrite, promote, rename,
+  or create an alternate raw file during this first pilot.
+- **Identical bytes:** record the URL/HTTP/hash observation but create no duplicate
+  raw file.
+- **Different official URLs, identical bytes:** preserve every URL observation and
+  one byte-object identity; do not duplicate bytes.
+
+Only a later separately reviewed disposition could move an approved new byte
+version. That future path must stream-copy from the unique system temporary
+directory to
+`CONFLICT_DATA_ROOT/01_raw/.staging/m1-03-pilot-260-269`, rehash the staged file,
+and use a same-filesystem atomic rename. No direct cross-filesystem rename is
+treated as atomic.
+
+## Retry, idempotency, and abandonment
+
+The transport is serial, honors `Retry-After`, records every attempt with UTC
+timestamps and selected safe headers, and retries only allowlisted transient
+failures within both caps. The operational idempotency identity is the normalized
+source URL plus observed SHA-256; byte-object deduplication is by SHA-256. Redirect
+changes and HTTP metadata changes remain separate observations.
+
+On failure or interruption, preserve the failure receipt, close the run as
+abandoned, and remove only that run's partial system-temporary or staging files.
+Leave all pre-existing raw files byte-for-byte untouched. There is no automated
+rollback that deletes an already promoted raw object.
+
+## Manifest and rights boundary
+
+After write authorization, mutable discovery/acquisition status, attempts,
+retrieval metadata, local paths, collisions, and alternate-version observations
+belong in Dropbox `01_raw/manifests/`. Git contains the plan schema, code, rules,
+tests, and this reviewed recipe. Canonical `reports_manifest` remains a later
+reproducible Parquet/DuckDB output. Public accessibility does not establish public
+redistribution rights for PDFs, `Base15-26.xlsx`, or source-derived releases.
+
+M1-03 remains stopped until Jorge explicitly approves this checkpoint and a
+reviewed implementation of the proposed command.

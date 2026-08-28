@@ -28,6 +28,21 @@ Build a reproducible, auditable, versioned historical reconstruction of the Defe
 - Do not install or enable paid/external services without Jorge's approval. Prefer the smallest trusted capability set.
 - Start Dropbox/archive inspection read-only. A filesystem ACL is not an immutability guarantee.
 
+### Credential and integration boundary
+
+- Agents must never invoke `git credential fill` or otherwise query or inspect OS
+  credential helpers, keychains, password managers, environment secrets, stored
+  OAuth/API tokens, or similar credential stores. Agents must never extract a user
+  secret into a process variable or manually
+  construct an Authorization header to bypass the selected integration's permissions.
+- Normal `git push` and `git fetch` through preconfigured Git authentication are
+  allowed when the repository action itself is authorized because Git handles the
+  credential without exposing it to the agent.
+- If an app or connector cannot perform an explicitly authorized GitHub action,
+  use the authenticated browser UI only after explicit user confirmation when that
+  route is available; otherwise stop and ask the user. Respect least privilege and
+  the permission boundary of the selected integration.
+
 ## Development discipline
 
 - Python 3.12-3.13, `uv`, Pydantic, pytest, Ruff, Pyright, and pre-commit.
@@ -38,4 +53,11 @@ Build a reproducible, auditable, versioned historical reconstruction of the Defe
 
 ## Current milestone gate
 
-Milestone 0.1 hardening is authorized on `codex/milestone-0-foundation`. The current working schema is `v0.2.0`; `schemas/v0.1.0/` is an immutable M0 snapshot. Milestone 1 remains prohibited unless Jorge explicitly authorizes it. During M0/M0.1, inventorying reports 260-269 and workbook metadata is allowed; gold annotation, parser development, full discovery, OCR, historical taxonomy work, entity resolution, and raw acquisition are not. M1-03 raw writes require a separate explicit checkpoint.
+M1-01 and M1-02 are authorized on `codex/m1-01-02-corpus-discovery`. Schema
+`v0.2.0` is the M1-only working content baseline, not the final M2 gold schema;
+`schemas/v0.1.0/` remains the immutable M0 snapshot. M1 work may make only
+read-only official HTML, robots, and header requests under the approved source
+configuration. M1-03 remains separately prohibited: no raw writes, PDF retrieval,
+or acquisition may occur without its explicit checkpoint approval. M2-01 owns the
+five deferred ontology questions recorded in `docs/29_open_questions.md`; no M1
+work resolves them.

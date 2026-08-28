@@ -1,3 +1,7 @@
+# M1-01/M1-02 authorization gate: v0.2.0 is the M1-only working content
+# baseline. M1-03 remains separately prohibited; M2-01 owns the deferred
+# ontology questions in docs/29_open_questions.md. Keep this metadata in
+# comments until a versioned project-config schema authorizes a parsed field.
 config_version: "1"
 project:
   slug: peru-conflict-data

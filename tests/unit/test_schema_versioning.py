@@ -10,6 +10,7 @@ from peru_conflicts.models import MODEL_REGISTRY, SCHEMA_VERSION, ReportMonthAgg
 from peru_conflicts.schema_export import export_json_schemas, schemas_are_current
 
 V010_SCHEMA_TREE_DIGEST = "da34082dabb4dc7020f078d7f5902c68cc2dd4ef6f430d7bf7cfe98e6e829f28"
+V020_SCHEMA_TREE_DIGEST = "13302cbbe1127f54960cf478eda59ec18dc97f6d0c3e9a15c07798cb4ab0417d"
 
 
 def _schema_tree_digest(version_dir: Path) -> str:
@@ -23,6 +24,11 @@ def _schema_tree_digest(version_dir: Path) -> str:
 def test_v010_snapshot_digest_is_retained() -> None:
     repo_root = Path(__file__).parents[2]
     assert _schema_tree_digest(repo_root / "schemas" / "v0.1.0") == V010_SCHEMA_TREE_DIGEST
+
+
+def test_v020_snapshot_digest_is_retained() -> None:
+    repo_root = Path(__file__).parents[2]
+    assert _schema_tree_digest(repo_root / "schemas" / "v0.2.0") == V020_SCHEMA_TREE_DIGEST
 
 
 def test_v020_is_the_only_current_export_and_does_not_mutate_v010(tmp_path: Path) -> None:

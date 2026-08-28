@@ -127,3 +127,16 @@ def test_staged_guard_scans_index_blob_content_not_worktree_content(tmp_path: Pa
     )
 
     assert violations[0].reason == "prohibited credential or temporary-link content"
+
+
+def test_repository_policy_forbids_agent_side_credential_extraction() -> None:
+    agents = " ".join(Path("AGENTS.md").read_text(encoding="utf-8").lower().split())
+    security = " ".join(Path("SECURITY.md").read_text(encoding="utf-8").lower().split())
+
+    for policy in (agents, security):
+        assert "git credential fill" in policy
+        assert "authorization header" in policy
+        assert "normal `git push`" in policy
+        assert "explicit user confirmation" in policy
+        assert "least privilege" in policy
+        assert "similar credential stores. agents must never" in policy

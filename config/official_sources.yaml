@@ -1,0 +1,69 @@
+config_version: "3"
+
+# M1-01/M1-02 authority boundary. Do not promote redirect destinations or other
+# subdomains to authoritative status without a reviewed configuration change.
+approved_hosts:
+  - defensoria.gob.pe
+  - www.defensoria.gob.pe
+
+starting_surfaces:
+  - id: reports_catalogue
+    role: catalogue
+    url: https://www.defensoria.gob.pe/categorias_de_documentos/reportes/
+    pagination_mode: numeric_or_rel_next
+    pagination_contract_verified: true
+  - id: conflict_search
+    role: search
+    url: https://www.defensoria.gob.pe/?s=Reporte+conflictos
+    pagination_mode: numeric_or_rel_next
+    pagination_contract_verified: true
+  - id: conflict_search_monthly
+    role: search
+    url: https://www.defensoria.gob.pe/?s=Reporte+Mensual+de+Conflictos+Sociales
+    pagination_mode: numeric_or_rel_next
+    pagination_contract_verified: true
+  - id: paz_social_conflict_prevention
+    role: thematic
+    url: https://www.defensoria.gob.pe/areas_tematicas/paz-social-y-prevencion-de-conflictos/
+    pagination_mode: single_page
+    pagination_contract_verified: true
+
+# Reviewed one-off HTML landing pages used only for bounded source-gap
+# verification. The CLI selects these by ID; it never accepts an arbitrary URL.
+reviewed_targeted_landings:
+  - id: report_175_reference_period
+    role: landing
+    url: https://www.defensoria.gob.pe/documentos/reporte-mensual-de-conflictos-sociales-n-175/
+    pagination_mode: single_page
+    pagination_contract_verified: true
+    review_rationale: Official landing page visibly supplies the otherwise missing September 2018 reference period for report 175.
+
+retrieval:
+  concurrency: 1
+  delay_seconds: 2.0
+  retry_cap: 2
+  page_cap: 120
+  landing_page_cap: 24
+  max_redirects: 5
+  max_html_body_bytes: 5000000
+  allowed_content_types:
+    - text/html
+    - application/xhtml+xml
+  rejection_policy:
+    reject_pdf: true
+    reject_binary: true
+    reject_unlisted_content_types: true
+    body_retrieval: html_only
+
+# Robots retrieval is separately scoped: it may retrieve only a host's robots.txt
+# as plain text and does not widen the normal HTML-only body policy above.
+robots:
+  path: /robots.txt
+  allowed_content_types:
+    - text/plain
+  max_body_bytes: 500000
+  body_retrieval: robots_txt_only
+  rejection_policy:
+    reject_pdf: true
+    reject_binary: true
+    reject_unlisted_content_types: true

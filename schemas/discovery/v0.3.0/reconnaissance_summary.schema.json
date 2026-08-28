@@ -1,0 +1,260 @@
+{
+  "$defs": {
+    "LandingTraversalCounts": {
+      "additionalProperties": false,
+      "description": "Accounting for discovered landing URLs under the bounded landing cap.",
+      "properties": {
+        "cap_reached": {
+          "title": "Cap Reached",
+          "type": "boolean"
+        },
+        "discovered": {
+          "minimum": 0,
+          "title": "Discovered",
+          "type": "integer"
+        },
+        "failed": {
+          "minimum": 0,
+          "title": "Failed",
+          "type": "integer"
+        },
+        "fetched": {
+          "minimum": 0,
+          "title": "Fetched",
+          "type": "integer"
+        },
+        "selected": {
+          "minimum": 0,
+          "title": "Selected",
+          "type": "integer"
+        },
+        "skipped": {
+          "minimum": 0,
+          "title": "Skipped",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "discovered",
+        "selected",
+        "fetched",
+        "failed",
+        "skipped",
+        "cap_reached"
+      ],
+      "title": "LandingTraversalCounts",
+      "type": "object"
+    },
+    "ReconnaissanceError": {
+      "additionalProperties": false,
+      "description": "One bounded runner error retained without swallowing the run evidence.",
+      "properties": {
+        "error_type": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Error Type",
+          "type": "string"
+        },
+        "message": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Message",
+          "type": "string"
+        },
+        "url": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Url",
+          "type": "string"
+        }
+      },
+      "required": [
+        "url",
+        "error_type",
+        "message"
+      ],
+      "title": "ReconnaissanceError",
+      "type": "object"
+    },
+    "StopClass": {
+      "description": "Scientific interpretation of a local traversal stop.",
+      "enum": [
+        "local_terminal",
+        "safety_stop",
+        "error"
+      ],
+      "title": "StopClass",
+      "type": "string"
+    },
+    "SurfaceStopReason": {
+      "description": "Observed reason a bounded starting-surface traversal stopped.",
+      "enum": [
+        "no_next_link",
+        "repeated_url",
+        "non_authoritative_next",
+        "page_cap",
+        "error",
+        "single_page"
+      ],
+      "title": "SurfaceStopReason",
+      "type": "string"
+    },
+    "SurfaceTraversalReceipt": {
+      "additionalProperties": false,
+      "description": "Per-surface stop evidence without a corpus-completeness claim.",
+      "properties": {
+        "pages_visited": {
+          "minimum": 0,
+          "title": "Pages Visited",
+          "type": "integer"
+        },
+        "pagination_contract_verified": {
+          "title": "Pagination Contract Verified",
+          "type": "boolean"
+        },
+        "pagination_exhausted": {
+          "title": "Pagination Exhausted",
+          "type": "boolean"
+        },
+        "reached_local_terminal": {
+          "title": "Reached Local Terminal",
+          "type": "boolean"
+        },
+        "seen_urls": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "type": "string"
+          },
+          "title": "Seen Urls",
+          "type": "array"
+        },
+        "start_url": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Start Url",
+          "type": "string"
+        },
+        "stop_class": {
+          "$ref": "#/$defs/StopClass"
+        },
+        "stop_reason": {
+          "$ref": "#/$defs/SurfaceStopReason"
+        }
+      },
+      "required": [
+        "start_url",
+        "pages_visited",
+        "stop_reason",
+        "stop_class",
+        "reached_local_terminal",
+        "pagination_contract_verified",
+        "pagination_exhausted"
+      ],
+      "title": "SurfaceTraversalReceipt",
+      "type": "object"
+    }
+  },
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/discovery/v0.3.0/reconnaissance_summary.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Versioned run summary separating traversal from corpus completeness.",
+  "properties": {
+    "all_surfaces_reached_local_terminal": {
+      "title": "All Surfaces Reached Local Terminal",
+      "type": "boolean"
+    },
+    "boundary": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Boundary",
+      "type": "string"
+    },
+    "completed_at": {
+      "format": "date-time",
+      "title": "Completed At",
+      "type": "string"
+    },
+    "corpus_completeness_status": {
+      "const": "not_assessed",
+      "title": "Corpus Completeness Status",
+      "type": "string"
+    },
+    "errors": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ReconnaissanceError"
+      },
+      "title": "Errors",
+      "type": "array"
+    },
+    "landing_pages": {
+      "$ref": "#/$defs/LandingTraversalCounts"
+    },
+    "pages_visited": {
+      "minimum": 0,
+      "title": "Pages Visited",
+      "type": "integer"
+    },
+    "records_written": {
+      "minimum": 0,
+      "title": "Records Written",
+      "type": "integer"
+    },
+    "request_attempt_count": {
+      "minimum": 0,
+      "title": "Request Attempt Count",
+      "type": "integer"
+    },
+    "run_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Run Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "0.3.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "start_urls": {
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "title": "Start Urls",
+      "type": "array"
+    },
+    "started_at": {
+      "format": "date-time",
+      "title": "Started At",
+      "type": "string"
+    },
+    "surface_traversals": {
+      "items": {
+        "$ref": "#/$defs/SurfaceTraversalReceipt"
+      },
+      "title": "Surface Traversals",
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "run_id",
+    "started_at",
+    "completed_at",
+    "start_urls",
+    "pages_visited",
+    "records_written",
+    "request_attempt_count",
+    "surface_traversals",
+    "landing_pages",
+    "all_surfaces_reached_local_terminal",
+    "corpus_completeness_status",
+    "boundary"
+  ],
+  "title": "ReconnaissanceSummary",
+  "type": "object"
+}
