@@ -3,7 +3,8 @@ from __future__ import annotations
 import hashlib
 import os
 import subprocess
-from collections.abc import Iterable, Mapping
+import tempfile
+from collections.abc import Iterable, Iterator, Mapping
 from dataclasses import FrozenInstanceError, dataclass, field
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -30,6 +31,14 @@ PDF_URL_261 = "https://www.defensoria.gob.pe/wp-content/uploads/2025/12/10.pdf.p
 LANDING_URL = (
     "https://www.defensoria.gob.pe/documentos/reporte-de-conflictos-sociales-n-o-260-octubre-2025/"
 )
+
+
+@pytest.fixture(name="tmp_path")
+def system_temp_path() -> Iterator[Path]:
+    """Keep acquisition test downloads beneath Python's real system-temp root."""
+
+    with tempfile.TemporaryDirectory(prefix="peru-conflicts-acquisition-") as directory:
+        yield Path(directory)
 
 
 def _make_directory_alias(link: Path, target: Path) -> None:

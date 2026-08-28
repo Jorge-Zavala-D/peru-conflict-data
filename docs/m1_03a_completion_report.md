@@ -59,7 +59,7 @@ The complete source receipt is `docs/source_integrity_receipt_m1_03a.md`.
 The handle-relative writer was replayed after final hardening at
 `2026-08-28T13:05:46.6943786Z`; it reproduced the identical output hash while the
 complete data-root snapshot remained byte-for-byte unchanged. The M1-03A.1 CI
-correction replay at `2026-08-28T15:13:17.3345689Z` again reproduced the same
+correction replay at `2026-08-28T15:24:41.2227651Z` again reproduced the same
 10,733-byte output and SHA-256 without a network request or Dropbox write.
 
 Before and after the run, Dropbox contained 82 directories, 111 files, and
@@ -118,6 +118,10 @@ GitHub Actions now also defines a separate job named
 `windows-acquisition-safety` on `windows-latest`. It asserts a real Python 3.12
 runtime, runs the mandatory native smoke tests, the focused acquisition suite,
 the complete suite, schema-drift checks, and the repository data-policy guard.
+Its first execution exposed that GitHub's Windows pytest base directory was not
+beneath Python's reported operating-system temporary root. The acquisition tests
+now create their synthetic download workspace with `TemporaryDirectory` under the
+real system-temporary root; the production boundary rejection remains unchanged.
 The exact-head remote run and interpreter evidence belong in PR metadata after
 the code head is frozen; they are not committed back into this report.
 
