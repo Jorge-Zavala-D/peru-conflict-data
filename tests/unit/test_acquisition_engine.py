@@ -607,7 +607,7 @@ def test_streams_synthetic_pdf_with_chunk_independent_magic_and_hash(tmp_path: P
     assert downloaded.path.read_bytes() == content
     assert downloaded.byte_count == len(content)
     assert downloaded.sha256 == hashlib.sha256(content).hexdigest()
-    assert downloaded.path.is_relative_to((tmp_path / "system-temp").resolve())
+    assert downloaded.path.resolve().is_relative_to((tmp_path / "system-temp").resolve())
     assert all(call[1] == 30 for call in transport.calls)
     assert all(
         "Authorization" not in call[2] and "Cookie" not in call[2] for call in transport.calls
