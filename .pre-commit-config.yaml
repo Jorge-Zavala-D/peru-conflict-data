@@ -28,9 +28,14 @@ repos:
         entry: uv run python scripts/check_git_data_policy.py --staged
         language: system
         pass_filenames: false
-      - id: pyright
-        name: pyright strict type check
-        entry: uv run pyright
+      - id: pyright-windows
+        name: pyright strict type check (Windows)
+        entry: uv run pyright --pythonplatform Windows
+        language: system
+        pass_filenames: false
+      - id: pyright-linux
+        name: pyright strict type check (Linux)
+        entry: uv run pyright --pythonplatform Linux
         language: system
         pass_filenames: false
       - id: pytest

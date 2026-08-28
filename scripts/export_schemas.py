@@ -5,6 +5,10 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
+from peru_conflicts.acquisition.schema_export import (
+    acquisition_schemas_are_current,
+    export_acquisition_schemas,
+)
 from peru_conflicts.discovery.schema_export import (
     discovery_schemas_are_current,
     export_discovery_schemas,
@@ -21,16 +25,20 @@ def main() -> int:
     if arguments.check:
         scientific_current = schemas_are_current(arguments.output)
         discovery_current = discovery_schemas_are_current(arguments.output)
-        if scientific_current and discovery_current:
+        acquisition_current = acquisition_schemas_are_current(arguments.output)
+        if scientific_current and discovery_current and acquisition_current:
             return 0
         if not scientific_current:
             print("Generated scientific JSON Schemas differ from the registered models.")
         if not discovery_current:
             print("Generated discovery JSON Schemas differ from the registered models.")
+        if not acquisition_current:
+            print("Generated acquisition JSON Schemas differ from the registered models.")
         return 1
 
     written = export_json_schemas(arguments.output)
     written.extend(export_discovery_schemas(arguments.output))
+    written.extend(export_acquisition_schemas(arguments.output))
     print(f"Exported {len(written)} JSON Schemas to {arguments.output}")
     return 0
 

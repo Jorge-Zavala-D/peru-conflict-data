@@ -12,7 +12,7 @@ from peru_conflicts.repository_guard import (
 
 
 def test_guard_rejects_raw_and_canonical_data_extensions(tmp_path: Path) -> None:
-    names = ["report.pdf", "benchmark.xlsx", "table.parquet", "database.duckdb"]
+    names = ["report.pdf", "bundle.zip", "benchmark.xlsx", "table.parquet", "database.duckdb"]
     paths: list[Path] = []
     for name in names:
         path = tmp_path / name
@@ -127,6 +127,26 @@ def test_staged_guard_scans_index_blob_content_not_worktree_content(tmp_path: Pa
     )
 
     assert violations[0].reason == "prohibited credential or temporary-link content"
+
+
+def test_staged_guard_rejects_forced_zip_index_blob(tmp_path: Path) -> None:
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    archive = tmp_path / "source-bundle.zip"
+    archive.write_bytes(b"PK\x03\x04synthetic archive bytes")
+    subprocess.run(["git", "add", "source-bundle.zip"], cwd=tmp_path, check=True)
+
+    candidates = git_candidate_paths(tmp_path, staged=True)
+    sizes = git_candidate_sizes(tmp_path, candidates, staged=True)
+    contents = git_candidate_contents(tmp_path, candidates, staged=True, sizes=sizes)
+    violations = find_policy_violations(
+        candidates,
+        repo_root=tmp_path,
+        sizes=sizes,
+        contents=contents,
+    )
+
+    assert [violation.path.name for violation in violations] == ["source-bundle.zip"]
+    assert "prohibited" in violations[0].reason
 
 
 def test_repository_policy_forbids_agent_side_credential_extraction() -> None:

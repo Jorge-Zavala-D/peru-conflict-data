@@ -1,0 +1,1324 @@
+{
+  "$defs": {
+    "AcquisitionAttemptOutcome": {
+      "enum": [
+        "success",
+        "redirect",
+        "retryable_failure",
+        "rejected",
+        "interrupted"
+      ],
+      "title": "AcquisitionAttemptOutcome",
+      "type": "string"
+    },
+    "AcquisitionAttemptReceipt": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "success"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "complete_body_sha256": {
+                "pattern": "^[a-f0-9]{64}$",
+                "type": "string"
+              },
+              "error_code": {
+                "const": null
+              },
+              "error_message": {
+                "const": null
+              },
+              "redirect_target_url": {
+                "const": null
+              },
+              "status_code": {
+                "maximum": 299,
+                "minimum": 200,
+                "type": "integer"
+              }
+            },
+            "required": [
+              "status_code",
+              "complete_body_sha256"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "redirect"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "complete_body_sha256": {
+                "const": null
+              },
+              "error_code": {
+                "const": null
+              },
+              "error_message": {
+                "const": null
+              },
+              "redirect_target_url": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "response_headers": {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/SafeResponseHeaders"
+                  },
+                  {
+                    "properties": {
+                      "location_sanitized": {
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "location_sha256": {
+                        "pattern": "^[a-f0-9]{64}$",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "location_sanitized",
+                      "location_sha256"
+                    ]
+                  }
+                ]
+              },
+              "status_code": {
+                "enum": [
+                  301,
+                  302,
+                  303,
+                  307,
+                  308
+                ]
+              },
+              "transferred_bytes": {
+                "const": 0
+              }
+            },
+            "required": [
+              "status_code",
+              "redirect_target_url",
+              "response_headers"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "retryable_failure"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "complete_body_sha256": {
+                "const": null
+              },
+              "error_code": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "redirect_target_url": {
+                "const": null
+              }
+            },
+            "required": [
+              "error_code"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "rejected"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "complete_body_sha256": {
+                "const": null
+              },
+              "error_code": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "redirect_target_url": {
+                "const": null
+              }
+            },
+            "required": [
+              "error_code"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "const": "interrupted"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "complete_body_sha256": {
+                "const": null
+              },
+              "error_code": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "redirect_target_url": {
+                "const": null
+              }
+            },
+            "required": [
+              "error_code"
+            ]
+          }
+        }
+      ],
+      "description": "One future acquisition attempt, including rejected or interrupted streams.",
+      "properties": {
+        "attempt_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Attempt Id",
+          "type": "string"
+        },
+        "attempt_number": {
+          "minimum": 1,
+          "title": "Attempt Number",
+          "type": "integer"
+        },
+        "complete_body_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Complete Body Sha256"
+        },
+        "completed_at": {
+          "format": "date-time",
+          "title": "Completed At",
+          "type": "string"
+        },
+        "error_code": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": ".*\\S.*",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Error Code"
+        },
+        "error_message": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Error Message"
+        },
+        "outcome": {
+          "$ref": "#/$defs/AcquisitionAttemptOutcome"
+        },
+        "plan_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Plan Id",
+          "type": "string"
+        },
+        "redirect_index": {
+          "minimum": 0,
+          "title": "Redirect Index",
+          "type": "integer"
+        },
+        "redirect_target_url": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": ".*\\S.*",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Redirect Target Url"
+        },
+        "report_number": {
+          "maximum": 269,
+          "minimum": 260,
+          "title": "Report Number",
+          "type": "integer"
+        },
+        "request_kind": {
+          "$ref": "#/$defs/AcquisitionRequestKind"
+        },
+        "requested_at": {
+          "format": "date-time",
+          "title": "Requested At",
+          "type": "string"
+        },
+        "response_headers": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SafeResponseHeaders"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "run_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "status_code": {
+          "anyOf": [
+            {
+              "maximum": 599,
+              "minimum": 100,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Status Code"
+        },
+        "transferred_bytes": {
+          "minimum": 0,
+          "title": "Transferred Bytes",
+          "type": "integer"
+        },
+        "url": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Url",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "attempt_id",
+        "run_id",
+        "plan_id",
+        "report_number",
+        "request_kind",
+        "url",
+        "attempt_number",
+        "redirect_index",
+        "requested_at",
+        "completed_at",
+        "outcome",
+        "transferred_bytes"
+      ],
+      "title": "AcquisitionAttemptReceipt",
+      "type": "object"
+    },
+    "AcquisitionDisposition": {
+      "description": "Disposition of observed bytes relative to the pinned local source.",
+      "enum": [
+        "identical_no_duplicate_raw_file",
+        "stop_for_review"
+      ],
+      "title": "AcquisitionDisposition",
+      "type": "string"
+    },
+    "AcquisitionFailureReceipt": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "stage": {
+                "enum": [
+                  "robots_body",
+                  "response_close",
+                  "temp_cleanup"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "related_attempt_id": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "related_attempt_id"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "stage": {
+                "const": "robots_policy"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "related_attempt_id": {
+                "const": null
+              }
+            }
+          }
+        }
+      ],
+      "description": "A policy/body/cleanup failure not fully represented by an HTTP attempt.",
+      "properties": {
+        "cleanup_completed": {
+          "title": "Cleanup Completed",
+          "type": "boolean"
+        },
+        "error_code": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Error Code",
+          "type": "string"
+        },
+        "error_message": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Error Message",
+          "type": "string"
+        },
+        "failure_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Failure Id",
+          "type": "string"
+        },
+        "occurred_at": {
+          "format": "date-time",
+          "title": "Occurred At",
+          "type": "string"
+        },
+        "plan_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Plan Id",
+          "type": "string"
+        },
+        "related_attempt_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": ".*\\S.*",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Related Attempt Id"
+        },
+        "report_number": {
+          "maximum": 269,
+          "minimum": 260,
+          "title": "Report Number",
+          "type": "integer"
+        },
+        "run_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "0.1.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "stage": {
+          "$ref": "#/$defs/AcquisitionFailureStage"
+        },
+        "transferred_bytes": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Transferred Bytes",
+          "type": "integer"
+        },
+        "url": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Url",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "failure_id",
+        "run_id",
+        "plan_id",
+        "report_number",
+        "stage",
+        "url",
+        "occurred_at",
+        "error_code",
+        "error_message",
+        "cleanup_completed"
+      ],
+      "title": "AcquisitionFailureReceipt",
+      "type": "object"
+    },
+    "AcquisitionFailureStage": {
+      "description": "Stage at which a non-attempt or policy-level acquisition failure occurred.",
+      "enum": [
+        "robots_body",
+        "robots_policy",
+        "response_close",
+        "temp_cleanup"
+      ],
+      "title": "AcquisitionFailureStage",
+      "type": "string"
+    },
+    "AcquisitionRequestKind": {
+      "enum": [
+        "robots",
+        "landing_html",
+        "pdf"
+      ],
+      "title": "AcquisitionRequestKind",
+      "type": "string"
+    },
+    "LedgerRecordType": {
+      "enum": [
+        "attempt",
+        "failure",
+        "url_observation",
+        "byte_object",
+        "collision",
+        "run_terminal"
+      ],
+      "title": "LedgerRecordType",
+      "type": "string"
+    },
+    "SafeRateLimitHeader": {
+      "additionalProperties": false,
+      "description": "One allowlisted rate-limit header without request-secret material.",
+      "properties": {
+        "name": {
+          "enum": [
+            "ratelimit-limit",
+            "ratelimit-remaining",
+            "ratelimit-reset",
+            "x-rate-limit-limit",
+            "x-rate-limit-remaining",
+            "x-rate-limit-reset",
+            "x-ratelimit-limit",
+            "x-ratelimit-remaining",
+            "x-ratelimit-reset"
+          ],
+          "title": "Name",
+          "type": "string"
+        },
+        "value": {
+          "maxLength": 200,
+          "pattern": "^[^\\r\\n]*$",
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "value"
+      ],
+      "title": "SafeRateLimitHeader",
+      "type": "object"
+    },
+    "SafeResponseHeaders": {
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "location_sanitized": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "location_sanitized"
+            ]
+          },
+          "then": {
+            "properties": {
+              "location_sha256": {
+                "pattern": "^[a-f0-9]{64}$",
+                "type": "string"
+              }
+            },
+            "required": [
+              "location_sha256"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "location_sha256": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "location_sha256"
+            ]
+          },
+          "then": {
+            "properties": {
+              "location_sanitized": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "location_sanitized"
+            ]
+          }
+        }
+      ],
+      "description": "Selected response evidence; request credentials and cookies are never retained.",
+      "properties": {
+        "content_encoding_original": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "pattern": "^[^\\r\\n]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Content Encoding Original"
+        },
+        "content_length_original": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "pattern": "^[^\\r\\n]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Content Length Original"
+        },
+        "content_type_original": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "pattern": "^[^\\r\\n]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Content Type Original"
+        },
+        "etag_original": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "pattern": "^[^\\r\\n]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Etag Original"
+        },
+        "last_modified_original": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "pattern": "^[^\\r\\n]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Last Modified Original"
+        },
+        "location_sanitized": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "pattern": "^[^\\r\\n]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Location Sanitized"
+        },
+        "location_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Location Sha256"
+        },
+        "rate_limit_headers": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/SafeRateLimitHeader"
+          },
+          "title": "Rate Limit Headers",
+          "type": "array"
+        },
+        "retry_after_original": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "pattern": "^[^\\r\\n]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Retry After Original"
+        }
+      },
+      "title": "SafeResponseHeaders",
+      "type": "object"
+    },
+    "SourceVersionRelationship": {
+      "description": "Source-safe relationship between observed and pinned byte objects.",
+      "enum": [
+        "identical_bytes",
+        "candidate_alternate_official_bytes"
+      ],
+      "title": "SourceVersionRelationship",
+      "type": "string"
+    }
+  },
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/acquisition/v0.1.0/operational_ledger_record.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "record_type": {
+            "const": "attempt"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "attempt": {
+            "not": {
+              "type": "null"
+            }
+          },
+          "collision_evidence_summary": {
+            "const": null
+          },
+          "disposition": {
+            "const": null
+          },
+          "expected_source_sha256": {
+            "const": null
+          },
+          "failure": {
+            "const": null
+          },
+          "local_relative_path": {
+            "const": null
+          },
+          "normalized_url": {
+            "const": null
+          },
+          "observed_bytes": {
+            "const": null
+          },
+          "observed_sha256": {
+            "const": null
+          },
+          "report_number": {
+            "const": null
+          },
+          "source_attempt_id": {
+            "const": null
+          },
+          "terminal_status": {
+            "const": null
+          },
+          "url_role": {
+            "const": null
+          },
+          "version_relationship": {
+            "const": null
+          }
+        },
+        "required": [
+          "attempt"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "record_type": {
+            "const": "failure"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "attempt": {
+            "const": null
+          },
+          "collision_evidence_summary": {
+            "const": null
+          },
+          "disposition": {
+            "const": null
+          },
+          "expected_source_sha256": {
+            "const": null
+          },
+          "failure": {
+            "not": {
+              "type": "null"
+            }
+          },
+          "local_relative_path": {
+            "const": null
+          },
+          "normalized_url": {
+            "const": null
+          },
+          "observed_bytes": {
+            "const": null
+          },
+          "observed_sha256": {
+            "const": null
+          },
+          "report_number": {
+            "const": null
+          },
+          "source_attempt_id": {
+            "const": null
+          },
+          "terminal_status": {
+            "const": null
+          },
+          "url_role": {
+            "const": null
+          },
+          "version_relationship": {
+            "const": null
+          }
+        },
+        "required": [
+          "failure"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "record_type": {
+            "const": "url_observation"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "attempt": {
+            "const": null
+          },
+          "collision_evidence_summary": {
+            "const": null
+          },
+          "disposition": {
+            "const": "identical_no_duplicate_raw_file"
+          },
+          "failure": {
+            "const": null
+          },
+          "terminal_status": {
+            "const": null
+          },
+          "version_relationship": {
+            "const": "identical_bytes"
+          }
+        },
+        "required": [
+          "report_number",
+          "url_role",
+          "normalized_url",
+          "observed_sha256",
+          "observed_bytes",
+          "expected_source_sha256",
+          "disposition",
+          "version_relationship",
+          "local_relative_path",
+          "source_attempt_id"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "record_type": {
+            "const": "byte_object"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "attempt": {
+            "const": null
+          },
+          "collision_evidence_summary": {
+            "const": null
+          },
+          "disposition": {
+            "const": null
+          },
+          "expected_source_sha256": {
+            "const": null
+          },
+          "failure": {
+            "const": null
+          },
+          "local_relative_path": {
+            "const": null
+          },
+          "normalized_url": {
+            "const": null
+          },
+          "report_number": {
+            "const": null
+          },
+          "source_attempt_id": {
+            "const": null
+          },
+          "terminal_status": {
+            "const": null
+          },
+          "url_role": {
+            "const": null
+          },
+          "version_relationship": {
+            "const": null
+          }
+        },
+        "required": [
+          "observed_sha256",
+          "observed_bytes"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "record_type": {
+            "const": "collision"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "attempt": {
+            "const": null
+          },
+          "disposition": {
+            "const": "stop_for_review"
+          },
+          "failure": {
+            "const": null
+          },
+          "terminal_status": {
+            "const": null
+          },
+          "version_relationship": {
+            "const": "candidate_alternate_official_bytes"
+          }
+        },
+        "required": [
+          "report_number",
+          "url_role",
+          "normalized_url",
+          "observed_sha256",
+          "observed_bytes",
+          "expected_source_sha256",
+          "disposition",
+          "version_relationship",
+          "local_relative_path",
+          "source_attempt_id",
+          "collision_evidence_summary"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "record_type": {
+            "const": "run_terminal"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "attempt": {
+            "const": null
+          },
+          "collision_evidence_summary": {
+            "const": null
+          },
+          "disposition": {
+            "const": null
+          },
+          "expected_source_sha256": {
+            "const": null
+          },
+          "failure": {
+            "const": null
+          },
+          "local_relative_path": {
+            "const": null
+          },
+          "normalized_url": {
+            "const": null
+          },
+          "observed_bytes": {
+            "const": null
+          },
+          "observed_sha256": {
+            "const": null
+          },
+          "report_number": {
+            "const": null
+          },
+          "source_attempt_id": {
+            "const": null
+          },
+          "url_role": {
+            "const": null
+          },
+          "version_relationship": {
+            "const": null
+          }
+        },
+        "required": [
+          "terminal_status"
+        ]
+      }
+    }
+  ],
+  "description": "Typed append-only record for a future Dropbox operational ledger.",
+  "properties": {
+    "attempt": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/AcquisitionAttemptReceipt"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "collision_evidence_summary": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Collision Evidence Summary"
+    },
+    "disposition": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/AcquisitionDisposition"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "expected_source_sha256": {
+      "anyOf": [
+        {
+          "pattern": "^[a-f0-9]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Expected Source Sha256"
+    },
+    "failure": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/AcquisitionFailureReceipt"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "local_relative_path": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "pattern": "^01_raw/reports/(?!\\.{1,2}(?:/|$))(?!.*\\/\\.{1,2}(?:/|$))(?!.*//)(?!.*[\\\\:])[^/]+(?:/[^/]+)*$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Local Relative Path"
+    },
+    "normalized_url": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Normalized Url"
+    },
+    "observed_bytes": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Observed Bytes"
+    },
+    "observed_sha256": {
+      "anyOf": [
+        {
+          "pattern": "^[a-f0-9]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Observed Sha256"
+    },
+    "plan_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Plan Id",
+      "type": "string"
+    },
+    "reason_code": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Reason Code"
+    },
+    "record_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Record Id",
+      "type": "string"
+    },
+    "record_type": {
+      "$ref": "#/$defs/LedgerRecordType"
+    },
+    "recorded_at": {
+      "format": "date-time",
+      "title": "Recorded At",
+      "type": "string"
+    },
+    "report_number": {
+      "anyOf": [
+        {
+          "maximum": 269,
+          "minimum": 260,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Report Number"
+    },
+    "run_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Run Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "0.1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "source_attempt_id": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Source Attempt Id"
+    },
+    "terminal_status": {
+      "anyOf": [
+        {
+          "enum": [
+            "completed",
+            "abandoned",
+            "stop_for_review"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Terminal Status"
+    },
+    "url_role": {
+      "anyOf": [
+        {
+          "enum": [
+            "direct_download",
+            "redirect_destination"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Url Role"
+    },
+    "version_relationship": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SourceVersionRelationship"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "schema_version",
+    "record_id",
+    "run_id",
+    "plan_id",
+    "recorded_at",
+    "record_type"
+  ],
+  "title": "OperationalLedgerRecord",
+  "type": "object"
+}

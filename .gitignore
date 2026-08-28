@@ -26,6 +26,7 @@ logs/
 
 # External source and generated data never belong in Git.
 *.pdf
+*.zip
 *.xlsx
 *.xls
 *.parquet

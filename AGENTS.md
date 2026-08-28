@@ -53,11 +53,13 @@ Build a reproducible, auditable, versioned historical reconstruction of the Defe
 
 ## Current milestone gate
 
-M1-01 and M1-02 are authorized on `codex/m1-01-02-corpus-discovery`. Schema
-`v0.2.0` is the M1-only working content baseline, not the final M2 gold schema;
-`schemas/v0.1.0/` remains the immutable M0 snapshot. M1 work may make only
-read-only official HTML, robots, and header requests under the approved source
-configuration. M1-03 remains separately prohibited: no raw writes, PDF retrieval,
-or acquisition may occur without its explicit checkpoint approval. M2-01 owns the
-five deferred ontology questions recorded in `docs/29_open_questions.md`; no M1
-work resolves them.
+M1-01/M1-02.2 are merged. M1-03A is authorized only on
+`codex/m1-03-source-acquisition`: acquisition-engine implementation with synthetic
+transports plus a dry run that must make zero network requests and zero Dropbox
+writes. The executable exposes only `dry-run`; no reviewed live-network
+authorization artifact exists. M1-03B, PDF/ZIP retrieval, operational-ledger or
+staging creation, raw promotion, M1-04, and M2 remain prohibited pending separate
+research-owner approval. Schema `v0.2.0` remains the M1-only working content
+baseline, not the final M2 gold schema; `schemas/v0.1.0/` remains the immutable M0
+snapshot. M2-01 owns the five deferred ontology questions in
+`docs/29_open_questions.md`; M1 must not resolve them speculatively.

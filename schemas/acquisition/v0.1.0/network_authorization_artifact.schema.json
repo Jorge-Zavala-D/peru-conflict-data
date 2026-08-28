@@ -1,0 +1,69 @@
+{
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/acquisition/v0.1.0/network_authorization_artifact.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Shape of a future owner-reviewed artifact; M1-03A creates no instance.",
+  "properties": {
+    "approved_at": {
+      "format": "date-time",
+      "title": "Approved At",
+      "type": "string"
+    },
+    "approved_by": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Approved By",
+      "type": "string"
+    },
+    "authorization_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Authorization Id",
+      "type": "string"
+    },
+    "authorization_status": {
+      "const": "authorized",
+      "title": "Authorization Status",
+      "type": "string"
+    },
+    "baseline_git_commit": {
+      "pattern": "^[0-9a-f]{40}$",
+      "title": "Baseline Git Commit",
+      "type": "string"
+    },
+    "plan_file_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Plan File Sha256",
+      "type": "string"
+    },
+    "plan_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Plan Id",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "0.1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "scope": {
+      "const": "m1_03b_reports_260_269_network",
+      "title": "Scope",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "authorization_id",
+    "authorization_status",
+    "scope",
+    "plan_id",
+    "plan_file_sha256",
+    "baseline_git_commit",
+    "approved_by",
+    "approved_at"
+  ],
+  "title": "NetworkAuthorizationArtifact",
+  "type": "object"
+}
