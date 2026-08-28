@@ -27,7 +27,8 @@ jobs:
       - run: uv sync --frozen --group dev
       - run: uv run ruff format --check .
       - run: uv run ruff check .
-      - run: uv run pyright
+      - run: uv run pyright --pythonplatform Windows
+      - run: uv run pyright --pythonplatform Linux
       - run: uv run pytest
       - run: uv run python scripts/export_schemas.py --check
       - run: uv run python scripts/check_git_data_policy.py

@@ -10,7 +10,8 @@ lint:
 	uv run ruff check .
 
 typecheck:
-	uv run pyright
+	uv run pyright --pythonplatform Windows
+	uv run pyright --pythonplatform Linux
 
 test:
 	uv run pytest
@@ -27,5 +28,6 @@ guard:
 quality: schema-check guard
 	uv run ruff format --check .
 	uv run ruff check .
-	uv run pyright
+	uv run pyright --pythonplatform Windows
+	uv run pyright --pythonplatform Linux
 	uv run pytest

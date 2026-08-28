@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from time import monotonic, sleep
-from typing import Protocol
+from typing import Protocol, cast
 from urllib.parse import urlsplit, urlunsplit
 from urllib.robotparser import RobotFileParser
 
@@ -246,10 +246,10 @@ def _is_reparse_point(path: Path) -> bool:
     if path.is_symlink():
         return True
     try:
-        attributes = path.lstat().st_file_attributes
-    except (AttributeError, FileNotFoundError, OSError):
+        attributes = cast(int, getattr(path.lstat(), "st_file_attributes", 0))
+    except (FileNotFoundError, OSError):
         return False
-    marker = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0)
+    marker = cast(int, getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0))
     return bool(marker and attributes & marker)
 
 

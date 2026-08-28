@@ -18,7 +18,7 @@ from ctypes import wintypes
 from dataclasses import dataclass
 from pathlib import Path
 from types import TracebackType
-from typing import BinaryIO, Self
+from typing import BinaryIO, Self, cast
 
 
 class DirectoryLeaseError(RuntimeError):
@@ -33,10 +33,10 @@ def _is_reparse_point(path: Path) -> bool:
     if path.is_symlink():
         return True
     try:
-        attributes = path.lstat().st_file_attributes
-    except (AttributeError, FileNotFoundError, OSError):
+        attributes = cast(int, getattr(path.lstat(), "st_file_attributes", 0))
+    except (FileNotFoundError, OSError):
         return False
-    marker = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0)
+    marker = cast(int, getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0))
     return bool(marker and attributes & marker)
 
 
@@ -175,6 +175,8 @@ if os.name == "nt":
 
 
 def _windows_error_from_status(status: int, name: str) -> OSError:
+    if os.name != "nt":  # pragma: no cover - guarded by Windows callers
+        raise DirectoryLeaseError("Windows status conversion is unavailable")
     code = int(_rtl_nt_status_to_dos_error(status))  # type: ignore[possibly-undefined]
     message = ctypes.FormatError(code)
     if code in {2, 3}:
@@ -185,6 +187,8 @@ def _windows_error_from_status(status: int, name: str) -> OSError:
 
 
 def _windows_handle_information(handle: int) -> tuple[int, int, int]:
+    if os.name != "nt":  # pragma: no cover - guarded by Windows callers
+        raise DirectoryLeaseError("Windows handle inspection is unavailable")
     details = _ByHandleFileInformation()  # type: ignore[possibly-undefined]
     if not _get_file_information(  # type: ignore[possibly-undefined]
         wintypes.HANDLE(handle), ctypes.byref(details)
@@ -206,6 +210,8 @@ def _windows_open_relative_handle(
 ) -> int:
     """Open one safe child relative to an already-bound Windows directory handle."""
 
+    if os.name != "nt":  # pragma: no cover - guarded by Windows callers
+        raise DirectoryLeaseError("Windows relative opens are unavailable")
     child_name = _safe_child_name(name)
     encoded_length = len(child_name.encode("utf-16-le"))
     name_buffer = ctypes.create_unicode_buffer(child_name)
@@ -250,6 +256,8 @@ def _windows_open_relative_handle(
 
 
 def _windows_handle_to_descriptor(handle: int, flags: int) -> int:
+    if os.name != "nt":  # pragma: no cover - guarded by Windows callers
+        raise DirectoryLeaseError("Windows descriptor conversion is unavailable")
     try:
         return int(msvcrt.open_osfhandle(handle, flags))  # type: ignore[possibly-undefined]
     except BaseException:
@@ -263,6 +271,8 @@ def _windows_open_relative_file_descriptor(
     *,
     write_exclusive: bool,
 ) -> int:
+    if os.name != "nt":  # pragma: no cover - guarded by Windows callers
+        raise DirectoryLeaseError("Windows relative file opens are unavailable")
     if write_exclusive:
         desired_access = (
             _FILE_WRITE_DATA | _FILE_READ_ATTRIBUTES | _SYNCHRONIZE  # type: ignore[possibly-undefined]
@@ -296,6 +306,8 @@ def _windows_open_relative_file_descriptor(
 
 
 def _windows_unlink_relative(root_handle: int, name: str) -> None:
+    if os.name != "nt":  # pragma: no cover - guarded by Windows callers
+        raise DirectoryLeaseError("Windows relative unlink is unavailable")
     handle = _windows_open_relative_handle(
         root_handle,
         name,
@@ -333,6 +345,8 @@ def _windows_rename_relative_no_replace(
     destination_root_handle: int,
     destination_name: str,
 ) -> None:
+    if os.name != "nt":  # pragma: no cover - guarded by Windows callers
+        raise DirectoryLeaseError("Windows relative rename is unavailable")
     source = _safe_child_name(source_name)
     destination = _safe_child_name(destination_name)
     source_handle = _windows_open_relative_handle(
@@ -412,6 +426,8 @@ def _open_windows_directory_handle(path: Path) -> int:
 
 
 def _open_windows_child_directory_handle(parent_handle: int, name: str, *, create: bool) -> int:
+    if os.name != "nt":  # pragma: no cover - guarded by Windows callers
+        raise DirectoryLeaseError("Windows child-directory opens are unavailable")
     return _windows_open_relative_handle(
         parent_handle,
         name,
@@ -615,6 +631,7 @@ class DirectoryLease(AbstractContextManager["DirectoryLease"]):
                     ) from error
             child_path = self.child_path(child_name)
             flags = os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) | getattr(os, "O_NOFOLLOW", 0)
+            descriptor: int | None = None
             try:
                 descriptor = os.open(child_name, flags, dir_fd=self.posix_fd)
                 opened = os.fstat(descriptor)
@@ -632,7 +649,7 @@ class DirectoryLease(AbstractContextManager["DirectoryLease"]):
                     _posix_fd=descriptor,
                 )
             except BaseException:
-                if "descriptor" in locals():
+                if descriptor is not None:
                     os.close(descriptor)
                 raise
         try:

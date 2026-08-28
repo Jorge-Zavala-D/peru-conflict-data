@@ -97,9 +97,10 @@ remained absent; and the pre-existing `01_raw/manifests/` directory remained emp
 ## Verification and independent review
 
 The complete local test suite passes with **412 passed and 2 platform-capability
-skips**. Ruff formatting/lint, strict Pyright, acquisition/scientific/discovery
-schema drift, repository data policy, staged-blob policy, pre-commit, and Git diff
-checks pass. The frozen dependency environment is unchanged and installs with
+skips**. Ruff formatting/lint, strict Pyright for both Windows and Linux,
+all acquisition, scientific, and discovery schema-drift checks, repository data
+policy, staged-blob policy, pre-commit, and Git diff checks pass. The frozen
+dependency environment is unchanged and installs with
 `uv sync --frozen --group dev`.
 
 Independent read-only reviews tested the exact integrated authorization, dry-run,
