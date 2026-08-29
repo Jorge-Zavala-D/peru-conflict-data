@@ -6,6 +6,8 @@ import json
 from pathlib import Path
 from typing import cast
 
+from pydantic import TypeAdapter
+
 from peru_conflicts.acquisition.models import (
     AcquisitionAttemptReceipt,
     AcquisitionFailureReceipt,
@@ -13,6 +15,14 @@ from peru_conflicts.acquisition.models import (
     DryRunResult,
     NetworkAuthorizationArtifact,
     OperationalLedgerRecord,
+)
+from peru_conflicts.acquisition.models_v2 import (
+    AuthorizationRegistryV2,
+    DurableLedgerRecordV2,
+    ExecutionTreeManifestV2,
+    NetworkAuthorizationArtifactV2,
+    StorageNamespaceMarkerV2,
+    UseIndexRecordV2,
 )
 from peru_conflicts.acquisition.plan import (
     REVIEWED_V2_PLAN_FILE_SHA256,
@@ -26,6 +36,13 @@ AUTHORIZATION_SCHEMA_FILENAME = "network_authorization_artifact.schema.json"
 ATTEMPT_SCHEMA_FILENAME = "acquisition_attempt_receipt.schema.json"
 FAILURE_SCHEMA_FILENAME = "acquisition_failure_receipt.schema.json"
 LEDGER_SCHEMA_FILENAME = "operational_ledger_record.schema.json"
+ACQUISITION_V2_SCHEMA_VERSION = "0.2.0"
+V2_AUTHORIZATION_SCHEMA_FILENAME = "network_authorization_artifact.schema.json"
+V2_REGISTRY_SCHEMA_FILENAME = "authorization_registry.schema.json"
+V2_MARKER_SCHEMA_FILENAME = "storage_namespace_marker.schema.json"
+V2_EXECUTION_TREE_SCHEMA_FILENAME = "execution_tree_manifest.schema.json"
+V2_LEDGER_SCHEMA_FILENAME = "durable_ledger_record.schema.json"
+V2_USE_INDEX_SCHEMA_FILENAME = "authorization_use_index_record.schema.json"
 
 
 def _harden_safe_response_header_definition(schema: dict[str, object]) -> None:
@@ -321,10 +338,37 @@ def rendered_acquisition_schemas() -> dict[str, str]:
     }
 
 
-def export_acquisition_schemas(output_dir: Path) -> list[Path]:
-    version_dir = output_dir / "acquisition" / f"v{ACQUISITION_SCHEMA_VERSION}"
+def rendered_acquisition_v2_schemas() -> dict[str, str]:
+    """Render the additive live-comparison contracts without touching v0.1.0."""
+
+    models = {
+        V2_AUTHORIZATION_SCHEMA_FILENAME: NetworkAuthorizationArtifactV2.model_json_schema(
+            mode="validation"
+        ),
+        V2_REGISTRY_SCHEMA_FILENAME: AuthorizationRegistryV2.model_json_schema(mode="validation"),
+        V2_MARKER_SCHEMA_FILENAME: StorageNamespaceMarkerV2.model_json_schema(mode="validation"),
+        V2_EXECUTION_TREE_SCHEMA_FILENAME: ExecutionTreeManifestV2.model_json_schema(
+            mode="validation"
+        ),
+        V2_LEDGER_SCHEMA_FILENAME: TypeAdapter(DurableLedgerRecordV2).json_schema(
+            mode="validation"
+        ),
+        V2_USE_INDEX_SCHEMA_FILENAME: TypeAdapter(UseIndexRecordV2).json_schema(mode="validation"),
+    }
+    for filename, schema in models.items():
+        schema["$schema"] = "https://json-schema.org/draft/2020-12/schema"
+        schema["$id"] = (
+            "https://github.com/Jorge-Zavala-D/peru-conflict-data/"
+            f"schemas/acquisition/v{ACQUISITION_V2_SCHEMA_VERSION}/{filename}"
+        )
+    return {
+        filename: json.dumps(schema, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
+        for filename, schema in models.items()
+    }
+
+
+def _export_version(version_dir: Path, expected: dict[str, str]) -> list[Path]:
     version_dir.mkdir(parents=True, exist_ok=True)
-    expected = rendered_acquisition_schemas()
     for stale in version_dir.glob("*.schema.json"):
         if stale.name not in expected:
             stale.unlink()
@@ -336,13 +380,28 @@ def export_acquisition_schemas(output_dir: Path) -> list[Path]:
     return written
 
 
+def export_acquisition_schemas(output_dir: Path) -> list[Path]:
+    v1_dir = output_dir / "acquisition" / f"v{ACQUISITION_SCHEMA_VERSION}"
+    v2_dir = output_dir / "acquisition" / f"v{ACQUISITION_V2_SCHEMA_VERSION}"
+    return [
+        *_export_version(v1_dir, rendered_acquisition_schemas()),
+        *_export_version(v2_dir, rendered_acquisition_v2_schemas()),
+    ]
+
+
 def acquisition_schemas_are_current(output_dir: Path) -> bool:
-    version_dir = output_dir / "acquisition" / f"v{ACQUISITION_SCHEMA_VERSION}"
-    expected = rendered_acquisition_schemas()
-    existing = {path.name for path in version_dir.glob("*.schema.json")}
-    if existing != set(expected):
-        return False
-    return all(
-        (version_dir / filename).read_text(encoding="utf-8") == content
-        for filename, content in expected.items()
-    )
+    versions = {
+        ACQUISITION_SCHEMA_VERSION: rendered_acquisition_schemas(),
+        ACQUISITION_V2_SCHEMA_VERSION: rendered_acquisition_v2_schemas(),
+    }
+    for version, expected in versions.items():
+        version_dir = output_dir / "acquisition" / f"v{version}"
+        existing = {path.name for path in version_dir.glob("*.schema.json")}
+        if existing != set(expected):
+            return False
+        if not all(
+            (version_dir / filename).read_text(encoding="utf-8") == content
+            for filename, content in expected.items()
+        ):
+            return False
+    return True

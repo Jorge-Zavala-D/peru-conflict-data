@@ -12,8 +12,11 @@ from pydantic import ValidationError
 V1_PATH = Path("config/acquisition_pilots/m1_03_reports_260_269_v1.yaml")
 V2_PATH = Path("config/acquisition_pilots/m1_03_reports_260_269_v2.yaml")
 V1_FILE_SHA256 = "59480d3845ba3fb2ce14f0d1fce01b93472ca1c86e189a4a67d6fa9d9599a6b7"
+V2_FILE_SHA256 = "d5cab626ba167fc45c8b5147d04bc40f85aec3a952d7fd4dbd5543b20631b4c4"
 MERGED_M1_SHA = "9281ebb2fcfbb6626dfcbebff98347a7ff9291d2"
 M1_02_2_RECEIPT_SHA256 = "963a9b317f8485c58e4b8b7f408a4c8739ea23f0260fd7c368656f99d17a4cc2"
+M1_03A_RECEIPT_PATH = Path("docs/source_integrity_receipt_m1_03a.md")
+M1_03A_RECEIPT_SHA256 = "f4783675a346cdb68b32205ad0cb7e32753f83e2bbc6585882d2683aada812a5"
 
 
 def _sha256(path: Path) -> str:
@@ -22,7 +25,8 @@ def _sha256(path: Path) -> str:
 
 def test_v2_plan_exists_without_mutating_reviewed_v1() -> None:
     assert _sha256(V1_PATH) == V1_FILE_SHA256
-    assert V2_PATH.is_file()
+    assert _sha256(V2_PATH) == V2_FILE_SHA256
+    assert _sha256(M1_03A_RECEIPT_PATH) == M1_03A_RECEIPT_SHA256
 
     payload = yaml.safe_load(V2_PATH.read_text(encoding="utf-8"))
     assert payload["schema_version"] == "0.1.0"

@@ -2,13 +2,18 @@
 
 Research-data infrastructure for a defensible historical reconstruction of Peru's Defensoría del Pueblo Social Conflicts Monitoring System, April 2004-present.
 
-Status: **M1-01/M1-02.2 merged; M1-03A implements and verifies a zero-network,
-zero-Dropbox dry run; M1-03B remains prohibited pending separate approval**. The
-repository does not yet contain a historical dataset or benchmark parser.
-Scientific schema `v0.2.0` is the M1 working baseline; technical contracts are
-discovery `v0.3.0` and acquisition `v0.1.0`. Every earlier schema directory remains
-immutable. Reports 260-269 are inventoried source material for a future independently
-annotated benchmark. No new raw file was acquired, and M1-04/M2 remain out of scope.
+Status: **M1-01/M1-02.2 and M1-03A are merged; M1-03B.1 implements offline
+production readiness for a future comparison-only pilot; M1-03B.2 remains
+prohibited pending a separate byte-pinned owner authorization**. The production
+registry is empty, so `live-compare` fails before transport, temporary storage, or
+Dropbox mutation. The future live executable is additionally gated by direct
+`.venv-live` Python `-I -S -B` startup (never `uv run`), an exact-byte and full-field
+registry grant, credential-free public
+GitHub evidence for protected `main`, authorization-pinned dependency `RECORD`
+verification, and an exact closed execution tree. Scientific schema `v0.2.0` remains the M1 working baseline;
+technical contracts are discovery `v0.3.0` and additive acquisition `v0.2.0`.
+Every earlier schema directory remains immutable. No new raw file was acquired,
+and M1-04/M2 remain out of scope.
 
 ## Storage boundary
 
@@ -29,5 +34,7 @@ the [execution plan](docs/execution_plan.md), the
 [M1-01/M1-02.2 review report](docs/m1_01_02_review_report.md), and the
 [inventory receipt](docs/m1_02_1_inventory_receipt.md). M1-03A is documented in the
 [acquisition checkpoint](docs/m1_acquisition_checkpoint.md) and
-[completion report](docs/m1_03a_completion_report.md); neither document authorizes
-M1-03B network execution.
+[completion report](docs/m1_03a_completion_report.md). M1-03B.1 is described by the
+[live-comparison protocol](docs/m1_03b_live_comparison_protocol.md) and its
+[readiness report](docs/m1_03b1_completion_report.md); none of these documents
+authorizes external execution.

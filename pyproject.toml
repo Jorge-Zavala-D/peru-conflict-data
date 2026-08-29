@@ -38,7 +38,7 @@ select = ["E", "F", "I", "B", "UP", "SIM", "RUF"]
 pythonVersion = "3.12"
 typeCheckingMode = "strict"
 include = ["src", "tests", "scripts"]
-exclude = [".venv", "**/__pycache__"]
+exclude = [".venv", ".venv-live", "**/__pycache__"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

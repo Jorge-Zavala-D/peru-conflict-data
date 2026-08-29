@@ -1,0 +1,61 @@
+{
+  "$defs": {
+    "ExecutionTreeEntryV2": {
+      "additionalProperties": false,
+      "description": "One exact executable input.",
+      "properties": {
+        "byte_count": {
+          "minimum": 0,
+          "title": "Byte Count",
+          "type": "integer"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256",
+        "byte_count"
+      ],
+      "title": "ExecutionTreeEntryV2",
+      "type": "object"
+    }
+  },
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/acquisition/v0.2.0/execution_tree_manifest.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Closed, ordered manifest of all code/configuration allowed to execute.",
+  "properties": {
+    "entries": {
+      "items": {
+        "$ref": "#/$defs/ExecutionTreeEntryV2"
+      },
+      "title": "Entries",
+      "type": "array"
+    },
+    "execution_tree_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Execution Tree Sha256",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "0.2.0",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "entries",
+    "execution_tree_sha256"
+  ],
+  "title": "ExecutionTreeManifestV2",
+  "type": "object"
+}

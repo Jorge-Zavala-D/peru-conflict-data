@@ -1,0 +1,1627 @@
+{
+  "$defs": {
+    "DurableAttemptFinishedV2": {
+      "additionalProperties": false,
+      "properties": {
+        "accepted_bytes": {
+          "anyOf": [
+            {
+              "maximum": 500000000,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Accepted Bytes"
+        },
+        "attempt_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Attempt Id",
+          "type": "string"
+        },
+        "attempt_ordinal": {
+          "maximum": 60,
+          "minimum": 1,
+          "title": "Attempt Ordinal",
+          "type": "integer"
+        },
+        "authorization_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Authorization Id",
+          "type": "string"
+        },
+        "body_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Body Sha256"
+        },
+        "error_code": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": ".*\\S.*",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Error Code"
+        },
+        "outcome": {
+          "enum": [
+            "success",
+            "redirect",
+            "rejected",
+            "retryable_failure",
+            "interrupted",
+            "crash_outcome_unknown"
+          ],
+          "title": "Outcome",
+          "type": "string"
+        },
+        "plan_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Plan Id",
+          "type": "string"
+        },
+        "previous_record_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Previous Record Sha256"
+        },
+        "record_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Record Id",
+          "type": "string"
+        },
+        "record_type": {
+          "const": "attempt_finished",
+          "title": "Record Type",
+          "type": "string"
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "title": "Recorded At",
+          "type": "string"
+        },
+        "response_headers": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SafeResponseHeaders"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "run_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "0.2.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "sequence": {
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "status_code": {
+          "anyOf": [
+            {
+              "maximum": 599,
+              "minimum": 100,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Status Code"
+        }
+      },
+      "required": [
+        "schema_version",
+        "record_id",
+        "authorization_id",
+        "run_id",
+        "plan_id",
+        "sequence",
+        "previous_record_sha256",
+        "recorded_at",
+        "record_type",
+        "attempt_id",
+        "attempt_ordinal",
+        "outcome",
+        "body_sha256",
+        "error_code",
+        "response_headers"
+      ],
+      "title": "DurableAttemptFinishedV2",
+      "type": "object"
+    },
+    "DurableAttemptStartedV2": {
+      "additionalProperties": false,
+      "properties": {
+        "attempt_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Attempt Id",
+          "type": "string"
+        },
+        "attempt_ordinal": {
+          "maximum": 60,
+          "minimum": 1,
+          "title": "Attempt Ordinal",
+          "type": "integer"
+        },
+        "authorization_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Authorization Id",
+          "type": "string"
+        },
+        "continuation_reason": {
+          "anyOf": [
+            {
+              "enum": [
+                "redirect",
+                "retry"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Continuation Reason"
+        },
+        "continued_from_attempt_id": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": ".*\\S.*",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Continued From Attempt Id"
+        },
+        "normalized_url": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Normalized Url",
+          "type": "string"
+        },
+        "plan_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Plan Id",
+          "type": "string"
+        },
+        "previous_record_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Previous Record Sha256"
+        },
+        "record_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Record Id",
+          "type": "string"
+        },
+        "record_type": {
+          "const": "attempt_started",
+          "title": "Record Type",
+          "type": "string"
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "title": "Recorded At",
+          "type": "string"
+        },
+        "report_number": {
+          "maximum": 269,
+          "minimum": 260,
+          "title": "Report Number",
+          "type": "integer"
+        },
+        "request_kind": {
+          "enum": [
+            "robots",
+            "landing_html",
+            "pdf"
+          ],
+          "title": "Request Kind",
+          "type": "string"
+        },
+        "reserved_bytes": {
+          "maximum": 500000000,
+          "minimum": 0,
+          "title": "Reserved Bytes",
+          "type": "integer"
+        },
+        "run_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "0.2.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "sequence": {
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "source_url_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Source Url Sha256",
+          "type": "string"
+        },
+        "wire_target": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Wire Target",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "record_id",
+        "authorization_id",
+        "run_id",
+        "plan_id",
+        "sequence",
+        "previous_record_sha256",
+        "recorded_at",
+        "record_type",
+        "attempt_id",
+        "attempt_ordinal",
+        "report_number",
+        "request_kind",
+        "source_url_sha256",
+        "normalized_url",
+        "wire_target",
+        "reserved_bytes"
+      ],
+      "title": "DurableAttemptStartedV2",
+      "type": "object"
+    },
+    "DurableByteObjectV2": {
+      "additionalProperties": false,
+      "properties": {
+        "authorization_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Authorization Id",
+          "type": "string"
+        },
+        "observed_bytes": {
+          "maximum": 50000000,
+          "minimum": 1,
+          "title": "Observed Bytes",
+          "type": "integer"
+        },
+        "observed_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Observed Sha256",
+          "type": "string"
+        },
+        "plan_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Plan Id",
+          "type": "string"
+        },
+        "previous_record_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Previous Record Sha256"
+        },
+        "record_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Record Id",
+          "type": "string"
+        },
+        "record_type": {
+          "const": "byte_object",
+          "title": "Record Type",
+          "type": "string"
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "title": "Recorded At",
+          "type": "string"
+        },
+        "report_number": {
+          "maximum": 269,
+          "minimum": 260,
+          "title": "Report Number",
+          "type": "integer"
+        },
+        "run_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "0.2.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "sequence": {
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "source_attempt_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Source Attempt Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "record_id",
+        "authorization_id",
+        "run_id",
+        "plan_id",
+        "sequence",
+        "previous_record_sha256",
+        "recorded_at",
+        "record_type",
+        "report_number",
+        "source_attempt_id",
+        "observed_sha256",
+        "observed_bytes"
+      ],
+      "title": "DurableByteObjectV2",
+      "type": "object"
+    },
+    "DurableCleanupV2": {
+      "additionalProperties": false,
+      "properties": {
+        "attempt_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Attempt Id",
+          "type": "string"
+        },
+        "authorization_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Authorization Id",
+          "type": "string"
+        },
+        "cleanup_status": {
+          "enum": [
+            "removed",
+            "already_absent"
+          ],
+          "title": "Cleanup Status",
+          "type": "string"
+        },
+        "plan_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Plan Id",
+          "type": "string"
+        },
+        "previous_record_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Previous Record Sha256"
+        },
+        "record_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Record Id",
+          "type": "string"
+        },
+        "record_type": {
+          "const": "cleanup",
+          "title": "Record Type",
+          "type": "string"
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "title": "Recorded At",
+          "type": "string"
+        },
+        "report_number": {
+          "maximum": 269,
+          "minimum": 260,
+          "title": "Report Number",
+          "type": "integer"
+        },
+        "run_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "0.2.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "sequence": {
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "schema_version",
+        "record_id",
+        "authorization_id",
+        "run_id",
+        "plan_id",
+        "sequence",
+        "previous_record_sha256",
+        "recorded_at",
+        "record_type",
+        "report_number",
+        "attempt_id",
+        "cleanup_status"
+      ],
+      "title": "DurableCleanupV2",
+      "type": "object"
+    },
+    "DurableComparisonV2": {
+      "additionalProperties": false,
+      "properties": {
+        "authorization_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Authorization Id",
+          "type": "string"
+        },
+        "disposition": {
+          "enum": [
+            "identical_no_duplicate",
+            "stop_for_review"
+          ],
+          "title": "Disposition",
+          "type": "string"
+        },
+        "expected_source_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Expected Source Sha256",
+          "type": "string"
+        },
+        "observed_bytes": {
+          "maximum": 50000000,
+          "minimum": 1,
+          "title": "Observed Bytes",
+          "type": "integer"
+        },
+        "observed_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Observed Sha256",
+          "type": "string"
+        },
+        "plan_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Plan Id",
+          "type": "string"
+        },
+        "previous_record_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Previous Record Sha256"
+        },
+        "record_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Record Id",
+          "type": "string"
+        },
+        "record_type": {
+          "const": "comparison",
+          "title": "Record Type",
+          "type": "string"
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "title": "Recorded At",
+          "type": "string"
+        },
+        "relationship": {
+          "enum": [
+            "identical_bytes",
+            "different_bytes_association_unresolved"
+          ],
+          "title": "Relationship",
+          "type": "string"
+        },
+        "report_number": {
+          "maximum": 269,
+          "minimum": 260,
+          "title": "Report Number",
+          "type": "integer"
+        },
+        "run_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "0.2.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "sequence": {
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "source_attempt_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Source Attempt Id",
+          "type": "string"
+        },
+        "source_sha256_after": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Source Sha256 After",
+          "type": "string"
+        },
+        "source_sha256_before": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Source Sha256 Before",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "record_id",
+        "authorization_id",
+        "run_id",
+        "plan_id",
+        "sequence",
+        "previous_record_sha256",
+        "recorded_at",
+        "record_type",
+        "report_number",
+        "source_attempt_id",
+        "observed_sha256",
+        "observed_bytes",
+        "expected_source_sha256",
+        "source_sha256_before",
+        "source_sha256_after",
+        "relationship",
+        "disposition"
+      ],
+      "title": "DurableComparisonV2",
+      "type": "object"
+    },
+    "DurableIssueV2": {
+      "additionalProperties": false,
+      "properties": {
+        "authorization_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Authorization Id",
+          "type": "string"
+        },
+        "classification": {
+          "enum": [
+            "PARSER_ERROR",
+            "MISSING_EVIDENCE",
+            "AMBIGUITY",
+            "SOURCE_INCONSISTENCY",
+            "POLICY_VIOLATION",
+            "INFRASTRUCTURE_FAILURE"
+          ],
+          "title": "Classification",
+          "type": "string"
+        },
+        "evidence_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Evidence Sha256"
+        },
+        "plan_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Plan Id",
+          "type": "string"
+        },
+        "previous_record_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Previous Record Sha256"
+        },
+        "reason_code": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Reason Code",
+          "type": "string"
+        },
+        "record_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Record Id",
+          "type": "string"
+        },
+        "record_type": {
+          "const": "issue",
+          "title": "Record Type",
+          "type": "string"
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "title": "Recorded At",
+          "type": "string"
+        },
+        "report_number": {
+          "anyOf": [
+            {
+              "maximum": 269,
+              "minimum": 260,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Report Number"
+        },
+        "run_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "0.2.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "sequence": {
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "schema_version",
+        "record_id",
+        "authorization_id",
+        "run_id",
+        "plan_id",
+        "sequence",
+        "previous_record_sha256",
+        "recorded_at",
+        "record_type",
+        "classification",
+        "reason_code"
+      ],
+      "title": "DurableIssueV2",
+      "type": "object"
+    },
+    "DurableLandingAssociationV2": {
+      "additionalProperties": false,
+      "properties": {
+        "authorization_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Authorization Id",
+          "type": "string"
+        },
+        "byte_end": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Byte End"
+        },
+        "byte_start": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Byte Start"
+        },
+        "candidate_url_sha256s": {
+          "items": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "title": "Candidate Url Sha256S",
+          "type": "array"
+        },
+        "character_end": {
+          "minimum": 0,
+          "title": "Character End",
+          "type": "integer"
+        },
+        "character_start": {
+          "minimum": 0,
+          "title": "Character Start",
+          "type": "integer"
+        },
+        "excerpt_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Excerpt Sha256",
+          "type": "string"
+        },
+        "identity_association_status": {
+          "enum": [
+            "visibly_associated",
+            "unresolved_opaque_filename"
+          ],
+          "title": "Identity Association Status",
+          "type": "string"
+        },
+        "landing_attempt_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Landing Attempt Id",
+          "type": "string"
+        },
+        "landing_body_bytes": {
+          "minimum": 1,
+          "title": "Landing Body Bytes",
+          "type": "integer"
+        },
+        "landing_body_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Landing Body Sha256",
+          "type": "string"
+        },
+        "parser_version": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Parser Version",
+          "type": "string"
+        },
+        "plan_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Plan Id",
+          "type": "string"
+        },
+        "previous_record_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Previous Record Sha256"
+        },
+        "record_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Record Id",
+          "type": "string"
+        },
+        "record_type": {
+          "const": "landing_association",
+          "title": "Record Type",
+          "type": "string"
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "title": "Recorded At",
+          "type": "string"
+        },
+        "report_number": {
+          "maximum": 269,
+          "minimum": 260,
+          "title": "Report Number",
+          "type": "integer"
+        },
+        "reviewed_href_original": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Reviewed Href Original",
+          "type": "string"
+        },
+        "reviewed_url_normalized": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Reviewed Url Normalized",
+          "type": "string"
+        },
+        "reviewed_wire_target": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Reviewed Wire Target",
+          "type": "string"
+        },
+        "run_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "0.2.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "sequence": {
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "source_span_text": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Source Span Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "record_id",
+        "authorization_id",
+        "run_id",
+        "plan_id",
+        "sequence",
+        "previous_record_sha256",
+        "recorded_at",
+        "record_type",
+        "report_number",
+        "landing_attempt_id",
+        "landing_body_sha256",
+        "landing_body_bytes",
+        "excerpt_sha256",
+        "source_span_text",
+        "character_start",
+        "character_end",
+        "parser_version",
+        "reviewed_href_original",
+        "reviewed_url_normalized",
+        "reviewed_wire_target",
+        "candidate_url_sha256s",
+        "identity_association_status"
+      ],
+      "title": "DurableLandingAssociationV2",
+      "type": "object"
+    },
+    "DurableRunOpenedV2": {
+      "additionalProperties": false,
+      "properties": {
+        "authorization_artifact_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Authorization Artifact Sha256",
+          "type": "string"
+        },
+        "authorization_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Authorization Id",
+          "type": "string"
+        },
+        "data_root_identity_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Data Root Identity Sha256",
+          "type": "string"
+        },
+        "execution_host_identity_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Execution Host Identity Sha256",
+          "type": "string"
+        },
+        "execution_tree_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Execution Tree Sha256",
+          "type": "string"
+        },
+        "plan_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Plan Id",
+          "type": "string"
+        },
+        "previous_record_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Previous Record Sha256"
+        },
+        "record_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Record Id",
+          "type": "string"
+        },
+        "record_type": {
+          "const": "run_opened",
+          "title": "Record Type",
+          "type": "string"
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "title": "Recorded At",
+          "type": "string"
+        },
+        "run_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "0.2.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "sequence": {
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "schema_version",
+        "record_id",
+        "authorization_id",
+        "run_id",
+        "plan_id",
+        "sequence",
+        "previous_record_sha256",
+        "recorded_at",
+        "record_type",
+        "authorization_artifact_sha256",
+        "execution_tree_sha256",
+        "data_root_identity_sha256",
+        "execution_host_identity_sha256"
+      ],
+      "title": "DurableRunOpenedV2",
+      "type": "object"
+    },
+    "DurableRunTerminalV2": {
+      "additionalProperties": false,
+      "properties": {
+        "authorization_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Authorization Id",
+          "type": "string"
+        },
+        "plan_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Plan Id",
+          "type": "string"
+        },
+        "previous_record_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Previous Record Sha256"
+        },
+        "reason_code": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Reason Code",
+          "type": "string"
+        },
+        "record_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Record Id",
+          "type": "string"
+        },
+        "record_type": {
+          "const": "run_terminal",
+          "title": "Record Type",
+          "type": "string"
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "title": "Recorded At",
+          "type": "string"
+        },
+        "run_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "0.2.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "sequence": {
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "terminal_status": {
+          "enum": [
+            "completed",
+            "abandoned",
+            "stop_for_review"
+          ],
+          "title": "Terminal Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "record_id",
+        "authorization_id",
+        "run_id",
+        "plan_id",
+        "sequence",
+        "previous_record_sha256",
+        "recorded_at",
+        "record_type",
+        "terminal_status",
+        "reason_code"
+      ],
+      "title": "DurableRunTerminalV2",
+      "type": "object"
+    },
+    "DurableSourceRehashV2": {
+      "additionalProperties": false,
+      "properties": {
+        "authorization_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Authorization Id",
+          "type": "string"
+        },
+        "expected_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Expected Sha256",
+          "type": "string"
+        },
+        "observed_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Observed Sha256",
+          "type": "string"
+        },
+        "phase": {
+          "enum": [
+            "pre_network",
+            "comparison_before",
+            "comparison_after",
+            "terminal"
+          ],
+          "title": "Phase",
+          "type": "string"
+        },
+        "plan_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Plan Id",
+          "type": "string"
+        },
+        "previous_record_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Previous Record Sha256"
+        },
+        "record_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Record Id",
+          "type": "string"
+        },
+        "record_type": {
+          "const": "source_rehash",
+          "title": "Record Type",
+          "type": "string"
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "title": "Recorded At",
+          "type": "string"
+        },
+        "report_number": {
+          "maximum": 269,
+          "minimum": 260,
+          "title": "Report Number",
+          "type": "integer"
+        },
+        "run_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "0.2.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "sequence": {
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "schema_version",
+        "record_id",
+        "authorization_id",
+        "run_id",
+        "plan_id",
+        "sequence",
+        "previous_record_sha256",
+        "recorded_at",
+        "record_type",
+        "report_number",
+        "expected_sha256",
+        "observed_sha256",
+        "phase"
+      ],
+      "title": "DurableSourceRehashV2",
+      "type": "object"
+    },
+    "DurableTemporaryRecoveryV2": {
+      "additionalProperties": false,
+      "properties": {
+        "attempt_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Attempt Id",
+          "type": "string"
+        },
+        "authorization_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Authorization Id",
+          "type": "string"
+        },
+        "object_state": {
+          "enum": [
+            "partial",
+            "complete"
+          ],
+          "title": "Object State",
+          "type": "string"
+        },
+        "observed_bytes": {
+          "anyOf": [
+            {
+              "maximum": 50000000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Observed Bytes"
+        },
+        "observed_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Observed Sha256"
+        },
+        "plan_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Plan Id",
+          "type": "string"
+        },
+        "previous_record_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Previous Record Sha256"
+        },
+        "record_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Record Id",
+          "type": "string"
+        },
+        "record_type": {
+          "const": "temporary_recovery",
+          "title": "Record Type",
+          "type": "string"
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "title": "Recorded At",
+          "type": "string"
+        },
+        "recovery_action": {
+          "enum": [
+            "removed_partial",
+            "observed_unaccepted_complete",
+            "removed_unaccepted_complete",
+            "accepted_complete_for_resume"
+          ],
+          "title": "Recovery Action",
+          "type": "string"
+        },
+        "report_number": {
+          "maximum": 269,
+          "minimum": 260,
+          "title": "Report Number",
+          "type": "integer"
+        },
+        "run_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "0.2.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "sequence": {
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "schema_version",
+        "record_id",
+        "authorization_id",
+        "run_id",
+        "plan_id",
+        "sequence",
+        "previous_record_sha256",
+        "recorded_at",
+        "record_type",
+        "report_number",
+        "attempt_id",
+        "object_state",
+        "recovery_action"
+      ],
+      "title": "DurableTemporaryRecoveryV2",
+      "type": "object"
+    },
+    "SafeRateLimitHeader": {
+      "additionalProperties": false,
+      "description": "One allowlisted rate-limit header without request-secret material.",
+      "properties": {
+        "name": {
+          "enum": [
+            "ratelimit-limit",
+            "ratelimit-remaining",
+            "ratelimit-reset",
+            "x-rate-limit-limit",
+            "x-rate-limit-remaining",
+            "x-rate-limit-reset",
+            "x-ratelimit-limit",
+            "x-ratelimit-remaining",
+            "x-ratelimit-reset"
+          ],
+          "title": "Name",
+          "type": "string"
+        },
+        "value": {
+          "maxLength": 200,
+          "pattern": "^[^\\r\\n]*$",
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "value"
+      ],
+      "title": "SafeRateLimitHeader",
+      "type": "object"
+    },
+    "SafeResponseHeaders": {
+      "additionalProperties": false,
+      "description": "Selected response evidence; request credentials and cookies are never retained.",
+      "properties": {
+        "content_encoding_original": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "pattern": "^[^\\r\\n]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Content Encoding Original"
+        },
+        "content_length_original": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "pattern": "^[^\\r\\n]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Content Length Original"
+        },
+        "content_type_original": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "pattern": "^[^\\r\\n]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Content Type Original"
+        },
+        "etag_original": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "pattern": "^[^\\r\\n]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Etag Original"
+        },
+        "last_modified_original": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "pattern": "^[^\\r\\n]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Last Modified Original"
+        },
+        "location_sanitized": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "pattern": "^[^\\r\\n]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Location Sanitized"
+        },
+        "location_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Location Sha256"
+        },
+        "rate_limit_headers": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/SafeRateLimitHeader"
+          },
+          "title": "Rate Limit Headers",
+          "type": "array"
+        },
+        "retry_after_original": {
+          "anyOf": [
+            {
+              "maxLength": 200,
+              "pattern": "^[^\\r\\n]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Retry After Original"
+        }
+      },
+      "title": "SafeResponseHeaders",
+      "type": "object"
+    }
+  },
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/acquisition/v0.2.0/durable_ledger_record.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "discriminator": {
+    "mapping": {
+      "attempt_finished": "#/$defs/DurableAttemptFinishedV2",
+      "attempt_started": "#/$defs/DurableAttemptStartedV2",
+      "byte_object": "#/$defs/DurableByteObjectV2",
+      "cleanup": "#/$defs/DurableCleanupV2",
+      "comparison": "#/$defs/DurableComparisonV2",
+      "issue": "#/$defs/DurableIssueV2",
+      "landing_association": "#/$defs/DurableLandingAssociationV2",
+      "run_opened": "#/$defs/DurableRunOpenedV2",
+      "run_terminal": "#/$defs/DurableRunTerminalV2",
+      "source_rehash": "#/$defs/DurableSourceRehashV2",
+      "temporary_recovery": "#/$defs/DurableTemporaryRecoveryV2"
+    },
+    "propertyName": "record_type"
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/DurableRunOpenedV2"
+    },
+    {
+      "$ref": "#/$defs/DurableAttemptStartedV2"
+    },
+    {
+      "$ref": "#/$defs/DurableAttemptFinishedV2"
+    },
+    {
+      "$ref": "#/$defs/DurableLandingAssociationV2"
+    },
+    {
+      "$ref": "#/$defs/DurableByteObjectV2"
+    },
+    {
+      "$ref": "#/$defs/DurableComparisonV2"
+    },
+    {
+      "$ref": "#/$defs/DurableCleanupV2"
+    },
+    {
+      "$ref": "#/$defs/DurableTemporaryRecoveryV2"
+    },
+    {
+      "$ref": "#/$defs/DurableSourceRehashV2"
+    },
+    {
+      "$ref": "#/$defs/DurableIssueV2"
+    },
+    {
+      "$ref": "#/$defs/DurableRunTerminalV2"
+    }
+  ]
+}

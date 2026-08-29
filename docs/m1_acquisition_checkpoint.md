@@ -1,12 +1,15 @@
 # M1-03 source-acquisition checkpoint
 
-Status: **M1-03A implementation and zero-network dry run complete for review;
-M1-03B network execution not authorized.**
+Status: **M1-03A is merged; M1-03B.1 comparison-readiness is implemented offline;
+M1-03B.2 external execution is not authorized.**
 
-M1-01/M1-02.2 are merged. M1-03A defines and tests the acquisition subsystem but
-does not authorize retrieval of a PDF/ZIP body, a Dropbox write, operational-ledger
-creation, staging, or raw promotion. The first live byte comparison requires a
-separate research-owner-reviewed authorization artifact after this branch is merged.
+M1-01/M1-02.2 and M1-03A are merged. M1-03B.1 adds a direct verified HTTPS
+transport, closed execution identity, loader-sealed authorization, compare-only
+runner, and durable one-shot ledger. Those paths are tested only with synthetic
+transports and temporary roots. They do not authorize retrieval of a PDF/ZIP body,
+a Dropbox write, real operational-ledger creation, staging, or raw promotion. The
+first live byte comparison requires a separate owner-reviewed authorization
+artifact created only after M1-03B.1 is audited and merged.
 
 ## Versioned reviewed inputs
 
@@ -46,8 +49,8 @@ uv run python scripts/acquire_official_sources.py `
   --output .cache/m1-03a/dry-run-plan.json
 ```
 
-The CLI accepts only `dry-run`. It has no `network`, `force`, or `authorize`
-escape hatch and does not import or instantiate a transport. Before emitting
+The `dry-run` behavior and arguments remain unchanged. It has no `network`,
+`force`, or `authorize` escape hatch and does not instantiate a transport. Before emitting
 anything, it validates the plan, merged baseline, receipt bytes at the pinned Git
 commit and in the worktree, approved hosts and exact counts, all ten protected
 paths/sizes/hashes, data-root safety, symbolic temporary/staging definitions, and
@@ -55,9 +58,13 @@ routine raw-write protection. Output is allowed only beneath ignored repository
 `.cache`; its parent creation, temporary write, cleanup, and publication are bound
 to retained repository directory handles so a junction swap cannot redirect the
 write into `CONFLICT_DATA_ROOT`. It contains relative paths and public URLs, not
-credentials or absolute Dropbox paths.
+credentials or absolute Dropbox paths. The executable also recognizes the fixed
+future mode `live-compare`, but it requires exact plan and authorization hashes and
+the empty reviewed registry rejects every artifact before execution, transport,
+temporary storage, or Dropbox mutation.
 
-The reviewed run on 2026-08-28 emitted 45 ordered actions and reported:
+The reviewed run on 2026-08-28, repeated unchanged during the final M1-03B.1
+validation on 2026-08-29, emitted 45 ordered actions and reported:
 
 | Field | Result |
 |---|---:|
@@ -96,8 +103,9 @@ two-second spacing.
 
 ## Future response and disposition contract
 
-M1-03A contains no live HTTP transport. Injected fake transports, synthetic HTML,
-and synthetic PDF bytes test the exact landing-page and direct-file paths. Landing
+M1-03B.1 supplies a production direct-HTTPS transport but does not execute it.
+Injected fake transports, synthetic HTML, and synthetic PDF bytes test the exact
+landing-page and direct-file paths. Landing
 bodies accept only bounded HTML/XHTML; file bodies require header-first status and
 `application/pdf` checks, identity encoding, byte ceilings, `%PDF-` magic, and
 streamed SHA-256. One sealed grant uses a shared atomic claim state across shallow
@@ -106,7 +114,10 @@ or reset. Transport, body, close, and cleanup interruptions retain linked receip
 Receipt metadata uses an exact rate-limit-header allowlist and stores only a
 credential-stripped redirect location plus the original value's hash. Every selected
 header value is single-line and bounded; unsafe values become SHA-256-bearing
-redaction markers. Query-bearing acquisition URLs fail closed.
+redaction markers. Query-bearing acquisition URLs fail closed. Durable attempt
+success is committed only after the acquisition engine consumes and validates the
+full body; reaching EOF alone is not success. Selected response headers and explicit
+redirect/retry continuations remain linked in the append-only ledger.
 
 Every future completed temporary object must be compared with the pinned existing
 source hash before storage action:
@@ -119,7 +130,8 @@ source hash before storage action:
   object.
 - **Rerun of the same URL/hash:** idempotent; no duplicate observation.
 
-Promotion primitives are tested only in pytest temporary directories. System-temp,
+Legacy promotion primitives remain tested only in pytest temporary directories and
+are not imported or called by the compare-only runner. System-temp,
 run, raw, staging, and destination paths must pass logical and resolved containment
 checks with symlink/reparse aliases rejected. Identity-checked directory handles stay
 open across streaming, copying, cleanup, and publication. Windows child creation,
@@ -143,26 +155,65 @@ promotion, the reviewed design must add durable pre-publication intent plus star
 reconciliation, and test that recovery path without weakening no-overwrite or
 source-version preservation.
 
-## Authorization and manifest boundary
+## M1-03B.1 authorization and manifest boundary
 
-The model defines the shape of a future authorization artifact, but M1-03A creates
-no instance. Absence or mismatch of that separate artifact fails before a transport
-factory is invoked. No CLI option can change pilot v2's `not_authorized` status.
+Acquisition `v0.2.0` defines the shape of a future authorization artifact, but
+M1-03B.1 creates no authorized instance. The registry grant pins both the exact raw
+artifact SHA-256 and its full semantic core. Those values, plan fingerprints, the
+latest M1-03B.1 source receipt, execution commit, closed runtime tree, six exact
+runtime-dependency `RECORD` pins, host, data-root identity, storage marker, and
+compare-only capabilities must all agree. The loader returns a sealed
+reviewed-authorization value; a raw valid-looking model cannot call the production
+composition. Absence or mismatch fails before transport construction. No CLI option
+can change pilot v2's `not_authorized` status or add capabilities.
 
 The future mutable operational ledger belongs in Dropbox `01_raw/manifests/` only
-after explicit authorization. M1-03A provides strictly revalidated typed records,
-attempt/failure referential integrity, source-attempt links for byte comparisons,
-exact reviewed-plan binding for expected hashes and paths, and run-specific collision
-evidence that permits only a `stop_for_review` terminal. Redirect-destination
-observations require one complete, unforked same-run chain back to the pinned direct
-URL. It provides a deterministic
-serializer but no production ledger writer or path. Git contains code, schemas,
-tests, and reviewed plans. Canonical `reports_manifest` remains M1-04 work. Public
-accessibility does not establish redistribution rights.
+after explicit authorization. M1-03B.1 implements its fixed-path writer and tests it
+only in synthetic roots. A retained directory lease, kernel single-writer lock,
+canonical hash-chained JSONL, global authorization-use index, per-record high-water
+anchors, and deterministic one-shot ledger reject truncation, rollback, concurrent
+writers, contradictory restarts, and reused terminal authorization. The claim binds
+the exact authorization artifact SHA-256, run, plan, storage marker, host, and data
+root. No durable record contains a credential, cookie, signed query, private absolute
+path, or temporary path. Git contains only code, schemas, tests, and reviewed plans;
+canonical `reports_manifest` remains M1-04 work. Public accessibility does not
+establish redistribution rights.
+
+The future supported live command must use the exact dedicated interpreter:
+`.venv-live\Scripts\python.exe -I -S -B` on the reviewed Windows host. `uv run` is
+not a supported production invocation. POSIX remains offline-test-only because
+this version preserves identity-bound delete quarantine as cleanup pending instead
+of using a raceable pathname unlink. Bootstrap and application preflight reject a
+POSIX live request before authorization/GitHub, data-root, ledger, temporary, or
+transport effects. In a separate
+reviewed preparation step, an absent `.venv-live` must be created from the frozen
+lock with `uv sync --frozen --no-dev --no-install-project --link-mode copy`; it must
+not be silently reused or replaced. A standard-library-only bootstrap rejects
+Python import-control and proxy/TLS/OpenSSL override environment variables before
+OpenSSL-backed imports, and rejects site customization before project imports, then
+checks exact artifact/registry
+bytes, resolves protected `main` directly from the public GitHub API over
+credential-free verified HTTPS, and validates every reviewed runtime file against
+both the execution-tree manifest and its Git blob at the artifact's execution
+commit. It invokes Git only from a fixed system path with a closed configuration
+environment. Before site-packages is added after the standard library, the bootstrap
+requires exactly the pinned runtime distribution set, verifies every
+authorization-pinned dependency `RECORD` member, rejects unlisted files, competing
+import candidates, standard-library shadows, or unverified bytecode, and disables
+Pydantic plugins. The authorization loader is inside the closed runtime tree.
+
+To avoid circular hashes, only four fixed future authorization artifacts are
+outside the execution tree: the authorization JSON, execution-tree manifest,
+registry JSON, and registry SHA-256 pin. The full registry core includes the
+execution commit. Runtime requires a clean checkout whose `HEAD` equals the
+credential-free public GitHub protected-`main` result; a locally rewritten
+remote-tracking ref is not authority. The delta from the reviewed execution commit
+may contain only those four paths. Thus changing the loader, any executable input,
+or an untrusted local commit cannot silently authorize network use.
 
 ## Stop condition
 
-Do not begin M1-03B, retrieve PDF/ZIP bodies, write anything in the pre-existing
-empty `01_raw/manifests/` directory, create raw staging, promote bytes, or begin
-M1-04/M2 until the research owner audits and explicitly authorizes the next artifact
-and scope.
+Do not begin M1-03B.2, create a real authorized artifact, retrieve PDF/ZIP bodies,
+write anything in the pre-existing empty `01_raw/manifests/` directory, create raw
+staging, promote bytes, or begin M1-04/M2 until the research owner audits and merges
+M1-03B.1 and then explicitly authorizes exact M1-03B.2 artifact bytes and scope.

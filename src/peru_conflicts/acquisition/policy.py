@@ -15,6 +15,7 @@ from peru_conflicts.acquisition.models import (
     AcquisitionPilotPlan,
     NetworkAuthorizationArtifact,
 )
+from peru_conflicts.acquisition.models_v2 import NetworkAuthorizationArtifactV2
 from peru_conflicts.acquisition.plan import (
     REVIEWED_TARGET_SET_SHA256,
     REVIEWED_V2_PLAN_FILE_SHA256,
@@ -52,6 +53,10 @@ class RedirectLimitExceeded(AcquisitionPolicyError):
 
 class AttemptBudgetExhausted(AcquisitionPolicyError):
     """The global attempt budget was exhausted before transport use."""
+
+
+class SealedTransportPolicyError(AcquisitionPolicyError):
+    """A production request differed from its reviewed canonical capability."""
 
 
 _NETWORK_GRANT_SEAL = object()
@@ -208,6 +213,67 @@ def require_network_authorization[TransportT](
         allowed_pdf_targets=pdf_targets,
         _seal=_NETWORK_GRANT_SEAL,
         _claim_state=_GrantClaimState(_NETWORK_GRANT_SEAL, policy_fingerprint, transport),
+    )
+
+
+def seal_validated_v2_network_grant[TransportT](
+    loaded_plan: LoadedPilotPlan,
+    artifact: NetworkAuthorizationArtifactV2,
+    transport: TransportT,
+) -> NetworkAccessGrant[TransportT]:
+    """Seal transport only after the independently reviewed v0.2 artifact is validated."""
+
+    plan = loaded_plan.plan
+    limits_sha256 = hashlib.sha256(
+        canonical_json_bytes(plan.limits.model_dump(mode="json"))
+    ).hexdigest()
+    if (
+        loaded_plan.file_sha256 != REVIEWED_V2_PLAN_FILE_SHA256
+        or loaded_plan.semantic_sha256 != REVIEWED_V2_PLAN_SEMANTIC_SHA256
+        or loaded_plan.target_set_sha256 != REVIEWED_TARGET_SET_SHA256
+        or artifact.plan_id != plan.plan_id
+        or artifact.plan_file_sha256 != loaded_plan.file_sha256
+        or artifact.plan_semantic_sha256 != loaded_plan.semantic_sha256
+        or artifact.ordered_target_set_sha256 != loaded_plan.target_set_sha256
+        or artifact.plan_limits_sha256 != limits_sha256
+        or artifact.approved_report_numbers
+        != tuple(target.report_number for target in plan.targets)
+        or artifact.approved_hosts != tuple(plan.approved_hosts)
+    ):
+        raise NetworkAuthorizationMismatch("v0.2 authorization does not bind the reviewed pilot")
+    approved_hosts = frozenset(plan.approved_hosts)
+    landing_targets = tuple(
+        (target.report_number, target.landing_page_url) for target in plan.targets
+    )
+    pdf_targets = tuple(
+        (target.report_number, target.direct_download_url) for target in plan.targets
+    )
+    provisional = NetworkAccessGrant(
+        transport=transport,
+        authorization_id=artifact.authorization_id,
+        plan_id=plan.plan_id,
+        plan_file_sha256=loaded_plan.file_sha256,
+        baseline_git_commit=artifact.protected_source_receipt_git_commit,
+        approved_hosts=approved_hosts,
+        limits=plan.limits,
+        allowed_landing_targets=landing_targets,
+        allowed_pdf_targets=pdf_targets,
+        _seal=_NETWORK_GRANT_SEAL,
+        _claim_state=_GrantClaimState(_NETWORK_GRANT_SEAL, "pending", transport),
+    )
+    fingerprint = _grant_policy_fingerprint(provisional)
+    return NetworkAccessGrant(
+        transport=transport,
+        authorization_id=provisional.authorization_id,
+        plan_id=provisional.plan_id,
+        plan_file_sha256=provisional.plan_file_sha256,
+        baseline_git_commit=provisional.baseline_git_commit,
+        approved_hosts=approved_hosts,
+        limits=plan.limits,
+        allowed_landing_targets=landing_targets,
+        allowed_pdf_targets=pdf_targets,
+        _seal=_NETWORK_GRANT_SEAL,
+        _claim_state=_GrantClaimState(_NETWORK_GRANT_SEAL, fingerprint, transport),
     )
 
 

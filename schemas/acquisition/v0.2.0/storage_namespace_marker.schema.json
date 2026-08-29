@@ -1,0 +1,31 @@
+{
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/acquisition/v0.2.0/storage_namespace_marker.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Canonical inert marker that identifies one approved manifest namespace.",
+  "properties": {
+    "namespace_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Namespace Id",
+      "type": "string"
+    },
+    "owner_nonce_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Owner Nonce Sha256",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "0.2.0",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "namespace_id",
+    "owner_nonce_sha256"
+  ],
+  "title": "StorageNamespaceMarkerV2",
+  "type": "object"
+}
