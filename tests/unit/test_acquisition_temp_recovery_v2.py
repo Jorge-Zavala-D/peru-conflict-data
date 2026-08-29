@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import hashlib
 import os
+import tempfile
+from collections.abc import Iterator
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -35,6 +37,14 @@ SHA = "a" * 64
 HOST_SHA = "b" * 64
 AUTHORIZATION_ID = "authorization-1"
 RUN_ID = "m103b-synthetic"
+
+
+@pytest.fixture(name="tmp_path")
+def system_temp_path() -> Iterator[Path]:
+    """Keep recovery test objects beneath Python's real system-temp root."""
+
+    with tempfile.TemporaryDirectory(prefix="peru-conflicts-recovery-") as directory:
+        yield Path(directory)
 
 
 def _store(tmp_path: Path) -> ManifestLedgerStore:

@@ -553,7 +553,8 @@ def test_data_root_identity_rejects_a_copied_root_and_same_path_replacement(
     )
     assert first_hash != second_hash
 
-    first.rmdir()
+    retained_original = tmp_path / "retained-original"
+    first.rename(retained_original)
     first.mkdir()
     replacement_hash = compute_data_root_identity_sha256(
         first,
