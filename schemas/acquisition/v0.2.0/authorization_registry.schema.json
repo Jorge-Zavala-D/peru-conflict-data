@@ -1,0 +1,57 @@
+{
+  "$defs": {
+    "AuthorizationRegistryGrantV2": {
+      "additionalProperties": false,
+      "description": "One exact-byte and semantic owner grant independently pinned by protected main.",
+      "properties": {
+        "artifact_core_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Artifact Core Sha256",
+          "type": "string"
+        },
+        "artifact_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Artifact Sha256",
+          "type": "string"
+        },
+        "authorization_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Authorization Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "authorization_id",
+        "artifact_sha256",
+        "artifact_core_sha256"
+      ],
+      "title": "AuthorizationRegistryGrantV2",
+      "type": "object"
+    }
+  },
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/acquisition/v0.2.0/authorization_registry.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Fixed reviewed registry; M1-03B.1 contains no grants.",
+  "properties": {
+    "grants": {
+      "items": {
+        "$ref": "#/$defs/AuthorizationRegistryGrantV2"
+      },
+      "title": "Grants",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "0.2.0",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "grants"
+  ],
+  "title": "AuthorizationRegistryV2",
+  "type": "object"
+}

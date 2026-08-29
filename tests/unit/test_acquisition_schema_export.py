@@ -10,13 +10,23 @@ import sys
 from pathlib import Path
 
 DISCOVERY_V030_TREE_SHA256 = "00cbf40848c24d24eea454e25682061d5725abe01c24c6479ffa6d30fffd821b"
-SCHEMA_FILENAMES = {
+ACQUISITION_V010_TREE_SHA256 = "b1029c80de6bbb5f293407070ed165936ff892d436018273f5e5b60dd74f2c61"
+ACQUISITION_V020_TREE_SHA256 = "da6f39205d0bc473bfb6b80ff7dab424b7bf8f8d9ce4fa04113813fa4b65b485"
+V010_SCHEMA_FILENAMES = {
     "pilot_acquisition_plan.schema.json",
     "dry_run_result.schema.json",
     "network_authorization_artifact.schema.json",
     "acquisition_attempt_receipt.schema.json",
     "acquisition_failure_receipt.schema.json",
     "operational_ledger_record.schema.json",
+}
+V020_SCHEMA_FILENAMES = {
+    "network_authorization_artifact.schema.json",
+    "authorization_registry.schema.json",
+    "storage_namespace_marker.schema.json",
+    "execution_tree_manifest.schema.json",
+    "durable_ledger_record.schema.json",
+    "authorization_use_index_record.schema.json",
 }
 
 
@@ -44,6 +54,22 @@ def test_discovery_v030_remains_immutable_while_acquisition_is_added() -> None:
     )
 
 
+def test_acquisition_v010_snapshot_digest_is_retained() -> None:
+    repo_root = Path(__file__).parents[2]
+    assert (
+        _schema_tree_digest(repo_root / "schemas" / "acquisition" / "v0.1.0")
+        == ACQUISITION_V010_TREE_SHA256
+    )
+
+
+def test_acquisition_v020_snapshot_digest_is_pinned() -> None:
+    repo_root = Path(__file__).parents[2]
+    assert (
+        _schema_tree_digest(repo_root / "schemas" / "acquisition" / "v0.2.0")
+        == ACQUISITION_V020_TREE_SHA256
+    )
+
+
 def test_acquisition_schema_export_api_exists() -> None:
     module = importlib.import_module("peru_conflicts.acquisition.schema_export")
 
@@ -57,20 +83,31 @@ def test_acquisition_export_writes_strict_versioned_schemas(tmp_path: Path) -> N
 
     written = module.export_acquisition_schemas(tmp_path)
 
-    assert {path.name for path in written} == SCHEMA_FILENAMES
-    assert {path.parent for path in written} == {tmp_path / "acquisition" / "v0.1.0"}
+    assert {path.name for path in written if path.parent.name == "v0.1.0"} == (
+        V010_SCHEMA_FILENAMES
+    )
+    assert {path.name for path in written if path.parent.name == "v0.2.0"} == (
+        V020_SCHEMA_FILENAMES
+    )
+    assert {path.parent for path in written} == {
+        tmp_path / "acquisition" / "v0.1.0",
+        tmp_path / "acquisition" / "v0.2.0",
+    }
     for path in written:
         schema = json.loads(path.read_text(encoding="utf-8"))
         assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
-        assert schema["$id"].endswith(f"/schemas/acquisition/v0.1.0/{path.name}")
-        assert schema["additionalProperties"] is False
+        assert schema["$id"].endswith(f"/schemas/acquisition/{path.parent.name}/{path.name}")
+        if "oneOf" not in schema:
+            assert schema["additionalProperties"] is False
 
 
 def test_acquisition_plan_schema_pins_exact_reviewed_v2(tmp_path: Path) -> None:
     module = importlib.import_module("peru_conflicts.acquisition.schema_export")
     written = module.export_acquisition_schemas(tmp_path)
     schema_path = next(
-        path for path in written if path.name == "pilot_acquisition_plan.schema.json"
+        path
+        for path in written
+        if path.parent.name == "v0.1.0" and path.name == "pilot_acquisition_plan.schema.json"
     )
     schema = json.loads(schema_path.read_text(encoding="utf-8"))
 
@@ -87,7 +124,11 @@ def test_attempt_and_ledger_schemas_publish_conditional_variant_constraints(
 ) -> None:
     module = importlib.import_module("peru_conflicts.acquisition.schema_export")
     written = module.export_acquisition_schemas(tmp_path)
-    by_name = {path.name: json.loads(path.read_text(encoding="utf-8")) for path in written}
+    by_name = {
+        path.name: json.loads(path.read_text(encoding="utf-8"))
+        for path in written
+        if path.parent.name == "v0.1.0"
+    }
 
     attempt_guards = by_name["acquisition_attempt_receipt.schema.json"]["allOf"]
     ledger_guards = by_name["operational_ledger_record.schema.json"]["allOf"]
@@ -145,14 +186,37 @@ def test_attempt_and_ledger_schemas_publish_conditional_variant_constraints(
 def test_acquisition_schema_render_and_check_are_deterministic(tmp_path: Path) -> None:
     module = importlib.import_module("peru_conflicts.acquisition.schema_export")
     first = module.export_acquisition_schemas(tmp_path)
-    first_bytes = {path.name: path.read_bytes() for path in first}
+    first_bytes = {(path.parent.name, path.name): path.read_bytes() for path in first}
 
     second = module.export_acquisition_schemas(tmp_path)
 
-    assert {path.name: path.read_bytes() for path in second} == first_bytes
+    assert {(path.parent.name, path.name): path.read_bytes() for path in second} == first_bytes
     assert module.acquisition_schemas_are_current(tmp_path) is True
     first[0].write_text("{}\n", encoding="utf-8")
     assert module.acquisition_schemas_are_current(tmp_path) is False
+
+
+def test_v020_schema_contract_is_additive_strict_and_hash_chained(tmp_path: Path) -> None:
+    module = importlib.import_module("peru_conflicts.acquisition.schema_export")
+    written = module.export_acquisition_schemas(tmp_path)
+    schemas = {
+        path.name: json.loads(path.read_text(encoding="utf-8"))
+        for path in written
+        if path.parent.name == "v0.2.0"
+    }
+
+    authorization = schemas["network_authorization_artifact.schema.json"]
+    assert authorization["properties"]["schema_version"]["const"] == "0.2.0"
+    assert authorization["properties"]["scope"]["const"].endswith("compare_only")
+    assert authorization["additionalProperties"] is False
+    assert schemas["authorization_registry.schema.json"]["additionalProperties"] is False
+    ledger = schemas["durable_ledger_record.schema.json"]
+    assert ledger["discriminator"]["propertyName"] == "record_type"
+    assert len(ledger["oneOf"]) == 11
+    assert "DurableTemporaryRecoveryV2" in ledger["$defs"]
+    index = schemas["authorization_use_index_record.schema.json"]
+    assert index["discriminator"]["propertyName"] == "record_type"
+    assert len(index["oneOf"]) == 4
 
 
 def test_top_level_schema_check_includes_acquisition(tmp_path: Path) -> None:

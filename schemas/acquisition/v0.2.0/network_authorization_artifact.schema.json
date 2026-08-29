@@ -1,0 +1,334 @@
+{
+  "$defs": {
+    "AuthorizationCapabilitiesV2": {
+      "additionalProperties": false,
+      "description": "Closed capabilities for the comparison-only pilot.",
+      "properties": {
+        "external_network_comparison": {
+          "const": true,
+          "title": "External Network Comparison",
+          "type": "boolean"
+        },
+        "historical_full_corpus_expansion": {
+          "const": false,
+          "title": "Historical Full Corpus Expansion",
+          "type": "boolean"
+        },
+        "operational_ledger_writes": {
+          "const": true,
+          "title": "Operational Ledger Writes",
+          "type": "boolean"
+        },
+        "raw_promotion": {
+          "const": false,
+          "title": "Raw Promotion",
+          "type": "boolean"
+        },
+        "raw_staging": {
+          "const": false,
+          "title": "Raw Staging",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "external_network_comparison",
+        "operational_ledger_writes",
+        "raw_staging",
+        "raw_promotion",
+        "historical_full_corpus_expansion"
+      ],
+      "title": "AuthorizationCapabilitiesV2",
+      "type": "object"
+    },
+    "DependencyRecordPinV2": {
+      "additionalProperties": false,
+      "description": "One exact installed-wheel RECORD file required by the isolated bootstrap.",
+      "properties": {
+        "distribution": {
+          "enum": [
+            "annotated-types",
+            "pydantic",
+            "pydantic-core",
+            "pyyaml",
+            "typing-extensions",
+            "typing-inspection"
+          ],
+          "title": "Distribution",
+          "type": "string"
+        },
+        "record_path": {
+          "title": "Record Path",
+          "type": "string"
+        },
+        "record_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Record Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "distribution",
+        "record_path",
+        "record_sha256"
+      ],
+      "title": "DependencyRecordPinV2",
+      "type": "object"
+    },
+    "RedirectPolicyV2": {
+      "additionalProperties": false,
+      "description": "Strict redirect policy bound into owner authorization.",
+      "properties": {
+        "allow_query": {
+          "const": false,
+          "title": "Allow Query",
+          "type": "boolean"
+        },
+        "approved_host_aliases": {
+          "items": {
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "type": "string"
+          },
+          "title": "Approved Host Aliases",
+          "type": "array"
+        },
+        "default_port_only": {
+          "const": true,
+          "title": "Default Port Only",
+          "type": "boolean"
+        },
+        "max_hops": {
+          "const": 5,
+          "title": "Max Hops",
+          "type": "integer"
+        },
+        "path_policy": {
+          "const": "canonical_wire_equivalent_only",
+          "title": "Path Policy",
+          "type": "string"
+        },
+        "require_https": {
+          "const": true,
+          "title": "Require Https",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "max_hops",
+        "path_policy",
+        "approved_host_aliases",
+        "require_https",
+        "default_port_only",
+        "allow_query"
+      ],
+      "title": "RedirectPolicyV2",
+      "type": "object"
+    },
+    "StorageNamespaceMarkerV2": {
+      "additionalProperties": false,
+      "description": "Canonical inert marker that identifies one approved manifest namespace.",
+      "properties": {
+        "namespace_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Namespace Id",
+          "type": "string"
+        },
+        "owner_nonce_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Owner Nonce Sha256",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "0.2.0",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "namespace_id",
+        "owner_nonce_sha256"
+      ],
+      "title": "StorageNamespaceMarkerV2",
+      "type": "object"
+    }
+  },
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/acquisition/v0.2.0/network_authorization_artifact.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Owner-reviewed grant for one exact comparison-only run and resumptions.",
+  "properties": {
+    "approved_at": {
+      "format": "date-time",
+      "title": "Approved At",
+      "type": "string"
+    },
+    "approved_by": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Approved By",
+      "type": "string"
+    },
+    "approved_hosts": {
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "title": "Approved Hosts",
+      "type": "array"
+    },
+    "approved_report_numbers": {
+      "items": {
+        "type": "integer"
+      },
+      "title": "Approved Report Numbers",
+      "type": "array"
+    },
+    "authorization_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Authorization Id",
+      "type": "string"
+    },
+    "authorization_status": {
+      "const": "authorized",
+      "title": "Authorization Status",
+      "type": "string"
+    },
+    "capabilities": {
+      "$ref": "#/$defs/AuthorizationCapabilitiesV2"
+    },
+    "data_root_identity_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Data Root Identity Sha256",
+      "type": "string"
+    },
+    "dependency_records": {
+      "items": {
+        "$ref": "#/$defs/DependencyRecordPinV2"
+      },
+      "title": "Dependency Records",
+      "type": "array"
+    },
+    "execution_git_commit": {
+      "pattern": "^[0-9a-f]{40}$",
+      "title": "Execution Git Commit",
+      "type": "string"
+    },
+    "execution_host_identity_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Execution Host Identity Sha256",
+      "type": "string"
+    },
+    "execution_tree_manifest_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Execution Tree Manifest Sha256",
+      "type": "string"
+    },
+    "execution_tree_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Execution Tree Sha256",
+      "type": "string"
+    },
+    "ordered_target_set_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Ordered Target Set Sha256",
+      "type": "string"
+    },
+    "plan_file_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Plan File Sha256",
+      "type": "string"
+    },
+    "plan_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Plan Id",
+      "type": "string"
+    },
+    "plan_limits_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Plan Limits Sha256",
+      "type": "string"
+    },
+    "plan_semantic_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Plan Semantic Sha256",
+      "type": "string"
+    },
+    "protected_source_receipt_git_commit": {
+      "pattern": "^[0-9a-f]{40}$",
+      "title": "Protected Source Receipt Git Commit",
+      "type": "string"
+    },
+    "protected_source_receipt_path": {
+      "const": "docs/source_integrity_receipt_m1_03b1.md",
+      "title": "Protected Source Receipt Path",
+      "type": "string"
+    },
+    "protected_source_receipt_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Protected Source Receipt Sha256",
+      "type": "string"
+    },
+    "redirect_policy": {
+      "$ref": "#/$defs/RedirectPolicyV2"
+    },
+    "reuse_policy": {
+      "const": "one_shot_same_run_resume_only",
+      "title": "Reuse Policy",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "0.2.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "scope": {
+      "const": "m1_03b_reports_260_269_compare_only",
+      "title": "Scope",
+      "type": "string"
+    },
+    "storage_namespace_marker": {
+      "$ref": "#/$defs/StorageNamespaceMarkerV2"
+    },
+    "storage_namespace_marker_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Storage Namespace Marker Sha256",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "authorization_id",
+    "authorization_status",
+    "scope",
+    "plan_id",
+    "plan_file_sha256",
+    "plan_semantic_sha256",
+    "ordered_target_set_sha256",
+    "plan_limits_sha256",
+    "protected_source_receipt_path",
+    "protected_source_receipt_git_commit",
+    "protected_source_receipt_sha256",
+    "execution_git_commit",
+    "execution_tree_manifest_sha256",
+    "execution_tree_sha256",
+    "dependency_records",
+    "approved_report_numbers",
+    "approved_hosts",
+    "capabilities",
+    "redirect_policy",
+    "storage_namespace_marker",
+    "storage_namespace_marker_sha256",
+    "data_root_identity_sha256",
+    "execution_host_identity_sha256",
+    "approved_by",
+    "approved_at",
+    "reuse_policy"
+  ],
+  "title": "NetworkAuthorizationArtifactV2",
+  "type": "object"
+}

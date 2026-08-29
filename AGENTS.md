@@ -53,13 +53,29 @@ Build a reproducible, auditable, versioned historical reconstruction of the Defe
 
 ## Current milestone gate
 
-M1-01/M1-02.2 are merged. M1-03A is authorized only on
-`codex/m1-03-source-acquisition`: acquisition-engine implementation with synthetic
-transports plus a dry run that must make zero network requests and zero Dropbox
-writes. The executable exposes only `dry-run`; no reviewed live-network
-authorization artifact exists. M1-03B, PDF/ZIP retrieval, operational-ledger or
-staging creation, raw promotion, M1-04, and M2 remain prohibited pending separate
-research-owner approval. Schema `v0.2.0` remains the M1-only working content
-baseline, not the final M2 gold schema; `schemas/v0.1.0/` remains the immutable M0
-snapshot. M2-01 owns the five deferred ontology questions in
-`docs/29_open_questions.md`; M1 must not resolve them speculatively.
+M1-01/M1-02.2 and M1-03A are merged. M1-03B.1 is authorized only on
+`codex/m1-03b1-live-comparison-readiness`: production transport, byte-pinned
+authorization, compare-only orchestration, and operational-ledger behavior may be
+implemented and tested solely with synthetic/local temporary evidence. The
+production authorization registry must remain empty. `dry-run` remains
+zero-network/zero-Dropbox; `live-compare` must fail before side effects because no
+reviewed M1-03B.2 authorization exists. Any future supported live invocation must
+use the dedicated `.venv-live` interpreter via `.venv-live\Scripts\python.exe -I
+-S -B scripts\acquire_official_sources.py` on Windows; `uv run` and direct application imports are
+not reviewed production invocations. The dedicated environment must be created in
+a separate reviewed preparation step from the frozen lock with copy-mode installs,
+no development group, and no project install. That bootstrap must obtain
+protected-`main` identity from
+credential-free verified public GitHub evidence, not a locally writable remote ref,
+and verify the authorization-pinned dependency `RECORD` files before adding
+site-packages after the standard library. External Defensoría PDF/ZIP requests,
+real `01_raw/manifests/` writes, raw staging/promotion, M1-03B.2, M1-04, and M2 are
+prohibited pending separate owner approval. Schema `v0.2.0` remains the M1-only
+working content baseline, not the final M2 gold schema; scientific `v0.1.0` and all
+prior discovery/acquisition snapshots remain immutable. M2-01 owns the five
+deferred ontology questions in `docs/29_open_questions.md`.
+
+The M1-03B.1 live-comparison cleanup claim is Windows-only. POSIX offline tests are
+supported, but POSIX live authorization is prohibited: exact retained-handle unlink
+is unavailable, so the implementation preserves a durably synced delete quarantine
+and leaves cleanup pending rather than using a raceable pathname unlink.

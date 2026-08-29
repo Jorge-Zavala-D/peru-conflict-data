@@ -14,11 +14,15 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
 from time import monotonic, sleep
-from typing import Protocol, cast
+from typing import BinaryIO, Protocol, cast
 from urllib.parse import urlsplit, urlunsplit
 from urllib.robotparser import RobotFileParser
 
-from peru_conflicts.acquisition.fs_safety import DirectoryLease, DirectoryLeaseError
+from peru_conflicts.acquisition.fs_safety import (
+    DirectoryLease,
+    DirectoryLeaseError,
+    deletion_quarantine_name,
+)
 from peru_conflicts.acquisition.models import (
     SAFE_RATE_LIMIT_HEADER_NAMES,
     AcquisitionAttemptOutcome,
@@ -30,6 +34,7 @@ from peru_conflicts.acquisition.models import (
     SafeResponseHeaders,
 )
 from peru_conflicts.acquisition.policy import (
+    AcquisitionPolicyError,
     AttemptBudget,
     AttemptBudgetExhausted,
     NetworkAccessGrant,
@@ -37,6 +42,7 @@ from peru_conflicts.acquisition.policy import (
     validate_redirect_target,
     validate_url,
 )
+from peru_conflicts.acquisition.transport import PROJECT_USER_AGENT
 from peru_conflicts.discovery.settings import AUTHORITATIVE_HOSTS
 
 _REDIRECT_STATUSES = frozenset({301, 302, 303, 307, 308})
@@ -44,6 +50,10 @@ _TRANSIENT_STATUSES = frozenset({429, 500, 502, 503, 504})
 _ROBOTS_MAX_BYTES = 500_000
 _LANDING_HTML_MAX_BYTES = 2_000_000
 _PDF_MAGIC = b"%PDF-"
+
+
+def _random_object_token(_report_number: int, _attempt_number: int) -> str:
+    return uuid.uuid4().hex
 
 
 class StreamingResponse(Protocol):
@@ -95,6 +105,14 @@ class TemporaryPathBoundaryError(AcquisitionEngineError):
     """A run-owned download path escaped or aliased its system-temp root."""
 
 
+class TemporaryCleanupPending(AcquisitionEngineError):
+    """Run-owned bytes remain because identity-bound cleanup could not complete."""
+
+    def __init__(self, report_number: int) -> None:
+        super().__init__(f"temporary cleanup remains pending for report {report_number}")
+        self.report_number = report_number
+
+
 class _TransportAttemptFailed(AcquisitionEngineError):
     """Carry attempt identity across an injected transport exception."""
 
@@ -125,6 +143,46 @@ class DownloadedObject:
     byte_count: int
     sha256: str
     final_url: str
+
+
+def _verify_open_download_for_cleanup(
+    directory: DirectoryLease,
+    name: str,
+    source: BinaryIO,
+    downloaded: DownloadedObject,
+) -> None:
+    """Bind cleanup authority to the exact previously accepted bytes."""
+
+    digest = hashlib.sha256()
+    observed_bytes = 0
+    try:
+        source.seek(0)
+        before = os.fstat(source.fileno())
+        while chunk := source.read(64 * 1024):
+            observed_bytes += len(chunk)
+            if observed_bytes > 50_000_000:
+                raise TemporaryPathBoundaryError(
+                    "download cleanup object exceeds the reviewed ceiling"
+                )
+            digest.update(chunk)
+        after = os.fstat(source.fileno())
+        current = directory.child_lstat(name)
+    except (OSError, DirectoryLeaseError) as error:
+        raise TemporaryPathBoundaryError(
+            "download cleanup object could not be identity-bound"
+        ) from error
+    if (
+        not stat.S_ISREG(before.st_mode)
+        or before.st_nlink != 1
+        or (before.st_dev, before.st_ino, before.st_size)
+        != (after.st_dev, after.st_ino, after.st_size)
+        or (after.st_dev, after.st_ino, after.st_size)
+        != (current.st_dev, current.st_ino, current.st_size)
+        or current.st_nlink != 1
+        or observed_bytes != downloaded.byte_count
+        or digest.hexdigest() != downloaded.sha256
+    ):
+        raise TemporaryPathBoundaryError("download cleanup object differs from the accepted bytes")
 
 
 @dataclass(frozen=True, slots=True)
@@ -177,6 +235,14 @@ def _safe_exception_label(error: BaseException) -> str:
     return type(error).__name__
 
 
+def _accept_validated_response(response: StreamingResponse) -> None:
+    """Tell a durable transport that engine-level validation is complete."""
+
+    marker = getattr(response, "mark_accepted", None)
+    if marker is not None:
+        marker()
+
+
 def _sanitize_location(value: str | None) -> tuple[str | None, str | None]:
     if value is None:
         return None, None
@@ -210,7 +276,7 @@ def _sanitize_receipt_header_value(value: str | None) -> str | None:
     return f"[redacted unsafe metadata sha256={digest}]"
 
 
-def _safe_headers(headers: Mapping[str, str]) -> SafeResponseHeaders:
+def safe_response_headers(headers: Mapping[str, str]) -> SafeResponseHeaders:
     selected_rate_limits = tuple(
         SafeRateLimitHeader.model_validate(
             {
@@ -275,6 +341,43 @@ def _validate_temp_chain(path: Path, *, logical_boundary: Path, resolved_boundar
         raise TemporaryPathBoundaryError("download path escapes resolved system temp")
 
 
+@contextmanager
+def lease_system_temp_run_directory(
+    system_temp_root: Path,
+    run_id: str,
+    *,
+    create: bool,
+) -> Generator[DirectoryLease]:
+    """Lease every component from the OS temp root through one run directory."""
+
+    system_temporary_logical = _absolute_logical(Path(tempfile.gettempdir()))
+    system_temporary_resolved = system_temporary_logical.resolve(strict=True)
+    requested_root = _absolute_logical(system_temp_root)
+    if not requested_root.is_relative_to(system_temporary_logical):
+        raise TemporaryPathBoundaryError(
+            "download root must remain below the operating-system temporary directory"
+        )
+    _validate_temp_chain(
+        requested_root,
+        logical_boundary=system_temporary_logical,
+        resolved_boundary=system_temporary_resolved,
+    )
+    relative_root = requested_root.relative_to(system_temporary_logical)
+    try:
+        with ExitStack() as stack:
+            current = stack.enter_context(DirectoryLease.acquire(system_temporary_logical))
+            for part in relative_root.parts:
+                current = stack.enter_context(current.acquire_child(part, create=create))
+            if current.resolved != requested_root.resolve(strict=True):
+                raise DirectoryLeaseError("system temporary root binding is inconsistent")
+            run_directory = stack.enter_context(current.acquire_child(run_id, create=create))
+            if not run_directory.resolved.is_relative_to(current.resolved):
+                raise DirectoryLeaseError("run directory escapes the system temporary root")
+            yield run_directory
+    except (OSError, DirectoryLeaseError) as error:
+        raise TemporaryPathBoundaryError("temporary directory could not be held safely") from error
+
+
 def _retry_after_seconds(value: str | None, *, now: datetime) -> float:
     if not value:
         return 0.0
@@ -303,6 +406,7 @@ class AcquisitionClient:
         monotonic_clock: Callable[[], float] = monotonic,
         sleeper: Callable[[float], None] = sleep,
         utc_clock: Callable[[], datetime] = lambda: datetime.now(UTC),
+        object_name_token_factory: Callable[[int, int], str] | None = None,
     ) -> None:
         grant.require_valid()
         limits = grant.limits
@@ -365,6 +469,9 @@ class AcquisitionClient:
         )
         self._byte_budget = DownloadByteBudget(limit=requested_byte_limit)
         self.utc_clock = utc_clock
+        self._object_name_token_factory: Callable[[int, int], str] = (
+            object_name_token_factory or _random_object_token
+        )
         self.receipts: list[AcquisitionAttemptReceipt] = []
         self.failure_receipts: list[AcquisitionFailureReceipt] = []
         self._robots: dict[str, RobotFileParser] = {}
@@ -374,24 +481,12 @@ class AcquisitionClient:
     def _lease_run_directory(self, run_id: str) -> Generator[DirectoryLease]:
         """Create and hold every temp-directory component until stream cleanup ends."""
 
-        relative_root = self.system_temp_root.relative_to(self._system_temporary_logical)
-        try:
-            with ExitStack() as stack:
-                current = stack.enter_context(
-                    DirectoryLease.acquire(self._system_temporary_logical)
-                )
-                for part in relative_root.parts:
-                    current = stack.enter_context(current.acquire_child(part, create=True))
-                if current.resolved != self.system_temp_root.resolve(strict=True):
-                    raise DirectoryLeaseError("system temporary root binding is inconsistent")
-                run_directory = stack.enter_context(current.acquire_child(run_id, create=True))
-                if not run_directory.resolved.is_relative_to(current.resolved):
-                    raise DirectoryLeaseError("run directory escapes the system temporary root")
-                yield run_directory
-        except DirectoryLeaseError as error:
-            raise TemporaryPathBoundaryError(
-                "temporary directory could not be held safely"
-            ) from error
+        with lease_system_temp_run_directory(
+            self.system_temp_root,
+            run_id,
+            create=True,
+        ) as run_directory:
+            yield run_directory
 
     def _record(
         self,
@@ -426,7 +521,7 @@ class AcquisitionClient:
             completed_at=self.utc_clock(),
             status_code=status_code,
             outcome=outcome,
-            response_headers=_safe_headers(headers) if headers is not None else None,
+            response_headers=safe_response_headers(headers) if headers is not None else None,
             transferred_bytes=transferred_bytes,
             complete_body_sha256=complete_sha256,
             redirect_target_url=redirect_target_url,
@@ -553,14 +648,14 @@ class AcquisitionClient:
             response = self.transport.request(
                 url,
                 headers={
-                    "User-Agent": "peru-conflict-data-m1-acquisition/0.1 (+research)",
                     "Accept": accept,
-                    "Accept-Encoding": "identity",
                 },
                 timeout_seconds=self.limits.timeout_seconds,
             )
         except KeyboardInterrupt as error:
             raise _TransportAttemptInterrupted(attempt_number, requested_at, error) from error
+        except AcquisitionPolicyError:
+            raise
         except Exception as error:
             raise _TransportAttemptFailed(attempt_number, requested_at, error) from error
         return attempt_number, requested_at, response
@@ -695,6 +790,7 @@ class AcquisitionClient:
             )
             raise ResponseRejected("robots.txt body stream failed") from error
         digest = hashlib.sha256(body).hexdigest()
+        _accept_validated_response(response)
         self._record(
             run_id=run_id,
             report_number=report_number,
@@ -822,7 +918,7 @@ class AcquisitionClient:
             parser.set_url(robots_url)
             parser.parse(body.decode("utf-8", errors="replace").splitlines())
             self._robots[origin] = parser
-        if not parser.can_fetch("peru-conflict-data-m1-acquisition/0.1 (+research)", url):
+        if not parser.can_fetch(PROJECT_USER_AGENT, url):
             self._record_failure(
                 run_id=run_id,
                 report_number=report_number,
@@ -964,6 +1060,7 @@ class AcquisitionClient:
 
         rendered = bytes(body)
         digest = hashlib.sha256(rendered).hexdigest()
+        _accept_validated_response(response)
         self._record(
             run_id=run_id,
             report_number=report_number,
@@ -999,7 +1096,13 @@ class AcquisitionClient:
         expected_length = self._validate_pdf_headers(response)
         if "/" in run_id or "\\" in run_id or run_id in {".", ".."}:
             raise ValueError("run_id must be a path-safe identifier")
-        object_token = uuid.uuid4().hex
+        object_token = self._object_name_token_factory(report_number, attempt_number)
+        if (
+            not object_token
+            or len(object_token) > 80
+            or not all(character.isascii() and character.isalnum() for character in object_token)
+        ):
+            raise ValueError("temporary object token must be a bounded ASCII alphanumeric value")
         partial_name = f"report-{report_number}-{object_token}.pdf.partial"
         complete_name = partial_name.removesuffix(".partial")
         transferred = 0
@@ -1010,7 +1113,7 @@ class AcquisitionClient:
             def cleanup_bound(name: str, *, related_attempt_id: str) -> None:
                 try:
                     run_directory.unlink_child(name, missing_ok=True)
-                except DirectoryLeaseError as error:
+                except (OSError, DirectoryLeaseError) as error:
                     self._record_failure(
                         run_id=run_id,
                         report_number=report_number,
@@ -1021,6 +1124,7 @@ class AcquisitionClient:
                         related_attempt_id=related_attempt_id,
                         cleanup_completed=False,
                     )
+                    raise TemporaryCleanupPending(report_number) from error
 
             try:
                 with run_directory.open_child_exclusive(partial_name) as output:
@@ -1049,6 +1153,7 @@ class AcquisitionClient:
                 observed_sha256 = digest.hexdigest()
                 self._byte_budget.commit(transferred)
                 run_directory.rename_child_no_replace(partial_name, complete_name)
+                _accept_validated_response(response)
                 self._record(
                     run_id=run_id,
                     report_number=report_number,
@@ -1525,6 +1630,7 @@ class AcquisitionClient:
                             error_message=str(error),
                         )
                     raise
+
                 except ResponseRejected as error:
                     if not self.receipts or self.receipts[-1].attempt_number != attempt_number:
                         message = str(error)
@@ -1567,3 +1673,65 @@ class AcquisitionClient:
                             related_attempt_id=self.receipts[-1].attempt_id,
                         )
                     raise
+
+    def cleanup_downloaded(
+        self,
+        downloaded: DownloadedObject,
+        *,
+        run_id: str,
+        report_number: int,
+        related_attempt_id: str | None = None,
+    ) -> None:
+        """Remove one validated run-owned object without exposing a raw publication path."""
+
+        if related_attempt_id is None and not self.receipts:
+            raise TemporaryPathBoundaryError("download cleanup lacks a source attempt receipt")
+        evidence_attempt_id = (
+            related_attempt_id if related_attempt_id is not None else self.receipts[-1].attempt_id
+        )
+        try:
+            expected_parent = self.system_temp_root / run_id
+            if _absolute_logical(downloaded.path.parent) != expected_parent:
+                raise TemporaryPathBoundaryError(
+                    "download cleanup path does not match the reviewed run directory"
+                )
+            with self._lease_run_directory(run_id) as run_directory:
+                original_name = downloaded.path.name
+                already_quarantined = original_name.endswith(".delete")
+                quarantine_name = (
+                    original_name
+                    if already_quarantined
+                    else deletion_quarantine_name(original_name)
+                )
+                with run_directory.open_child_read_for_delete(original_name) as source:
+                    _verify_open_download_for_cleanup(
+                        run_directory,
+                        original_name,
+                        source,
+                        downloaded,
+                    )
+                    if not already_quarantined:
+                        run_directory.quarantine_open_child(
+                            original_name,
+                            source,
+                            quarantine_name,
+                        )
+                    run_directory.unlink_open_child(quarantine_name, source)
+                if run_directory.child_exists(original_name) or run_directory.child_exists(
+                    quarantine_name
+                ):
+                    raise TemporaryPathBoundaryError(
+                        "download cleanup object remains after identity-bound deletion"
+                    )
+        except (DirectoryLeaseError, OSError, TemporaryPathBoundaryError) as error:
+            self._record_failure(
+                run_id=run_id,
+                report_number=report_number,
+                stage=AcquisitionFailureStage.TEMP_CLEANUP,
+                url=downloaded.final_url,
+                error_code="temporary_cleanup_failure",
+                error_message=_safe_exception_label(error),
+                related_attempt_id=evidence_attempt_id,
+                cleanup_completed=False,
+            )
+            raise TemporaryCleanupPending(report_number) from error

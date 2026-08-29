@@ -16,7 +16,9 @@ from peru_conflicts.acquisition.engine import (
     AcquisitionClient,
     DownloadByteBudget,
     StreamingTransport,
+    TemporaryCleanupPending,
 )
+from peru_conflicts.acquisition.fs_safety import DirectoryLease
 from peru_conflicts.acquisition.models import NetworkAuthorizationArtifact
 from peru_conflicts.acquisition.plan import load_reviewed_pilot_plan
 from peru_conflicts.acquisition.policy import require_network_authorization
@@ -715,6 +717,39 @@ def test_rejected_or_truncated_pdf_cleans_owned_partial_and_preserves_receipt(
         assert response.body_iterated is False
 
 
+def test_rejected_pdf_cleanup_failure_is_not_suppressed(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    content = b"not-a-pdf" + b"x" * 1_200
+    response = pdf_response(content)
+    time = FakeTime()
+    client = _client(tmp_path, FakeTransport([robots(), response], time=time), time)
+    original = DirectoryLease.unlink_child
+
+    def fail_partial_cleanup(
+        lease: DirectoryLease,
+        name: str,
+        *,
+        missing_ok: bool = False,
+    ) -> None:
+        if name.endswith(".partial"):
+            raise OSError("synthetic cleanup denial")
+        original(lease, name, missing_ok=missing_ok)
+
+    monkeypatch.setattr(DirectoryLease, "unlink_child", fail_partial_cleanup)
+
+    with pytest.raises(TemporaryCleanupPending) as caught:
+        client.fetch_pdf(PDF_URL, run_id="synthetic-run", report_number=260)  # type: ignore[attr-defined]
+
+    assert caught.value.report_number == 260
+    assert list(tmp_path.rglob("*.partial"))
+    assert any(
+        failure.error_code == "temporary_cleanup_failure" and not failure.cleanup_completed
+        for failure in client.failure_receipts  # type: ignore[attr-defined]
+    )
+
+
 def test_robots_transient_response_retries_with_receipts_and_spacing(tmp_path: Path) -> None:
     content = b"%PDF-1.7\n" + b"x" * 1200
     transient = FakeResponse(503, {"Content-Type": "text/plain", "Retry-After": "4"})
@@ -1019,3 +1054,210 @@ def test_total_download_budget_rejects_second_object_and_cleans_partial(tmp_path
         )  # type: ignore[attr-defined]
 
     assert not list(tmp_path.rglob("*.partial"))
+
+
+def test_validated_download_cleanup_rejects_missing_object(tmp_path: Path) -> None:
+    content = b"%PDF-1.7\n" + b"a" * 1_090
+    time = FakeTime()
+    client = _client(tmp_path, FakeTransport([robots(), pdf_response(content)], time=time), time)
+    downloaded = client.fetch_pdf(PDF_URL, run_id="synthetic-run", report_number=260)
+    attempt_id = client.receipts[-1].attempt_id
+    downloaded.path.unlink()
+
+    with pytest.raises(TemporaryCleanupPending):
+        client.cleanup_downloaded(
+            downloaded,
+            run_id="synthetic-run",
+            report_number=260,
+            related_attempt_id=attempt_id,
+        )
+
+
+def test_validated_download_cleanup_preserves_replacement_object(tmp_path: Path) -> None:
+    content = b"%PDF-1.7\n" + b"a" * 1_090
+    replacement = b"%PDF-1.7\n" + b"b" * 1_090
+    time = FakeTime()
+    client = _client(tmp_path, FakeTransport([robots(), pdf_response(content)], time=time), time)
+    downloaded = client.fetch_pdf(PDF_URL, run_id="synthetic-run", report_number=260)
+    attempt_id = client.receipts[-1].attempt_id
+    downloaded.path.write_bytes(replacement)
+
+    with pytest.raises(TemporaryCleanupPending):
+        client.cleanup_downloaded(
+            downloaded,
+            run_id="synthetic-run",
+            report_number=260,
+            related_attempt_id=attempt_id,
+        )
+
+    assert downloaded.path.read_bytes() == replacement
+
+
+def test_validated_download_cleanup_quarantines_then_removes_exact_object(
+    tmp_path: Path,
+) -> None:
+    content = b"%PDF-1.7\n" + b"a" * 1_090
+    time = FakeTime()
+    client = _client(tmp_path, FakeTransport([robots(), pdf_response(content)], time=time), time)
+    downloaded = client.fetch_pdf(PDF_URL, run_id="synthetic-run", report_number=260)
+    attempt_id = client.receipts[-1].attempt_id
+    quarantine = downloaded.path.with_name(f"{downloaded.path.name}.delete")
+
+    if os.name == "nt":
+        client.cleanup_downloaded(
+            downloaded,
+            run_id="synthetic-run",
+            report_number=260,
+            related_attempt_id=attempt_id,
+        )
+        assert not downloaded.path.exists()
+        assert not quarantine.exists()
+    else:
+        with pytest.raises(TemporaryCleanupPending):
+            client.cleanup_downloaded(
+                downloaded,
+                run_id="synthetic-run",
+                report_number=260,
+                related_attempt_id=attempt_id,
+            )
+        assert not downloaded.path.exists()
+        assert quarantine.read_bytes() == content
+
+
+def test_delete_quarantine_is_directory_durable_before_cleanup(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    content = b"%PDF-1.7\n" + b"a" * 1_090
+    time = FakeTime()
+    client = _client(tmp_path, FakeTransport([robots(), pdf_response(content)], time=time), time)
+    downloaded = client.fetch_pdf(PDF_URL, run_id="synthetic-run", report_number=260)
+    attempt_id = client.receipts[-1].attempt_id
+    sync_calls = 0
+    real_sync = DirectoryLease.sync_directory
+
+    def recording_sync(directory: DirectoryLease) -> None:
+        nonlocal sync_calls
+        sync_calls += 1
+        real_sync(directory)
+
+    monkeypatch.setattr(DirectoryLease, "sync_directory", recording_sync)
+
+    if os.name == "nt":
+        client.cleanup_downloaded(
+            downloaded,
+            run_id="synthetic-run",
+            report_number=260,
+            related_attempt_id=attempt_id,
+        )
+    else:
+        with pytest.raises(TemporaryCleanupPending):
+            client.cleanup_downloaded(
+                downloaded,
+                run_id="synthetic-run",
+                report_number=260,
+                related_attempt_id=attempt_id,
+            )
+
+    assert sync_calls >= 1
+
+
+def test_posix_cleanup_preserves_quarantine_when_exact_unlink_is_unavailable(
+    tmp_path: Path,
+) -> None:
+    if os.name == "nt":
+        pytest.skip("POSIX retained-handle deletion boundary")
+    content = b"%PDF-1.7\n" + b"a" * 1_090
+    time = FakeTime()
+    client = _client(tmp_path, FakeTransport([robots(), pdf_response(content)], time=time), time)
+    downloaded = client.fetch_pdf(PDF_URL, run_id="synthetic-run", report_number=260)
+    attempt_id = client.receipts[-1].attempt_id
+    quarantine = downloaded.path.with_name(f"{downloaded.path.name}.delete")
+
+    with pytest.raises(TemporaryCleanupPending):
+        client.cleanup_downloaded(
+            downloaded,
+            run_id="synthetic-run",
+            report_number=260,
+            related_attempt_id=attempt_id,
+        )
+
+    assert not downloaded.path.exists()
+    assert quarantine.read_bytes() == content
+
+
+def test_cleanup_never_unlinks_replacement_swapped_after_identity_check(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    content = b"%PDF-1.7\n" + b"a" * 1_090
+    replacement = b"%PDF-1.7\n" + b"b" * 1_090
+    time = FakeTime()
+    client = _client(tmp_path, FakeTransport([robots(), pdf_response(content)], time=time), time)
+    downloaded = client.fetch_pdf(PDF_URL, run_id="synthetic-run", report_number=260)
+    attempt_id = client.receipts[-1].attempt_id
+    quarantine = downloaded.path.with_name(f"{downloaded.path.name}.delete")
+    displaced = downloaded.path.with_name(f"{downloaded.path.name}.displaced")
+    real_lstat = DirectoryLease.child_lstat
+    swapped = False
+
+    def swap_after_identity_check(directory: DirectoryLease, name: str) -> os.stat_result:
+        nonlocal swapped
+        result = real_lstat(directory, name)
+        if name.endswith(".delete") and not swapped:
+            swapped = True
+            quarantine.replace(displaced)
+            quarantine.write_bytes(replacement)
+        return result
+
+    monkeypatch.setattr(DirectoryLease, "child_lstat", swap_after_identity_check)
+
+    with pytest.raises(TemporaryCleanupPending):
+        client.cleanup_downloaded(
+            downloaded,
+            run_id="synthetic-run",
+            report_number=260,
+            related_attempt_id=attempt_id,
+        )
+
+    assert quarantine.read_bytes() == replacement
+    if os.name != "nt":
+        assert displaced.read_bytes() == content
+
+
+def test_validated_download_cleanup_preserves_swap_during_quarantine(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    content = b"%PDF-1.7\n" + b"a" * 1_090
+    replacement = b"%PDF-1.7\n" + b"b" * 1_090
+    time = FakeTime()
+    client = _client(tmp_path, FakeTransport([robots(), pdf_response(content)], time=time), time)
+    downloaded = client.fetch_pdf(PDF_URL, run_id="synthetic-run", report_number=260)
+    attempt_id = client.receipts[-1].attempt_id
+    displaced = downloaded.path.with_name(f"{downloaded.path.name}.displaced")
+    real_quarantine = DirectoryLease.quarantine_open_child
+
+    def replace_before_move(
+        directory: DirectoryLease,
+        name: str,
+        source: BinaryIO,
+        quarantine_name: str,
+    ) -> None:
+        downloaded.path.replace(displaced)
+        downloaded.path.write_bytes(replacement)
+        real_quarantine(directory, name, source, quarantine_name)
+
+    monkeypatch.setattr(DirectoryLease, "quarantine_open_child", replace_before_move)
+
+    with pytest.raises(TemporaryCleanupPending):
+        client.cleanup_downloaded(
+            downloaded,
+            run_id="synthetic-run",
+            report_number=260,
+            related_attempt_id=attempt_id,
+        )
+
+    quarantine = downloaded.path.with_name(f"{downloaded.path.name}.delete")
+    assert quarantine.read_bytes() == replacement
+    assert displaced.read_bytes() == content

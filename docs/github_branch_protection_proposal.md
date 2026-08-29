@@ -11,7 +11,8 @@ same commit.
 - Ruleset ID: `21658925`; enforcement status: active.
 - Target branch: `refs/heads/main`.
 - Pull requests require zero approving reviews; review-conversation resolution is required.
-- Required checks: `quality (3.12)` and `quality (3.13)`; strict/up-to-date is `true`.
+- Required checks currently visible through the supported read path: `quality (3.12)`
+  and `quality (3.13)`; strict/up-to-date is `true`.
 - Deletion and force pushes are blocked.
 - Bypass actors: none.
 - Signed commits, CODEOWNERS, and merge queue rules are absent.
@@ -30,5 +31,21 @@ same commit.
   unattributed changes.
 - Do not configure bypass actors.
 
-This file records the approved target configuration and the live receipt captured after
-application.
+## M1-03B.1 outstanding metadata action
+
+Jorge authorized adding only `windows-acquisition-safety` as the third required
+check. The selected GitHub integration exposes no ruleset-write operation, and the
+available browser session is not authenticated to repository settings (GitHub
+returns 404 for the private ruleset page). The credential boundary prohibits
+inspecting helpers/tokens or constructing a private API authorization header.
+Therefore the live ruleset remains unchanged pending an authenticated owner action.
+This is a platform-permission blocker, not a reason to rename or weaken CI. The
+exact pending action is:
+
+1. open ruleset `21658925` (`Protect main research foundation`);
+2. add exactly `windows-acquisition-safety` to required status checks;
+3. save without changing any other property; and
+4. verify the exact three contexts and strict/up-to-date behavior.
+
+This file records the current live receipt, the approved target configuration, and
+the single pending permission-blocked correction.

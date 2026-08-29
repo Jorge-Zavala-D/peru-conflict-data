@@ -46,6 +46,13 @@ def _safe_child_name(name: str) -> str:
     return name
 
 
+def deletion_quarantine_name(name: str) -> str:
+    """Return one deterministic restart-visible name for pending deletion."""
+
+    child = _safe_child_name(name)
+    return _safe_child_name(f"{child}.delete")
+
+
 if os.name == "nt":
     import msvcrt
 
@@ -55,6 +62,7 @@ if os.name == "nt":
     _FILE_LIST_DIRECTORY = 0x0001
     _FILE_READ_DATA = 0x0001
     _FILE_WRITE_DATA = 0x0002
+    _FILE_APPEND_DATA = 0x0004
     _FILE_TRAVERSE = 0x0020
     _FILE_READ_ATTRIBUTES = 0x0080
     _FILE_SHARE_READ = 0x00000001
@@ -305,6 +313,70 @@ def _windows_open_relative_file_descriptor(
         raise
 
 
+def _windows_open_relative_append_descriptor(root_handle: int, name: str) -> int:
+    if os.name != "nt":  # pragma: no cover - guarded by Windows callers
+        raise DirectoryLeaseError("Windows relative append opens are unavailable")
+    handle = _windows_open_relative_handle(
+        root_handle,
+        name,
+        desired_access=(
+            _FILE_READ_DATA  # type: ignore[possibly-undefined]
+            | _FILE_APPEND_DATA  # type: ignore[possibly-undefined]
+            | _FILE_READ_ATTRIBUTES  # type: ignore[possibly-undefined]
+            | _SYNCHRONIZE  # type: ignore[possibly-undefined]
+        ),
+        disposition=_FILE_OPEN_IF,  # type: ignore[possibly-undefined]
+        options=(
+            _FILE_NON_DIRECTORY_FILE  # type: ignore[possibly-undefined]
+            | _FILE_SYNCHRONOUS_IO_NONALERT  # type: ignore[possibly-undefined]
+            | _FILE_OPEN_REPARSE_POINT  # type: ignore[possibly-undefined]
+        ),
+        attributes=_FILE_ATTRIBUTE_NORMAL,  # type: ignore[possibly-undefined]
+    )
+    return _windows_handle_to_descriptor(handle, os.O_RDWR | os.O_APPEND | os.O_BINARY)
+
+
+def _windows_open_relative_delete_descriptor(root_handle: int, name: str) -> int:
+    if os.name != "nt":  # pragma: no cover - guarded by Windows callers
+        raise DirectoryLeaseError("Windows relative delete opens are unavailable")
+    handle = _windows_open_relative_handle(
+        root_handle,
+        name,
+        desired_access=(
+            _FILE_READ_DATA  # type: ignore[possibly-undefined]
+            | _DELETE  # type: ignore[possibly-undefined]
+            | _FILE_READ_ATTRIBUTES  # type: ignore[possibly-undefined]
+            | _SYNCHRONIZE  # type: ignore[possibly-undefined]
+        ),
+        disposition=_FILE_OPEN,  # type: ignore[possibly-undefined]
+        options=(
+            _FILE_NON_DIRECTORY_FILE  # type: ignore[possibly-undefined]
+            | _FILE_SYNCHRONOUS_IO_NONALERT  # type: ignore[possibly-undefined]
+            | _FILE_OPEN_REPARSE_POINT  # type: ignore[possibly-undefined]
+        ),
+        attributes=_FILE_ATTRIBUTE_NORMAL,  # type: ignore[possibly-undefined]
+    )
+    return _windows_handle_to_descriptor(handle, os.O_RDONLY | os.O_BINARY)
+
+
+def _windows_mark_handle_for_delete(handle: int, name: str) -> None:
+    if os.name != "nt":  # pragma: no cover - guarded by Windows callers
+        raise DirectoryLeaseError("Windows handle deletion is unavailable")
+    disposition = wintypes.BOOLEAN(1)
+    io_status = _IoStatusBlock()  # type: ignore[possibly-undefined]
+    status = int(
+        _nt_set_information_file(  # type: ignore[possibly-undefined]
+            wintypes.HANDLE(handle),
+            ctypes.byref(io_status),
+            ctypes.byref(disposition),
+            ctypes.sizeof(disposition),
+            _FILE_DISPOSITION_INFORMATION,  # type: ignore[possibly-undefined]
+        )
+    )
+    if status < 0:
+        raise _windows_error_from_status(status, name)
+
+
 def _windows_unlink_relative(root_handle: int, name: str) -> None:
     if os.name != "nt":  # pragma: no cover - guarded by Windows callers
         raise DirectoryLeaseError("Windows relative unlink is unavailable")
@@ -322,19 +394,7 @@ def _windows_unlink_relative(root_handle: int, name: str) -> None:
         ),
     )
     try:
-        disposition = wintypes.BOOLEAN(1)
-        io_status = _IoStatusBlock()  # type: ignore[possibly-undefined]
-        status = int(
-            _nt_set_information_file(  # type: ignore[possibly-undefined]
-                wintypes.HANDLE(handle),
-                ctypes.byref(io_status),
-                ctypes.byref(disposition),
-                ctypes.sizeof(disposition),
-                _FILE_DISPOSITION_INFORMATION,  # type: ignore[possibly-undefined]
-            )
-        )
-        if status < 0:
-            raise _windows_error_from_status(status, name)
+        _windows_mark_handle_for_delete(handle, name)
     finally:
         _close_handle(handle)  # type: ignore[possibly-undefined]
 
@@ -586,6 +646,19 @@ class DirectoryLease(AbstractContextManager["DirectoryLease"]):
     def child_path(self, name: str) -> Path:
         return self.path / _safe_child_name(name)
 
+    def list_child_names(self) -> tuple[str, ...]:
+        """List direct children while retaining and revalidating the directory lease."""
+
+        self.require_bound()
+        try:
+            names = tuple(sorted(os.listdir(self.path)))
+        except OSError as error:
+            raise DirectoryLeaseError("leased directory children could not be listed") from error
+        for name in names:
+            _safe_child_name(name)
+        self.require_bound()
+        return names
+
     def acquire_child(self, name: str, *, create: bool = False) -> DirectoryLease:
         child_name = _safe_child_name(name)
         self.require_bound()
@@ -703,8 +776,10 @@ class DirectoryLease(AbstractContextManager["DirectoryLease"]):
             raise
         before_attributes = getattr(before, "st_file_attributes", 0)
         reparse_marker = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0)
-        if not stat.S_ISREG(before.st_mode) or (
-            reparse_marker and before_attributes & reparse_marker
+        if (
+            not stat.S_ISREG(before.st_mode)
+            or before.st_nlink != 1
+            or (reparse_marker and before_attributes & reparse_marker)
         ):
             raise DirectoryLeaseError("child is not an unaliased regular file")
         flags = os.O_RDONLY | getattr(os, "O_BINARY", 0) | getattr(os, "O_NOFOLLOW", 0)
@@ -722,8 +797,10 @@ class DirectoryLease(AbstractContextManager["DirectoryLease"]):
             after = self.child_lstat(child_name)
             if (
                 not stat.S_ISREG(details.st_mode)
+                or details.st_nlink != 1
                 or (before.st_dev, before.st_ino) != (details.st_dev, details.st_ino)
                 or (details.st_dev, details.st_ino) != (after.st_dev, after.st_ino)
+                or after.st_nlink != 1
                 or (reparse_marker and getattr(details, "st_file_attributes", 0) & reparse_marker)
             ):
                 raise DirectoryLeaseError("child is not a regular file")
@@ -732,6 +809,93 @@ class DirectoryLease(AbstractContextManager["DirectoryLease"]):
         except BaseException:
             os.close(descriptor)
             raise
+
+    def open_child_read_for_delete(self, name: str) -> BinaryIO:
+        """Retain read/delete authority for one exact unaliased child object."""
+
+        child_name = _safe_child_name(name)
+        self.require_bound()
+        before = self.child_lstat(child_name)
+        reparse_marker = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0)
+        if (
+            not stat.S_ISREG(before.st_mode)
+            or before.st_nlink != 1
+            or (reparse_marker and getattr(before, "st_file_attributes", 0) & reparse_marker)
+        ):
+            raise DirectoryLeaseError("delete child is not an unaliased regular file")
+        flags = os.O_RDONLY | getattr(os, "O_BINARY", 0) | getattr(os, "O_NOFOLLOW", 0)
+        try:
+            if os.name == "nt":
+                descriptor = _windows_open_relative_delete_descriptor(
+                    self.windows_handle,
+                    child_name,
+                )
+            else:
+                descriptor = os.open(child_name, flags, dir_fd=self.posix_fd)
+        except OSError as error:
+            raise DirectoryLeaseError("delete child could not be opened safely") from error
+        try:
+            details = os.fstat(descriptor)
+            after = self.child_lstat(child_name)
+            if (
+                not stat.S_ISREG(details.st_mode)
+                or details.st_nlink != 1
+                or (before.st_dev, before.st_ino) != (details.st_dev, details.st_ino)
+                or (details.st_dev, details.st_ino) != (after.st_dev, after.st_ino)
+                or after.st_nlink != 1
+                or (reparse_marker and getattr(details, "st_file_attributes", 0) & reparse_marker)
+            ):
+                raise DirectoryLeaseError("delete child identity changed while opening")
+            self.require_bound()
+            return os.fdopen(descriptor, "rb")
+        except BaseException:
+            os.close(descriptor)
+            raise
+
+    def open_child_append(self, name: str) -> BinaryIO:
+        """Open or create one unaliased regular child for retained append/read access."""
+
+        child_name = _safe_child_name(name)
+        self.require_bound()
+        flags = (
+            os.O_RDWR
+            | os.O_CREAT
+            | os.O_APPEND
+            | getattr(os, "O_BINARY", 0)
+            | getattr(os, "O_NOFOLLOW", 0)
+        )
+        try:
+            if os.name == "nt":
+                descriptor = _windows_open_relative_append_descriptor(
+                    self.windows_handle, child_name
+                )
+            else:
+                descriptor = os.open(child_name, flags, 0o600, dir_fd=self.posix_fd)
+        except OSError as error:
+            raise DirectoryLeaseError("append child file could not be opened safely") from error
+        try:
+            details = os.fstat(descriptor)
+            current = self.child_lstat(child_name)
+            reparse_marker = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0)
+            if (
+                not stat.S_ISREG(details.st_mode)
+                or details.st_nlink != 1
+                or (details.st_dev, details.st_ino) != (current.st_dev, current.st_ino)
+                or (reparse_marker and getattr(details, "st_file_attributes", 0) & reparse_marker)
+            ):
+                raise DirectoryLeaseError("append child is not an unaliased regular file")
+            self.require_bound()
+            return os.fdopen(descriptor, "a+b", buffering=0)
+        except BaseException:
+            os.close(descriptor)
+            raise
+
+    def sync_directory(self) -> None:
+        """Request directory-entry durability where the platform exposes it."""
+
+        self.require_bound()
+        if self._posix_fd is not None:
+            os.fsync(self._posix_fd)
 
     def child_lstat(self, name: str) -> os.stat_result:
         child_name = _safe_child_name(name)
@@ -766,11 +930,80 @@ class DirectoryLease(AbstractContextManager["DirectoryLease"]):
                 _windows_unlink_relative(self.windows_handle, child_name)
             else:
                 os.unlink(child_name, dir_fd=self.posix_fd)
+            self.sync_directory()
         except FileNotFoundError:
             if not missing_ok:
                 raise
         except OSError as error:
             raise DirectoryLeaseError("child file could not be removed safely") from error
+
+    def unlink_open_child(self, name: str, source: BinaryIO) -> None:
+        """Delete only the exact child object retained by ``source``."""
+
+        child_name = _safe_child_name(name)
+        self.require_bound()
+        try:
+            opened = os.fstat(source.fileno())
+            current = self.child_lstat(child_name)
+            if (
+                not stat.S_ISREG(opened.st_mode)
+                or opened.st_nlink != 1
+                or (opened.st_dev, opened.st_ino, opened.st_size)
+                != (current.st_dev, current.st_ino, current.st_size)
+                or current.st_nlink != 1
+            ):
+                raise DirectoryLeaseError("delete child identity differs from retained handle")
+            if os.name == "nt":
+                handle = int(msvcrt.get_osfhandle(source.fileno()))  # type: ignore[possibly-undefined]
+                _windows_mark_handle_for_delete(handle, child_name)
+            else:
+                raise DirectoryLeaseError(
+                    "POSIX exact retained-handle deletion is unavailable; "
+                    "delete quarantine was preserved"
+                )
+            self.sync_directory()
+            self.require_bound()
+        except DirectoryLeaseError:
+            raise
+        except OSError as error:
+            raise DirectoryLeaseError("retained child could not be removed safely") from error
+
+    def quarantine_open_child(
+        self,
+        name: str,
+        source: BinaryIO,
+        quarantine_name: str,
+    ) -> None:
+        """Atomically isolate a named child, then bind it to ``source``."""
+
+        child_name = _safe_child_name(name)
+        quarantine = _safe_child_name(quarantine_name)
+        if child_name == quarantine:
+            raise DirectoryLeaseError("delete quarantine must have a distinct name")
+        self.require_bound()
+        try:
+            opened_before = os.fstat(source.fileno())
+            self.rename_child_no_replace(child_name, quarantine)
+            isolated = self.child_lstat(quarantine)
+            opened_after = os.fstat(source.fileno())
+            if (
+                not stat.S_ISREG(opened_before.st_mode)
+                or opened_before.st_nlink != 1
+                or (opened_before.st_dev, opened_before.st_ino, opened_before.st_size)
+                != (opened_after.st_dev, opened_after.st_ino, opened_after.st_size)
+                or (opened_after.st_dev, opened_after.st_ino, opened_after.st_size)
+                != (isolated.st_dev, isolated.st_ino, isolated.st_size)
+                or isolated.st_nlink != 1
+            ):
+                raise DirectoryLeaseError(
+                    "delete quarantine differs from the retained child handle"
+                )
+            self.sync_directory()
+            self.require_bound()
+        except DirectoryLeaseError:
+            raise
+        except OSError as error:
+            raise DirectoryLeaseError("child could not be isolated for deletion") from error
 
     def rename_child_no_replace(self, source_name: str, destination_name: str) -> None:
         source = _safe_child_name(source_name)
@@ -852,7 +1085,7 @@ def _posix_rename_no_replace(
     destination_fd: int,
     destination_name: str,
 ) -> None:
-    """Use renameat2 where available; otherwise use a recoverable link/unlink pair."""
+    """Use one atomic no-replace rename or fail without changing either name."""
 
     renameat2 = getattr(ctypes.CDLL(None, use_errno=True), "renameat2", None)
     if renameat2 is not None:
@@ -879,11 +1112,8 @@ def _posix_rename_no_replace(
         if code not in {errno.ENOSYS, errno.EINVAL, errno.ENOTSUP}:
             raise OSError(code, os.strerror(code), destination_name)
 
-    os.link(
-        source_name,
+    raise OSError(
+        errno.ENOTSUP,
+        "atomic no-replace rename is unavailable",
         destination_name,
-        src_dir_fd=source_fd,
-        dst_dir_fd=destination_fd,
-        follow_symlinks=False,
     )
-    os.unlink(source_name, dir_fd=source_fd)
