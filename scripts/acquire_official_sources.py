@@ -736,18 +736,25 @@ def _verify_loaded_module_origins(
     site_packages: Path,
     dependency_modules: tuple[str, ...],
 ) -> None:
-    for name, module in tuple(sys.modules.items()):
-        assert isinstance(module, ModuleType)
+    loaded_modules = tuple(cast(dict[str, object], sys.modules).items())
+    for name, module in loaded_modules:
+        is_project_module = name == "peru_conflicts" or name.startswith("peru_conflicts.")
+        is_dependency_module = name.split(".", 1)[0] in dependency_modules
+        if not is_project_module and not is_dependency_module:
+            continue
+        if not isinstance(module, ModuleType):
+            raise BootstrapError("reviewed module registry entry is not a module")
         raw_file = getattr(module, "__file__", None)
         if not isinstance(raw_file, str):
-            continue
-        origin = Path(raw_file).resolve(strict=True)
-        if name == "peru_conflicts" or name.startswith("peru_conflicts."):
+            raise BootstrapError("reviewed module lacks a file origin")
+        try:
+            origin = Path(raw_file).resolve(strict=True)
+        except OSError as error:
+            raise BootstrapError("reviewed module origin is unavailable") from error
+        if is_project_module:
             if not origin.is_relative_to(source_root):
                 raise BootstrapError("project module loaded outside reviewed source root")
-        elif name.split(".", 1)[0] in dependency_modules and not origin.is_relative_to(
-            site_packages
-        ):
+        elif not origin.is_relative_to(site_packages):
             raise BootstrapError("dependency module loaded outside frozen environment")
 
 
