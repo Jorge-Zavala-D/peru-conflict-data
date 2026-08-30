@@ -11,6 +11,7 @@ import ssl
 import subprocess
 import sys
 from pathlib import Path
+from types import ModuleType, SimpleNamespace
 
 import pytest
 
@@ -344,6 +345,124 @@ def test_public_main_resolver_rejects_network_overrides_before_connection(
     with pytest.raises(namespace["BootstrapError"], match="proxy, TLS, or OpenSSL override"):
         namespace["_resolve_protected_main_sha"](Connection)
     assert calls == 0
+
+
+def test_loaded_module_origin_verifier_ignores_unreviewed_nonmodule_entry(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    namespace = runpy.run_path(str(SCRIPT), run_name="acquisition_bootstrap_origin_test")
+    verifier = namespace["_verify_loaded_module_origins"]
+    monkeypatch.setitem(
+        verifier.__globals__,
+        "sys",
+        SimpleNamespace(modules={"typing.io": object()}),
+    )
+
+    verifier(
+        REPO_ROOT / "src",
+        tmp_path,
+        (),
+    )
+
+
+def test_loaded_module_origin_verifier_rejects_nonmodule_project_entry(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    namespace = runpy.run_path(str(SCRIPT), run_name="acquisition_bootstrap_origin_test")
+    verifier = namespace["_verify_loaded_module_origins"]
+    monkeypatch.setitem(
+        verifier.__globals__,
+        "sys",
+        SimpleNamespace(modules={"peru_conflicts.invalid_entry": object()}),
+    )
+
+    with pytest.raises(
+        namespace["BootstrapError"],
+        match="reviewed module registry entry is not a module",
+    ):
+        verifier(
+            REPO_ROOT / "src",
+            tmp_path,
+            (),
+        )
+
+
+def test_loaded_module_origin_verifier_rejects_nonmodule_dependency_entry(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    namespace = runpy.run_path(str(SCRIPT), run_name="acquisition_bootstrap_origin_test")
+    verifier = namespace["_verify_loaded_module_origins"]
+    monkeypatch.setitem(
+        verifier.__globals__,
+        "sys",
+        SimpleNamespace(modules={"reviewed_dependency.invalid_entry": object()}),
+    )
+
+    with pytest.raises(
+        namespace["BootstrapError"],
+        match="reviewed module registry entry is not a module",
+    ):
+        verifier(
+            REPO_ROOT / "src",
+            tmp_path,
+            ("reviewed_dependency",),
+        )
+
+
+def test_loaded_module_origin_verifier_rejects_reviewed_module_without_origin(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    namespace = runpy.run_path(str(SCRIPT), run_name="acquisition_bootstrap_origin_test")
+    module = ModuleType("reviewed_dependency.no_origin")
+    verifier = namespace["_verify_loaded_module_origins"]
+    monkeypatch.setitem(
+        verifier.__globals__,
+        "sys",
+        SimpleNamespace(modules={module.__name__: module}),
+    )
+
+    with pytest.raises(
+        namespace["BootstrapError"],
+        match="reviewed module lacks a file origin",
+    ):
+        verifier(
+            REPO_ROOT / "src",
+            tmp_path,
+            ("reviewed_dependency",),
+        )
+
+
+def test_loaded_module_origin_verifier_rejects_dependency_outside_frozen_environment(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    namespace = runpy.run_path(str(SCRIPT), run_name="acquisition_bootstrap_origin_test")
+    site_packages = tmp_path / "site-packages"
+    site_packages.mkdir()
+    outside_module = tmp_path / "outside_dependency.py"
+    outside_module.write_text("VALUE = 'outside'\n", encoding="utf-8")
+    module = ModuleType("reviewed_dependency.outside")
+    module.__file__ = str(outside_module)
+    verifier = namespace["_verify_loaded_module_origins"]
+    monkeypatch.setitem(
+        verifier.__globals__,
+        "sys",
+        SimpleNamespace(modules={module.__name__: module}),
+    )
+
+    with pytest.raises(
+        namespace["BootstrapError"],
+        match="dependency module loaded outside frozen environment",
+    ):
+        verifier(
+            REPO_ROOT / "src",
+            site_packages,
+            ("reviewed_dependency",),
+        )
 
 
 def test_dependency_record_verifier_rejects_tampering_and_stdlib_shadows(
