@@ -1,0 +1,278 @@
+{
+  "$defs": {
+    "ArtifactFingerprint": {
+      "additionalProperties": false,
+      "description": "Portable path and immutable byte fingerprint for one input/output artifact.",
+      "properties": {
+        "artifact_role": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Artifact Role",
+          "type": "string"
+        },
+        "bytes": {
+          "minimum": 0,
+          "title": "Bytes",
+          "type": "integer"
+        },
+        "path": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Path",
+          "type": "string"
+        },
+        "record_count": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Record Count"
+        },
+        "sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "artifact_role",
+        "path",
+        "bytes",
+        "sha256"
+      ],
+      "title": "ArtifactFingerprint",
+      "type": "object"
+    },
+    "GapClassification": {
+      "description": "Scientifically distinct unresolved candidate conditions.",
+      "enum": [
+        "historical_month_unresolved",
+        "unobserved_report_number",
+        "historical_unnumbered_source_lead",
+        "byte_acquisition_not_established",
+        "opaque_direct_file_association",
+        "multiple_direct_url_bytes_unknown",
+        "source_metadata_requires_review"
+      ],
+      "title": "GapClassification",
+      "type": "string"
+    }
+  },
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/manifest/v0.1.0/materialization_receipt.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Immutable local receipt for one candidate-only materialization.",
+  "properties": {
+    "byte_verified_count": {
+      "minimum": 0,
+      "title": "Byte Verified Count",
+      "type": "integer"
+    },
+    "deterministic_sort_rules": {
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Deterministic Sort Rules",
+      "type": "array"
+    },
+    "discovery_run_ids": {
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Discovery Run Ids",
+      "type": "array"
+    },
+    "gap_counts": {
+      "items": {
+        "maxItems": 2,
+        "minItems": 2,
+        "prefixItems": [
+          {
+            "$ref": "#/$defs/GapClassification"
+          },
+          {
+            "type": "integer"
+          }
+        ],
+        "type": "array"
+      },
+      "title": "Gap Counts",
+      "type": "array"
+    },
+    "implementation_git_sha": {
+      "pattern": "^[a-f0-9]{40}$",
+      "title": "Implementation Git Sha",
+      "type": "string"
+    },
+    "input_artifacts": {
+      "items": {
+        "$ref": "#/$defs/ArtifactFingerprint"
+      },
+      "minItems": 1,
+      "title": "Input Artifacts",
+      "type": "array"
+    },
+    "manifest_schema_version": {
+      "const": "0.1.0",
+      "title": "Manifest Schema Version",
+      "type": "string"
+    },
+    "no_canonical_database_write_assertion": {
+      "const": true,
+      "title": "No Canonical Database Write Assertion",
+      "type": "boolean"
+    },
+    "no_network_assertion": {
+      "const": true,
+      "title": "No Network Assertion",
+      "type": "boolean"
+    },
+    "no_raw_write_assertion": {
+      "const": true,
+      "title": "No Raw Write Assertion",
+      "type": "boolean"
+    },
+    "observed_numbered_report_count": {
+      "minimum": 0,
+      "title": "Observed Numbered Report Count",
+      "type": "integer"
+    },
+    "observed_numbered_report_max": {
+      "minimum": 1,
+      "title": "Observed Numbered Report Max",
+      "type": "integer"
+    },
+    "observed_numbered_report_min": {
+      "minimum": 1,
+      "title": "Observed Numbered Report Min",
+      "type": "integer"
+    },
+    "observed_reference_month_count": {
+      "minimum": 0,
+      "title": "Observed Reference Month Count",
+      "type": "integer"
+    },
+    "observed_reference_month_max": {
+      "pattern": "^\\d{4}-\\d{2}$",
+      "title": "Observed Reference Month Max",
+      "type": "string"
+    },
+    "observed_reference_month_min": {
+      "pattern": "^\\d{4}-\\d{2}$",
+      "title": "Observed Reference Month Min",
+      "type": "string"
+    },
+    "operational_artifacts": {
+      "items": {
+        "$ref": "#/$defs/ArtifactFingerprint"
+      },
+      "minItems": 1,
+      "title": "Operational Artifacts",
+      "type": "array"
+    },
+    "output_artifacts": {
+      "items": {
+        "$ref": "#/$defs/ArtifactFingerprint"
+      },
+      "minItems": 1,
+      "title": "Output Artifacts",
+      "type": "array"
+    },
+    "protected_source_receipt_refs": {
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Protected Source Receipt Refs",
+      "type": "array"
+    },
+    "record_counts": {
+      "items": {
+        "maxItems": 2,
+        "minItems": 2,
+        "prefixItems": [
+          {
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "type": "string"
+          },
+          {
+            "type": "integer"
+          }
+        ],
+        "type": "array"
+      },
+      "minItems": 1,
+      "title": "Record Counts",
+      "type": "array"
+    },
+    "repository_base_sha": {
+      "pattern": "^[a-f0-9]{40}$",
+      "title": "Repository Base Sha",
+      "type": "string"
+    },
+    "repository_head_sha": {
+      "pattern": "^[a-f0-9]{40}$",
+      "title": "Repository Head Sha",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "0.1.0",
+      "default": "0.1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "task_id": {
+      "const": "M1-04A",
+      "title": "Task Id",
+      "type": "string"
+    },
+    "unresolved_review_count": {
+      "minimum": 0,
+      "title": "Unresolved Review Count",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "task_id",
+    "repository_base_sha",
+    "repository_head_sha",
+    "implementation_git_sha",
+    "manifest_schema_version",
+    "discovery_run_ids",
+    "input_artifacts",
+    "operational_artifacts",
+    "protected_source_receipt_refs",
+    "output_artifacts",
+    "record_counts",
+    "observed_numbered_report_count",
+    "observed_numbered_report_min",
+    "observed_numbered_report_max",
+    "observed_reference_month_count",
+    "observed_reference_month_min",
+    "observed_reference_month_max",
+    "gap_counts",
+    "byte_verified_count",
+    "unresolved_review_count",
+    "deterministic_sort_rules",
+    "no_network_assertion",
+    "no_raw_write_assertion",
+    "no_canonical_database_write_assertion"
+  ],
+  "title": "MaterializationReceipt",
+  "type": "object"
+}

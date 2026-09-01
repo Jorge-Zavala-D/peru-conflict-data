@@ -1,0 +1,101 @@
+{
+  "$defs": {
+    "EdgeRelationType": {
+      "description": "Supported source/byte relationships without speculative collapsing.",
+      "enum": [
+        "exact_identical_bytes",
+        "multiple_official_urls_one_observed_identity",
+        "candidate_same_report_without_byte_evidence",
+        "different_bytes_requiring_review",
+        "unresolved_relation"
+      ],
+      "title": "EdgeRelationType",
+      "type": "string"
+    },
+    "ReviewStatus": {
+      "description": "Review state of a candidate technical record.",
+      "enum": [
+        "candidate",
+        "verified",
+        "requires_human_review"
+      ],
+      "title": "ReviewStatus",
+      "type": "string"
+    }
+  },
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/manifest/v0.1.0/version_source_relationship_edge.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "One evidence-bounded relationship among observations and byte versions.",
+  "properties": {
+    "acquisition_evidence_ids": {
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "title": "Acquisition Evidence Ids",
+      "type": "array"
+    },
+    "byte_version_ids": {
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "title": "Byte Version Ids",
+      "type": "array"
+    },
+    "edge_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Edge Id",
+      "type": "string"
+    },
+    "manifest_report_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Manifest Report Id",
+      "type": "string"
+    },
+    "rationale": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Rationale",
+      "type": "string"
+    },
+    "relation_type": {
+      "$ref": "#/$defs/EdgeRelationType"
+    },
+    "review_status": {
+      "$ref": "#/$defs/ReviewStatus"
+    },
+    "schema_version": {
+      "const": "0.1.0",
+      "default": "0.1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "source_observation_record_ids": {
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "title": "Source Observation Record Ids",
+      "type": "array"
+    }
+  },
+  "required": [
+    "edge_id",
+    "manifest_report_id",
+    "relation_type",
+    "source_observation_record_ids",
+    "byte_version_ids",
+    "acquisition_evidence_ids",
+    "rationale",
+    "review_status"
+  ],
+  "title": "VersionSourceRelationshipEdge",
+  "type": "object"
+}

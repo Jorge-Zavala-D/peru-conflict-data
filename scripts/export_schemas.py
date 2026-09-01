@@ -13,6 +13,10 @@ from peru_conflicts.discovery.schema_export import (
     discovery_schemas_are_current,
     export_discovery_schemas,
 )
+from peru_conflicts.manifest.schema_export import (
+    export_manifest_schemas,
+    manifest_schemas_are_current,
+)
 from peru_conflicts.schema_export import export_json_schemas, schemas_are_current
 
 
@@ -26,7 +30,8 @@ def main() -> int:
         scientific_current = schemas_are_current(arguments.output)
         discovery_current = discovery_schemas_are_current(arguments.output)
         acquisition_current = acquisition_schemas_are_current(arguments.output)
-        if scientific_current and discovery_current and acquisition_current:
+        manifest_current = manifest_schemas_are_current(arguments.output)
+        if scientific_current and discovery_current and acquisition_current and manifest_current:
             return 0
         if not scientific_current:
             print("Generated scientific JSON Schemas differ from the registered models.")
@@ -34,11 +39,14 @@ def main() -> int:
             print("Generated discovery JSON Schemas differ from the registered models.")
         if not acquisition_current:
             print("Generated acquisition JSON Schemas differ from the registered models.")
+        if not manifest_current:
+            print("Generated manifest JSON Schemas differ from the registered models.")
         return 1
 
     written = export_json_schemas(arguments.output)
     written.extend(export_discovery_schemas(arguments.output))
     written.extend(export_acquisition_schemas(arguments.output))
+    written.extend(export_manifest_schemas(arguments.output))
     print(f"Exported {len(written)} JSON Schemas to {arguments.output}")
     return 0
 

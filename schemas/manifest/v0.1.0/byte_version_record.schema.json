@@ -1,0 +1,120 @@
+{
+  "$defs": {
+    "AssociationStatus": {
+      "description": "Strength of the reviewed direct-file/report association.",
+      "enum": [
+        "not_applicable",
+        "visibly_associated",
+        "unresolved_opaque_filename"
+      ],
+      "title": "AssociationStatus",
+      "type": "string"
+    }
+  },
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/manifest/v0.1.0/byte_version_record.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "One authoritative, actually observed byte object.",
+  "properties": {
+    "acquisition_evidence_ids": {
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Acquisition Evidence Ids",
+      "type": "array"
+    },
+    "association_status": {
+      "$ref": "#/$defs/AssociationStatus"
+    },
+    "byte_version_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Byte Version Id",
+      "type": "string"
+    },
+    "bytes": {
+      "exclusiveMinimum": 0,
+      "title": "Bytes",
+      "type": "integer"
+    },
+    "comparison_authorization_spent": {
+      "const": true,
+      "title": "Comparison Authorization Spent",
+      "type": "boolean"
+    },
+    "disposition": {
+      "const": "identical_no_duplicate",
+      "title": "Disposition",
+      "type": "string"
+    },
+    "first_seen_run_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "First Seen Run Id",
+      "type": "string"
+    },
+    "manifest_report_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Manifest Report Id",
+      "type": "string"
+    },
+    "official_remote_observation_evidence_ids": {
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Official Remote Observation Evidence Ids",
+      "type": "array"
+    },
+    "protected_local_path": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Protected Local Path",
+      "type": "string"
+    },
+    "report_number": {
+      "minimum": 1,
+      "title": "Report Number",
+      "type": "integer"
+    },
+    "review_status": {
+      "const": "verified",
+      "title": "Review Status",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "0.1.0",
+      "default": "0.1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Sha256",
+      "type": "string"
+    }
+  },
+  "required": [
+    "byte_version_id",
+    "manifest_report_id",
+    "report_number",
+    "bytes",
+    "sha256",
+    "protected_local_path",
+    "acquisition_evidence_ids",
+    "official_remote_observation_evidence_ids",
+    "first_seen_run_id",
+    "disposition",
+    "review_status",
+    "association_status",
+    "comparison_authorization_spent"
+  ],
+  "title": "ByteVersionRecord",
+  "type": "object"
+}

@@ -1,0 +1,132 @@
+{
+  "$defs": {
+    "GapClassification": {
+      "description": "Scientifically distinct unresolved candidate conditions.",
+      "enum": [
+        "historical_month_unresolved",
+        "unobserved_report_number",
+        "historical_unnumbered_source_lead",
+        "byte_acquisition_not_established",
+        "opaque_direct_file_association",
+        "multiple_direct_url_bytes_unknown",
+        "source_metadata_requires_review"
+      ],
+      "title": "GapClassification",
+      "type": "string"
+    },
+    "GapDimension": {
+      "description": "Dimension in which evidence or expected coverage remains unresolved.",
+      "enum": [
+        "reference_month",
+        "report_number",
+        "source_evidence",
+        "byte_acquisition",
+        "identity_ambiguity",
+        "version_ambiguity"
+      ],
+      "title": "GapDimension",
+      "type": "string"
+    },
+    "GapDisposition": {
+      "description": "Candidate-only action state; none adjudicates the gap.",
+      "enum": [
+        "pending_human_review",
+        "retain_as_unnumbered_lead",
+        "deferred_future_acquisition"
+      ],
+      "title": "GapDisposition",
+      "type": "string"
+    },
+    "ObservationEvidenceStatus": {
+      "description": "Whether evidence resolves the expectation represented by a gap.",
+      "enum": [
+        "unobserved",
+        "lead_only",
+        "partial",
+        "conflicting",
+        "not_acquired",
+        "ambiguous"
+      ],
+      "title": "ObservationEvidenceStatus",
+      "type": "string"
+    }
+  },
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/manifest/v0.1.0/gap_register_entry.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "One unresolved research expectation or evidence limitation.",
+  "properties": {
+    "classification": {
+      "$ref": "#/$defs/GapClassification"
+    },
+    "disposition": {
+      "$ref": "#/$defs/GapDisposition"
+    },
+    "evidence_refs": {
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "title": "Evidence Refs",
+      "type": "array"
+    },
+    "expected_value": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Expected Value",
+      "type": "string"
+    },
+    "gap_dimension": {
+      "$ref": "#/$defs/GapDimension"
+    },
+    "gap_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Gap Id",
+      "type": "string"
+    },
+    "manual_review_required": {
+      "title": "Manual Review Required",
+      "type": "boolean"
+    },
+    "observed_evidence_status": {
+      "$ref": "#/$defs/ObservationEvidenceStatus"
+    },
+    "rationale": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Rationale",
+      "type": "string"
+    },
+    "related_manifest_report_ids": {
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "title": "Related Manifest Report Ids",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "0.1.0",
+      "default": "0.1.0",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "gap_id",
+    "gap_dimension",
+    "expected_value",
+    "observed_evidence_status",
+    "classification",
+    "evidence_refs",
+    "rationale",
+    "manual_review_required",
+    "disposition",
+    "related_manifest_report_ids"
+  ],
+  "title": "GapRegisterEntry",
+  "type": "object"
+}
