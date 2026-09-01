@@ -29,7 +29,7 @@ from peru_conflicts.manifest.models import (
     VersionSourceRelationshipEdge,
 )
 
-MATERIALIZER_VERSION = "m1-04a-v1"
+MATERIALIZER_VERSION = "m1-04a-v2"
 
 
 class ReconciliationError(RuntimeError):
@@ -39,7 +39,7 @@ class ReconciliationError(RuntimeError):
 @dataclass(frozen=True, slots=True)
 class ReconciliationContext:
     repository_base_sha: str
-    implementation_git_sha: str
+    implementation_tree_sha: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -586,8 +586,8 @@ def reconcile_manifest(
             *discovery.artifact_fingerprints,
             *acquisition.operational_fingerprints,
         ),
-        implementation_git_sha=context.implementation_git_sha,
-        manifest_schema_version="0.1.0",
+        implementation_tree_sha=context.implementation_tree_sha,
+        manifest_schema_version="0.1.1",
         materializer_version=MATERIALIZER_VERSION,
     )
     return CandidatePackage(

@@ -33,6 +33,7 @@ from peru_conflicts.manifest.reconcile import (
 
 SHA_A = "a" * 64
 GIT_SHA = "b" * 40
+TREE_SHA = "c" * 40
 CAPTURED = datetime(2026, 8, 27, tzinfo=UTC)
 
 
@@ -150,8 +151,52 @@ def _empty_acquisition() -> AcquisitionClosure:
 def _context() -> ReconciliationContext:
     return ReconciliationContext(
         repository_base_sha=GIT_SHA,
-        implementation_git_sha=GIT_SHA,
+        implementation_tree_sha=TREE_SHA,
     )
+
+
+def test_provenance_correction_preserves_synthetic_research_identity() -> None:
+    package = reconcile_manifest(
+        _discovery(
+            DiscoveryOccurrence(
+                "run-a",
+                1,
+                _record(
+                    record_id="paired",
+                    report_number=23,
+                    month="2006-01",
+                    title="Reporte N° 23 — enero 2006",
+                    direct_urls=("https://www.defensoria.gob.pe/report-23.pdf",),
+                ),
+            )
+        ),
+        _empty_acquisition(),
+        _context(),
+    )
+
+    entry = package.manifest[0]
+    assert (
+        entry.manifest_report_id,
+        entry.report_number,
+        entry.reference_month,
+        entry.preferred_title_original,
+        entry.acquisition_state.value,
+        entry.review_status.value,
+    ) == (
+        "manifest-report-23",
+        23,
+        "2006-01",
+        "Reporte N° 23 — enero 2006",
+        "official_source_discovered",
+        "candidate",
+    )
+    assert {item.source_url_original for item in package.source_observations} == {
+        "https://www.defensoria.gob.pe/paired/",
+        "https://www.defensoria.gob.pe/report-23.pdf",
+    }
+    assert package.coverage.implementation_tree_sha == TREE_SHA
+    assert package.coverage.materializer_version == "m1-04a-v2"
+    assert package.coverage.manifest_schema_version == "0.1.1"
 
 
 def test_reconciliation_builds_only_observed_paired_number_month_identity() -> None:
