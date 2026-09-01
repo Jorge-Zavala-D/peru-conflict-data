@@ -9,8 +9,9 @@ from pydantic import AwareDatetime, Field, StringConstraints, model_validator
 
 from peru_conflicts.models.common import Identifier, ReferencePeriod, Sha256, StrictModel
 
-MANIFEST_SCHEMA_VERSION = "0.1.0"
+MANIFEST_SCHEMA_VERSION = "0.1.1"
 GitCommit = Annotated[str, StringConstraints(pattern=r"^[a-f0-9]{40}$")]
+GitTreeSha = Annotated[str, StringConstraints(pattern=r"^[a-f0-9]{40}$")]
 
 
 class AcquisitionState(StrEnum):
@@ -122,7 +123,7 @@ class SourceTitleObservation(StrictModel):
 class CorpusReportManifestEntry(StrictModel):
     """One canonical candidate identity for an observed numbered report."""
 
-    schema_version: Literal["0.1.0"] = MANIFEST_SCHEMA_VERSION
+    schema_version: Literal["0.1.1"] = MANIFEST_SCHEMA_VERSION
     manifest_report_id: Identifier
     source_institution: Literal["Defensoría del Pueblo"]
     source_series: Literal["Reporte Mensual de Conflictos Sociales"]
@@ -167,7 +168,7 @@ class CorpusReportManifestEntry(StrictModel):
 class SourceObservationRecord(StrictModel):
     """One URL observation within one run-qualified discovery occurrence."""
 
-    schema_version: Literal["0.1.0"] = MANIFEST_SCHEMA_VERSION
+    schema_version: Literal["0.1.1"] = MANIFEST_SCHEMA_VERSION
     source_observation_record_id: Identifier
     discovery_run_id: Identifier
     discovery_record_id: Identifier
@@ -194,7 +195,7 @@ class SourceObservationRecord(StrictModel):
 class ByteVersionRecord(StrictModel):
     """One authoritative, actually observed byte object."""
 
-    schema_version: Literal["0.1.0"] = MANIFEST_SCHEMA_VERSION
+    schema_version: Literal["0.1.1"] = MANIFEST_SCHEMA_VERSION
     byte_version_id: Identifier
     manifest_report_id: Identifier
     report_number: int = Field(ge=1)
@@ -219,7 +220,7 @@ class ByteVersionRecord(StrictModel):
 class VersionSourceRelationshipEdge(StrictModel):
     """One evidence-bounded relationship among observations and byte versions."""
 
-    schema_version: Literal["0.1.0"] = MANIFEST_SCHEMA_VERSION
+    schema_version: Literal["0.1.1"] = MANIFEST_SCHEMA_VERSION
     edge_id: Identifier
     manifest_report_id: Identifier
     relation_type: EdgeRelationType
@@ -255,7 +256,7 @@ class VersionSourceRelationshipEdge(StrictModel):
 class GapRegisterEntry(StrictModel):
     """One unresolved research expectation or evidence limitation."""
 
-    schema_version: Literal["0.1.0"] = MANIFEST_SCHEMA_VERSION
+    schema_version: Literal["0.1.1"] = MANIFEST_SCHEMA_VERSION
     gap_id: Identifier
     gap_dimension: GapDimension
     expected_value: Identifier
@@ -271,7 +272,7 @@ class GapRegisterEntry(StrictModel):
 class CoverageReport(StrictModel):
     """Deterministic M1-04A summary that cannot claim final completeness."""
 
-    schema_version: Literal["0.1.0"] = MANIFEST_SCHEMA_VERSION
+    schema_version: Literal["0.1.1"] = MANIFEST_SCHEMA_VERSION
     research_coverage_start: ReferencePeriod
     observation_cutoff: ReferencePeriod
     observed_numbered_report_min: int = Field(ge=1)
@@ -293,8 +294,8 @@ class CoverageReport(StrictModel):
     ]
     human_review_required: Literal[True]
     input_artifact_fingerprints: tuple[ArtifactFingerprint, ...] = Field(min_length=1)
-    implementation_git_sha: GitCommit
-    manifest_schema_version: Literal["0.1.0"]
+    implementation_tree_sha: GitTreeSha
+    manifest_schema_version: Literal["0.1.1"]
     materializer_version: Identifier
 
     @model_validator(mode="after")
@@ -323,12 +324,12 @@ class CoverageReport(StrictModel):
 class MaterializationReceipt(StrictModel):
     """Immutable local receipt for one candidate-only materialization."""
 
-    schema_version: Literal["0.1.0"] = MANIFEST_SCHEMA_VERSION
+    schema_version: Literal["0.1.1"] = MANIFEST_SCHEMA_VERSION
     task_id: Literal["M1-04A"]
     repository_base_sha: GitCommit
     repository_head_sha: GitCommit
-    implementation_git_sha: GitCommit
-    manifest_schema_version: Literal["0.1.0"]
+    implementation_tree_sha: GitTreeSha
+    manifest_schema_version: Literal["0.1.1"]
     discovery_run_ids: tuple[Identifier, ...] = Field(min_length=1)
     input_artifacts: tuple[ArtifactFingerprint, ...] = Field(min_length=1)
     operational_artifacts: tuple[ArtifactFingerprint, ...] = Field(min_length=1)

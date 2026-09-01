@@ -32,9 +32,15 @@ from peru_conflicts.manifest.reconcile import (
 
 SHA_A = "a" * 64
 GIT_SHA = "b" * 40
+GIT_SHA_A = "a" * 40
+GIT_SHA_B = "b" * 40
+TREE_SHA = "c" * 40
+OTHER_TREE_SHA = "d" * 40
 
 
-def _package() -> tuple[CandidatePackage, AcquisitionClosure]:
+def _package(
+    *, implementation_tree_sha: str = TREE_SHA
+) -> tuple[CandidatePackage, AcquisitionClosure]:
     captured = datetime(2026, 8, 27, tzinfo=UTC)
     url = "https://www.defensoria.gob.pe/report-23/"
     observation = UrlObservation(
@@ -98,7 +104,10 @@ def _package() -> tuple[CandidatePackage, AcquisitionClosure]:
     package = reconcile_manifest(
         discovery,
         acquisition,
-        ReconciliationContext(repository_base_sha=GIT_SHA, implementation_git_sha=GIT_SHA),
+        ReconciliationContext(
+            repository_base_sha=GIT_SHA,
+            implementation_tree_sha=implementation_tree_sha,
+        ),
     )
     return package, acquisition
 
@@ -142,8 +151,89 @@ def test_candidate_materialization_is_byte_deterministic_and_receipted(tmp_path:
     receipt = MaterializationReceipt.model_validate_json(first_receipt.read_bytes())
     assert first_receipt.read_bytes() == second_receipt.read_bytes()
     assert receipt.no_network_assertion is True
+    assert receipt.repository_head_sha == GIT_SHA
+    assert receipt.implementation_tree_sha == TREE_SHA
     assert receipt.record_counts
     assert hashlib.sha256(first_receipt.read_bytes()).hexdigest()
+
+
+def test_same_tree_different_execution_commits_keep_research_outputs_stable(
+    tmp_path: Path,
+) -> None:
+    package, acquisition = _package()
+    first = tmp_path / ".cache" / "commit-a"
+    second = tmp_path / ".cache" / "commit-b"
+
+    first_receipt_path = materialize_candidate_package(
+        package,
+        acquisition=acquisition,
+        output_dir=first,
+        repository_root=tmp_path,
+        repository_base_sha=GIT_SHA,
+        repository_head_sha=GIT_SHA_A,
+        protected_source_receipt_refs=("docs/source_integrity_receipt.md:sha256",),
+    )
+    second_receipt_path = materialize_candidate_package(
+        package,
+        acquisition=acquisition,
+        output_dir=second,
+        repository_root=tmp_path,
+        repository_base_sha=GIT_SHA,
+        repository_head_sha=GIT_SHA_B,
+        protected_source_receipt_refs=("docs/source_integrity_receipt.md:sha256",),
+    )
+
+    research_outputs = {
+        "byte_versions_candidate.jsonl",
+        "corpus_manifest_candidate.jsonl",
+        "coverage_report_candidate.json",
+        "gap_register_candidate.jsonl",
+        "source_observations_candidate.jsonl",
+        "version_edges_candidate.jsonl",
+    }
+    assert {
+        name: (first / name).read_bytes() == (second / name).read_bytes()
+        for name in sorted(research_outputs)
+    } == {name: True for name in sorted(research_outputs)}
+
+    first_receipt = MaterializationReceipt.model_validate_json(first_receipt_path.read_bytes())
+    second_receipt = MaterializationReceipt.model_validate_json(second_receipt_path.read_bytes())
+    assert first_receipt_path.read_bytes() != second_receipt_path.read_bytes()
+    assert first_receipt.repository_head_sha == GIT_SHA_A
+    assert second_receipt.repository_head_sha == GIT_SHA_B
+    assert first_receipt.implementation_tree_sha == TREE_SHA
+    assert second_receipt.implementation_tree_sha == TREE_SHA
+    assert first_receipt.output_artifacts == second_receipt.output_artifacts
+
+
+def test_different_implementation_trees_change_research_coverage(tmp_path: Path) -> None:
+    first_package, acquisition = _package(implementation_tree_sha=TREE_SHA)
+    second_package, _ = _package(implementation_tree_sha=OTHER_TREE_SHA)
+    first = tmp_path / ".cache" / "tree-a"
+    second = tmp_path / ".cache" / "tree-b"
+
+    materialize_candidate_package(
+        first_package,
+        acquisition=acquisition,
+        output_dir=first,
+        repository_root=tmp_path,
+        repository_base_sha=GIT_SHA,
+        repository_head_sha=GIT_SHA,
+        protected_source_receipt_refs=("docs/source_integrity_receipt.md:sha256",),
+    )
+    materialize_candidate_package(
+        second_package,
+        acquisition=acquisition,
+        output_dir=second,
+        repository_root=tmp_path,
+        repository_base_sha=GIT_SHA,
+        repository_head_sha=GIT_SHA,
+        protected_source_receipt_refs=("docs/source_integrity_receipt.md:sha256",),
+    )
+
+    assert (first / "coverage_report_candidate.json").read_bytes() != (
+        second / "coverage_report_candidate.json"
+    ).read_bytes()
 
 
 def test_candidate_materializer_rejects_existing_or_non_cache_target(tmp_path: Path) -> None:

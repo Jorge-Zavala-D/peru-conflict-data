@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import re
 import subprocess
 from pathlib import Path
 
@@ -42,6 +43,18 @@ def _git(repo_root: Path, *arguments: str) -> str:
     return completed.stdout.strip()
 
 
+def _resolve_repository_provenance(repo_root: Path) -> tuple[str, str]:
+    repository_head = _git(repo_root, "rev-parse", "HEAD")
+    implementation_tree = _git(repo_root, "rev-parse", "HEAD^{tree}")
+    for label, value in (
+        ("repository HEAD", repository_head),
+        ("implementation tree", implementation_tree),
+    ):
+        if re.fullmatch(r"[a-f0-9]{40}", value) is None:
+            raise RuntimeError(f"{label} is not a lowercase 40-character Git object ID")
+    return repository_head, implementation_tree
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -57,7 +70,7 @@ def main() -> int:
     arguments = parser.parse_args()
 
     repository_root = Path(__file__).resolve().parents[1]
-    repository_head = _git(repository_root, "rev-parse", "HEAD")
+    repository_head, implementation_tree = _resolve_repository_provenance(repository_root)
     if _git(repository_root, "status", "--short", "--untracked-files=no"):
         parser.error("tracked repository state must be clean before candidate materialization")
     data_paths = DataPaths.resolve(repo_root=repository_root)
@@ -79,7 +92,7 @@ def main() -> int:
         acquisition,
         ReconciliationContext(
             repository_base_sha=arguments.repository_base_sha,
-            implementation_git_sha=repository_head,
+            implementation_tree_sha=implementation_tree,
         ),
     )
     receipt = materialize_candidate_package(

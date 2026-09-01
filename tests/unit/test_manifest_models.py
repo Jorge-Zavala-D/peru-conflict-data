@@ -19,6 +19,7 @@ from peru_conflicts.manifest.models import (
     GapDimension,
     GapDisposition,
     GapRegisterEntry,
+    MaterializationReceipt,
     ObservationEvidenceStatus,
     ReviewStatus,
     SourceObservationRecord,
@@ -28,6 +29,7 @@ from peru_conflicts.manifest.models import (
 
 SHA_A = "a" * 64
 GIT_SHA = "b" * 40
+TREE_SHA = "c" * 40
 
 
 def _evidence_reference(evidence_id: str = "evidence-example") -> EvidenceReference:
@@ -198,14 +200,98 @@ def test_coverage_report_cannot_claim_final_completeness() -> None:
         candidate_completeness_status=(CandidateCompletenessStatus.CANDIDATE_REQUIRES_HUMAN_REVIEW),
         human_review_required=True,
         input_artifact_fingerprints=(_fingerprint(),),
-        implementation_git_sha=GIT_SHA,
-        manifest_schema_version="0.1.0",
-        materializer_version="m1-04a-v1",
+        implementation_tree_sha=TREE_SHA,
+        manifest_schema_version="0.1.1",
+        materializer_version="m1-04a-v2",
     )
 
     assert report.candidate_completeness_status is (
         CandidateCompletenessStatus.CANDIDATE_REQUIRES_HUMAN_REVIEW
     )
+    assert report.schema_version == "0.1.1"
+    assert report.implementation_tree_sha == TREE_SHA
+    assert "implementation_git_sha" not in report.model_dump(mode="json")
+
+
+@pytest.mark.parametrize(
+    "invalid_tree_sha",
+    (
+        "z" * 40,
+        "A" * 40,
+        "a" * 39,
+        "a" * 41,
+        "not-a-git-object-id",
+    ),
+)
+def test_implementation_tree_sha_is_strict_lowercase_git_object_id(
+    invalid_tree_sha: str,
+) -> None:
+    valid = CoverageReport(
+        research_coverage_start="2004-04",
+        observation_cutoff="2026-07",
+        observed_numbered_report_min=23,
+        observed_numbered_report_max=269,
+        observed_numbered_report_count=247,
+        observed_reference_month_min="2006-01",
+        observed_reference_month_max="2026-07",
+        observed_reference_month_count=247,
+        report_to_month_conflict_count=0,
+        month_to_report_conflict_count=0,
+        historical_bundle_lead_years=(2004, 2005),
+        reports_1_22_status="unobserved_report_number_hypotheses",
+        byte_verified_report_min=260,
+        byte_verified_report_max=269,
+        byte_verified_report_count=10,
+        unresolved_gap_counts=((GapClassification.HISTORICAL_MONTH_UNRESOLVED, 21),),
+        candidate_completeness_status=(CandidateCompletenessStatus.CANDIDATE_REQUIRES_HUMAN_REVIEW),
+        human_review_required=True,
+        input_artifact_fingerprints=(_fingerprint(),),
+        implementation_tree_sha=TREE_SHA,
+        manifest_schema_version="0.1.1",
+        materializer_version="m1-04a-v2",
+    )
+
+    with pytest.raises(ValidationError):
+        CoverageReport.model_validate(
+            {**valid.model_dump(mode="python"), "implementation_tree_sha": invalid_tree_sha}
+        )
+
+
+def test_materialization_receipt_separates_execution_commit_from_tree_identity() -> None:
+    receipt = MaterializationReceipt(
+        task_id="M1-04A",
+        repository_base_sha="a" * 40,
+        repository_head_sha=GIT_SHA,
+        implementation_tree_sha=TREE_SHA,
+        manifest_schema_version="0.1.1",
+        discovery_run_ids=("reconnaissance-example",),
+        input_artifacts=(_fingerprint(),),
+        operational_artifacts=(
+            _fingerprint().model_copy(update={"artifact_role": "operational_ledger"}),
+        ),
+        protected_source_receipt_refs=("docs/source_integrity_receipt.md:sha256",),
+        output_artifacts=(
+            _fingerprint().model_copy(update={"artifact_role": "candidate_output:example"}),
+        ),
+        record_counts=(("coverage_report_candidate.json", 1),),
+        observed_numbered_report_count=247,
+        observed_numbered_report_min=23,
+        observed_numbered_report_max=269,
+        observed_reference_month_count=247,
+        observed_reference_month_min="2006-01",
+        observed_reference_month_max="2026-07",
+        gap_counts=((GapClassification.HISTORICAL_MONTH_UNRESOLVED, 21),),
+        byte_verified_count=10,
+        unresolved_review_count=50,
+        deterministic_sort_rules=("json:canonical_utf8_lf",),
+        no_network_assertion=True,
+        no_raw_write_assertion=True,
+        no_canonical_database_write_assertion=True,
+    )
+
+    assert receipt.repository_head_sha == GIT_SHA
+    assert receipt.implementation_tree_sha == TREE_SHA
+    assert "implementation_git_sha" not in receipt.model_dump(mode="json")
 
 
 def test_source_observation_and_byte_version_preserve_original_evidence() -> None:

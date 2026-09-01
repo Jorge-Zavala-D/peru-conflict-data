@@ -10,6 +10,7 @@ from pathlib import Path
 from peru_conflicts.hashing import canonical_json_bytes
 from peru_conflicts.manifest.evidence import AcquisitionClosure
 from peru_conflicts.manifest.models import (
+    MANIFEST_SCHEMA_VERSION,
     ArtifactFingerprint,
     ByteVersionRecord,
     CorpusReportManifestEntry,
@@ -147,8 +148,8 @@ def materialize_candidate_package(
         task_id="M1-04A",
         repository_base_sha=repository_base_sha,
         repository_head_sha=repository_head_sha,
-        implementation_git_sha=package.coverage.implementation_git_sha,
-        manifest_schema_version="0.1.0",
+        implementation_tree_sha=package.coverage.implementation_tree_sha,
+        manifest_schema_version=MANIFEST_SCHEMA_VERSION,
         discovery_run_ids=discovery_run_ids,
         input_artifacts=discovery_fingerprints,
         operational_artifacts=acquisition.operational_fingerprints,

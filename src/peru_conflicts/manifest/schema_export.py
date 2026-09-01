@@ -52,7 +52,7 @@ def rendered_manifest_schemas() -> dict[str, str]:
 
 
 def export_manifest_schemas(output_dir: Path) -> list[Path]:
-    """Write only manifest v0.1.0 beneath a schema root."""
+    """Write only the current manifest version beneath a schema root."""
 
     version_dir = output_dir / "manifest" / f"v{MANIFEST_SCHEMA_VERSION}"
     version_dir.mkdir(parents=True, exist_ok=True)

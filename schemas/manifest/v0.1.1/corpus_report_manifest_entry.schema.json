@@ -1,0 +1,305 @@
+{
+  "$defs": {
+    "AcquisitionState": {
+      "description": "Evidence-backed acquisition state for one observed report identity.",
+      "enum": [
+        "official_source_discovered",
+        "byte_verified_identical"
+      ],
+      "title": "AcquisitionState",
+      "type": "string"
+    },
+    "ArtifactFingerprint": {
+      "additionalProperties": false,
+      "description": "Portable path and immutable byte fingerprint for one input/output artifact.",
+      "properties": {
+        "artifact_role": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Artifact Role",
+          "type": "string"
+        },
+        "bytes": {
+          "minimum": 0,
+          "title": "Bytes",
+          "type": "integer"
+        },
+        "path": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Path",
+          "type": "string"
+        },
+        "record_count": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Record Count"
+        },
+        "sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "artifact_role",
+        "path",
+        "bytes",
+        "sha256"
+      ],
+      "title": "ArtifactFingerprint",
+      "type": "object"
+    },
+    "AssociationStatus": {
+      "description": "Strength of the reviewed direct-file/report association.",
+      "enum": [
+        "not_applicable",
+        "visibly_associated",
+        "unresolved_opaque_filename"
+      ],
+      "title": "AssociationStatus",
+      "type": "string"
+    },
+    "EvidenceReference": {
+      "additionalProperties": false,
+      "description": "One run-qualified discovery evidence reference.",
+      "properties": {
+        "discovery_record_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Discovery Record Id",
+          "type": "string"
+        },
+        "discovery_run_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Discovery Run Id",
+          "type": "string"
+        },
+        "evidence_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Evidence Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "discovery_run_id",
+        "discovery_record_id",
+        "evidence_id"
+      ],
+      "title": "EvidenceReference",
+      "type": "object"
+    },
+    "ReviewStatus": {
+      "description": "Review state of a candidate technical record.",
+      "enum": [
+        "candidate",
+        "verified",
+        "requires_human_review"
+      ],
+      "title": "ReviewStatus",
+      "type": "string"
+    },
+    "SourceTitleObservation": {
+      "additionalProperties": false,
+      "description": "One source-original report title and the evidence that displayed it.",
+      "properties": {
+        "evidence_refs": {
+          "items": {
+            "$ref": "#/$defs/EvidenceReference"
+          },
+          "minItems": 1,
+          "title": "Evidence Refs",
+          "type": "array"
+        },
+        "title_original": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Title Original",
+          "type": "string"
+        }
+      },
+      "required": [
+        "title_original",
+        "evidence_refs"
+      ],
+      "title": "SourceTitleObservation",
+      "type": "object"
+    }
+  },
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/manifest/v0.1.1/corpus_report_manifest_entry.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "One canonical candidate identity for an observed numbered report.",
+  "properties": {
+    "acquisition_state": {
+      "$ref": "#/$defs/AcquisitionState"
+    },
+    "association_status": {
+      "$ref": "#/$defs/AssociationStatus"
+    },
+    "discovery_record_refs": {
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Discovery Record Refs",
+      "type": "array"
+    },
+    "discovery_run_ids": {
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Discovery Run Ids",
+      "type": "array"
+    },
+    "gap_ids": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "title": "Gap Ids",
+      "type": "array"
+    },
+    "identity_evidence_refs": {
+      "items": {
+        "$ref": "#/$defs/EvidenceReference"
+      },
+      "minItems": 2,
+      "title": "Identity Evidence Refs",
+      "type": "array"
+    },
+    "input_artifact_fingerprints": {
+      "items": {
+        "$ref": "#/$defs/ArtifactFingerprint"
+      },
+      "minItems": 1,
+      "title": "Input Artifact Fingerprints",
+      "type": "array"
+    },
+    "known_byte_version_count": {
+      "minimum": 0,
+      "title": "Known Byte Version Count",
+      "type": "integer"
+    },
+    "manifest_report_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Manifest Report Id",
+      "type": "string"
+    },
+    "preferred_protected_local_path": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Preferred Protected Local Path"
+    },
+    "preferred_title_evidence_refs": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/EvidenceReference"
+      },
+      "title": "Preferred Title Evidence Refs",
+      "type": "array"
+    },
+    "preferred_title_original": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Preferred Title Original"
+    },
+    "reference_month": {
+      "pattern": "^\\d{4}-\\d{2}$",
+      "title": "Reference Month",
+      "type": "string"
+    },
+    "report_number": {
+      "minimum": 1,
+      "title": "Report Number",
+      "type": "integer"
+    },
+    "review_status": {
+      "$ref": "#/$defs/ReviewStatus"
+    },
+    "schema_version": {
+      "const": "0.1.1",
+      "default": "0.1.1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "source_institution": {
+      "const": "Defensoría del Pueblo",
+      "title": "Source Institution",
+      "type": "string"
+    },
+    "source_observation_record_ids": {
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Source Observation Record Ids",
+      "type": "array"
+    },
+    "source_series": {
+      "const": "Reporte Mensual de Conflictos Sociales",
+      "title": "Source Series",
+      "type": "string"
+    },
+    "source_titles": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/SourceTitleObservation"
+      },
+      "title": "Source Titles",
+      "type": "array"
+    }
+  },
+  "required": [
+    "manifest_report_id",
+    "source_institution",
+    "source_series",
+    "report_number",
+    "reference_month",
+    "identity_evidence_refs",
+    "discovery_record_refs",
+    "source_observation_record_ids",
+    "acquisition_state",
+    "known_byte_version_count",
+    "association_status",
+    "review_status",
+    "discovery_run_ids",
+    "input_artifact_fingerprints"
+  ],
+  "title": "CorpusReportManifestEntry",
+  "type": "object"
+}
