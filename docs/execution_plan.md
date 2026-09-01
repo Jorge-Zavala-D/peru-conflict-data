@@ -4,11 +4,9 @@ Version: 0.2.0 (M1-only working content baseline; not the final M2 gold schema)
 
 ## Plan contract
 
-M1-01 and M1-02 are merged. M1-03A proved the acquisition dry run.
-M1-03B.1 is authorized only for offline production-readiness implementation and
-synthetic tests. M1-03B.2 external comparison and every raw mutation remain
-separately prohibited and require the explicit checkpoint in
-`docs/m1_acquisition_checkpoint.md`. Schema `v0.2.0` is
+M1-01 and M1-02 are merged. M1-03A proved the acquisition dry run, M1-03B.1
+established the reviewed production boundary, and the one-shot M1-03B.2 comparison
+completed successfully and is spent. Schema `v0.2.0` is
 the M1-only working content baseline, not the final M2 gold schema. Each work package
 produces reviewable artifacts on a focused branch. No package may weaken the research
 contract or benchmark gates without a written decision.
@@ -17,11 +15,13 @@ Parallel work is limited to independent, read-heavy or isolated outputs. No two 
 
 ## Current execution status
 
-M0/M0.1, M1-01/M1-02.2, and M1-03A are merged to `main`. M1-03B.1 is implemented
-for review on `codex/m1-03b1-live-comparison-readiness`. Its production registry is
-empty and its real validation remains the unchanged M1-03A dry run: zero network
-requests and zero Dropbox writes. No authorized live artifact exists. There has
-been no acquisition or raw write. M1-03B.2, M1-04, and M2-01 have not started.
+M0/M0.1, M1-01/M1-02.2, and M1-03 are complete on protected `main` for the bounded
+discovery, acquisition-safety, and ten-report compare-only objective. M1-03B.2 ended
+`completed / all_ten_remote_bytes_identical`; its authorization is spent, no raw
+object was staged or promoted, and its operational evidence is immutable. M1-04A is
+the active package: it reconciles frozen discovery and completed acquisition evidence
+into a candidate, noncanonical manifest package. Final corpus completeness remains a
+later M1-04 human-review decision. M2-01 has not started.
 
 ## Global gates
 
@@ -76,7 +76,7 @@ been no acquisition or raw write. M1-03B.2, M1-04, and M2-01 have not started.
 | Inputs | Approved provisional discovery records |
 | Outputs | Immutable raw objects, Dropbox operational-ledger receipts, SHA-256, sizes, MIME signatures, version relationships |
 | Tests | Atomic download; hash-before-promote; same-name/different-byte handling; interrupted download recovery; raw-write guard exceptions limited to acquisition command |
-| Acceptance | M1-03B.1 has zero external/Dropbox effects; a later comparison records every attempt and stops on source-link drift, collision, policy failure, or incomplete evidence; no compare-only path promotes raw bytes |
+| Acceptance | M1-03B.1 had zero external/Dropbox effects; the one authorized M1-03B.2 comparison recorded every attempt and completed with all ten remote PDFs byte-identical; no compare-only path promoted raw bytes |
 | Human review | Approve the exact execution commit, authorization bytes, storage identity, and every collision before any later acquisition/promotion |
 | Tools | Deterministic downloader with rate limits; Dropbox raw storage and `01_raw/manifests/` operational ledger |
 | Compute/cost risk | Medium network/storage; no paid service |

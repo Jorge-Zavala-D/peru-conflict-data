@@ -1,0 +1,253 @@
+{
+  "$defs": {
+    "EvidenceReference": {
+      "additionalProperties": false,
+      "description": "One run-qualified discovery evidence reference.",
+      "properties": {
+        "discovery_record_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Discovery Record Id",
+          "type": "string"
+        },
+        "discovery_run_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Discovery Run Id",
+          "type": "string"
+        },
+        "evidence_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Evidence Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "discovery_run_id",
+        "discovery_record_id",
+        "evidence_id"
+      ],
+      "title": "EvidenceReference",
+      "type": "object"
+    }
+  },
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/manifest/v0.1.0/source_observation_record.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "One URL observation within one run-qualified discovery occurrence.",
+  "properties": {
+    "captured_at": {
+      "format": "date-time",
+      "title": "Captured At",
+      "type": "string"
+    },
+    "containing_source_url": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Containing Source Url",
+      "type": "string"
+    },
+    "containing_surface_role": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Containing Surface Role",
+      "type": "string"
+    },
+    "discovery_issue_ids": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "title": "Discovery Issue Ids",
+      "type": "array"
+    },
+    "discovery_record_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Discovery Record Id",
+      "type": "string"
+    },
+    "discovery_run_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Discovery Run Id",
+      "type": "string"
+    },
+    "entry_description_original": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Entry Description Original"
+    },
+    "entry_publication_date_original": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Entry Publication Date Original"
+    },
+    "entry_title_original": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Entry Title Original"
+    },
+    "identity_evidence_refs": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/EvidenceReference"
+      },
+      "title": "Identity Evidence Refs",
+      "type": "array"
+    },
+    "manifest_report_id": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Manifest Report Id"
+    },
+    "normalized_transport_url": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Normalized Transport Url"
+    },
+    "observed_reference_month": {
+      "anyOf": [
+        {
+          "pattern": "^\\d{4}-\\d{2}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Observed Reference Month"
+    },
+    "observed_report_number": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Observed Report Number"
+    },
+    "original_observation_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Original Observation Id",
+      "type": "string"
+    },
+    "relation_ids": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "title": "Relation Ids",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "0.1.0",
+      "default": "0.1.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "source_observation_record_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Source Observation Record Id",
+      "type": "string"
+    },
+    "source_page_title_original": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Source Page Title Original"
+    },
+    "source_url_original": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Source Url Original",
+      "type": "string"
+    },
+    "uncertainty_notes": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "title": "Uncertainty Notes",
+      "type": "array"
+    },
+    "url_role": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Url Role",
+      "type": "string"
+    }
+  },
+  "required": [
+    "source_observation_record_id",
+    "discovery_run_id",
+    "discovery_record_id",
+    "original_observation_id",
+    "manifest_report_id",
+    "source_url_original",
+    "normalized_transport_url",
+    "url_role",
+    "containing_source_url",
+    "containing_surface_role",
+    "source_page_title_original",
+    "entry_title_original",
+    "entry_publication_date_original",
+    "entry_description_original",
+    "observed_reference_month",
+    "captured_at"
+  ],
+  "title": "SourceObservationRecord",
+  "type": "object"
+}

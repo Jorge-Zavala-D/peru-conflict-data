@@ -13,6 +13,7 @@ from peru_conflicts.discovery.schema_export import (
     export_discovery_schemas,
     rendered_discovery_schemas,
 )
+from peru_conflicts.manifest.schema_export import export_manifest_schemas
 from peru_conflicts.schema_export import export_json_schemas
 
 PROVISIONAL_SCHEMA_FILENAME = "provisional_discovery_record.schema.json"
@@ -235,6 +236,7 @@ def test_existing_schema_check_gate_includes_discovery_drift(tmp_path: Path) -> 
     export_json_schemas(tmp_path)
     written = export_discovery_schemas(tmp_path)
     export_acquisition_schemas(tmp_path)
+    export_manifest_schemas(tmp_path)
     command = [
         sys.executable,
         "scripts/export_schemas.py",
