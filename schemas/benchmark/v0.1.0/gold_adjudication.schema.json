@@ -1,0 +1,289 @@
+{
+  "$defs": {
+    "EvidenceAnchor": {
+      "additionalProperties": false,
+      "properties": {
+        "benchmark_schema_version": {
+          "const": "0.1.0",
+          "default": "0.1.0",
+          "title": "Benchmark Schema Version",
+          "type": "string"
+        },
+        "granularity": {
+          "$ref": "#/$defs/EvidenceGranularity"
+        },
+        "page": {
+          "minimum": 1,
+          "title": "Page",
+          "type": "integer"
+        },
+        "page_only_rationale": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Page Only Rationale"
+        },
+        "report_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Report Id",
+          "type": "string"
+        },
+        "report_number": {
+          "minimum": 1,
+          "title": "Report Number",
+          "type": "integer"
+        },
+        "section": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Section",
+          "type": "string"
+        },
+        "source_bbox": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceBBox"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "source_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Source Sha256",
+          "type": "string"
+        },
+        "source_span": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceSpan"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "source_table": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Table"
+        },
+        "source_text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Text"
+        },
+        "table_column_original": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Table Column Original"
+        },
+        "table_row_original": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Table Row Original"
+        }
+      },
+      "required": [
+        "report_id",
+        "report_number",
+        "source_sha256",
+        "page",
+        "section",
+        "granularity"
+      ],
+      "title": "EvidenceAnchor",
+      "type": "object"
+    },
+    "EvidenceGranularity": {
+      "enum": [
+        "page_only",
+        "section",
+        "span",
+        "bounding_box",
+        "table_cell"
+      ],
+      "title": "EvidenceGranularity",
+      "type": "string"
+    },
+    "SourceBBox": {
+      "additionalProperties": false,
+      "properties": {
+        "x0": {
+          "title": "X0",
+          "type": "number"
+        },
+        "x1": {
+          "title": "X1",
+          "type": "number"
+        },
+        "y0": {
+          "title": "Y0",
+          "type": "number"
+        },
+        "y1": {
+          "title": "Y1",
+          "type": "number"
+        }
+      },
+      "required": [
+        "x0",
+        "y0",
+        "x1",
+        "y1"
+      ],
+      "title": "SourceBBox",
+      "type": "object"
+    },
+    "SourceSpan": {
+      "additionalProperties": false,
+      "properties": {
+        "end": {
+          "minimum": 0,
+          "title": "End",
+          "type": "integer"
+        },
+        "start": {
+          "minimum": 0,
+          "title": "Start",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ],
+      "title": "SourceSpan",
+      "type": "object"
+    }
+  },
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/benchmark/v0.1.0/gold_adjudication.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "adjudication_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Adjudication Id",
+      "type": "string"
+    },
+    "benchmark_schema_version": {
+      "const": "0.1.0",
+      "default": "0.1.0",
+      "title": "Benchmark Schema Version",
+      "type": "string"
+    },
+    "decided_at": {
+      "format": "date-time",
+      "title": "Decided At",
+      "type": "string"
+    },
+    "decision_action": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Decision Action",
+      "type": "string"
+    },
+    "decision_original": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Decision Original",
+      "type": "string"
+    },
+    "decision_value_json": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Decision Value Json"
+    },
+    "disagreement_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Disagreement Id",
+      "type": "string"
+    },
+    "evidence_anchors": {
+      "items": {
+        "$ref": "#/$defs/EvidenceAnchor"
+      },
+      "minItems": 1,
+      "title": "Evidence Anchors",
+      "type": "array"
+    },
+    "reviewer_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Reviewer Id",
+      "type": "string"
+    },
+    "supersedes_adjudication_id": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Supersedes Adjudication Id"
+    }
+  },
+  "required": [
+    "adjudication_id",
+    "disagreement_id",
+    "decision_original",
+    "decision_action",
+    "reviewer_id",
+    "decided_at",
+    "evidence_anchors"
+  ],
+  "title": "GoldAdjudication",
+  "type": "object"
+}

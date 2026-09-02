@@ -223,11 +223,13 @@ def test_top_level_schema_check_includes_acquisition(tmp_path: Path) -> None:
     scientific = importlib.import_module("peru_conflicts.schema_export")
     discovery = importlib.import_module("peru_conflicts.discovery.schema_export")
     acquisition = importlib.import_module("peru_conflicts.acquisition.schema_export")
+    benchmark = importlib.import_module("peru_conflicts.benchmark.schema_export")
     manifest = importlib.import_module("peru_conflicts.manifest.schema_export")
     scientific.export_json_schemas(tmp_path)
     discovery.export_discovery_schemas(tmp_path)
     written = acquisition.export_acquisition_schemas(tmp_path)
     manifest.export_manifest_schemas(tmp_path)
+    benchmark.export_benchmark_schemas(tmp_path / "benchmark")
 
     command = [
         sys.executable,

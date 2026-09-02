@@ -31,22 +31,25 @@ def test_v020_snapshot_digest_is_retained() -> None:
     assert _schema_tree_digest(repo_root / "schemas" / "v0.2.0") == V020_SCHEMA_TREE_DIGEST
 
 
-def test_v020_is_the_only_current_export_and_does_not_mutate_v010(tmp_path: Path) -> None:
+def test_v030_is_the_only_current_export_and_does_not_mutate_history(tmp_path: Path) -> None:
     repo_root = Path(__file__).parents[2]
-    before = _schema_tree_digest(repo_root / "schemas" / "v0.1.0")
+    before_v010 = _schema_tree_digest(repo_root / "schemas" / "v0.1.0")
+    before_v020 = _schema_tree_digest(repo_root / "schemas" / "v0.2.0")
 
     export_json_schemas(tmp_path)
 
-    assert SCHEMA_VERSION == "0.2.0"
+    assert SCHEMA_VERSION == "0.3.0"
     assert schemas_are_current(tmp_path)
-    assert (tmp_path / "v0.2.0").exists()
-    assert _schema_tree_digest(repo_root / "schemas" / "v0.1.0") == before
+    assert (tmp_path / "v0.3.0").exists()
+    assert _schema_tree_digest(repo_root / "schemas" / "v0.1.0") == before_v010
+    assert _schema_tree_digest(repo_root / "schemas" / "v0.2.0") == before_v020
 
 
-def test_v020_registry_and_exported_schema_names_are_aligned(tmp_path: Path) -> None:
+def test_v030_registry_and_exported_schema_names_are_aligned(tmp_path: Path) -> None:
     written = export_json_schemas(tmp_path)
     assert {path.name.removesuffix(".schema.json") for path in written} == set(MODEL_REGISTRY)
     assert not (tmp_path / "v0.1.0").exists()
+    assert not (tmp_path / "v0.2.0").exists()
 
 
 def test_v010_monthly_payload_requires_explicit_migration() -> None:

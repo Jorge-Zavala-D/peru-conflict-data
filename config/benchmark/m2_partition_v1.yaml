@@ -1,0 +1,22 @@
+benchmark_schema_version: "0.1.0"
+partition_id: m2-ten-report-split-v1
+freeze_rule: report-level roles are immutable after parser development begins
+assignments:
+  - {report_number: 260, role: parser_development}
+  - {report_number: 261, role: held_out_evaluation}
+  - {report_number: 262, role: parser_development}
+  - {report_number: 263, role: held_out_evaluation}
+  - {report_number: 264, role: protocol_pilot}
+  - {report_number: 265, role: held_out_evaluation}
+  - {report_number: 266, role: parser_development}
+  - {report_number: 267, role: held_out_evaluation}
+  - {report_number: 268, role: parser_development}
+  - {report_number: 269, role: protocol_pilot}
+pilot_unit_ids:
+  - annotation-unit-030194f7766a7f805b39d87c
+  - annotation-unit-87fb8912e4e617f91bb4c415
+leakage_rules:
+  - Pilot reports are never scored as blind held-out reports.
+  - Held-out PDFs, submissions, and adjudications are inaccessible to parser developers before evaluation lock.
+  - No machine suggestion or parser output is shown to either human annotator.
+  - A partition change requires a new version and owner approval; the prior split remains preserved.

@@ -1,0 +1,168 @@
+{
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/v0.3.0/demand.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "anyOf": [
+        {
+          "properties": {
+            "text_original": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "text_original"
+          ]
+        },
+        {
+          "properties": {
+            "theme_original": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "theme_original"
+          ]
+        },
+        {
+          "properties": {
+            "category_original": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "category_original"
+          ]
+        },
+        {
+          "properties": {
+            "competent_entity_original": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          "required": [
+            "competent_entity_original"
+          ]
+        }
+      ]
+    }
+  ],
+  "properties": {
+    "category_normalized": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Category Normalized"
+    },
+    "category_original": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Category Original"
+    },
+    "competent_entity_original": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Competent Entity Original"
+    },
+    "demand_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Demand Id",
+      "type": "string"
+    },
+    "provenance_ids": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "title": "Provenance Ids",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "0.3.0",
+      "default": "0.3.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "text_normalized": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Text Normalized"
+    },
+    "text_original": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Text Original"
+    },
+    "theme_normalized": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Theme Normalized"
+    },
+    "theme_original": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Theme Original"
+    }
+  },
+  "required": [
+    "demand_id"
+  ],
+  "title": "Demand",
+  "type": "object"
+}

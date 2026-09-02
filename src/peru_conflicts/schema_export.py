@@ -96,6 +96,56 @@ def rendered_schemas() -> dict[str, str]:
                     },
                 }
             )
+        if name == "mediation_observation":
+            schema.setdefault("allOf", []).append(
+                {
+                    "if": {
+                        "anyOf": [
+                            {
+                                "properties": {"case_id": {"type": "string", "minLength": 1}},
+                                "required": ["case_id"],
+                            },
+                            {
+                                "properties": {
+                                    "mediation_process_id": {"type": "string", "minLength": 1}
+                                },
+                                "required": ["mediation_process_id"],
+                            },
+                        ]
+                    },
+                    "then": {
+                        "required": ["provenance_ids"],
+                        "properties": {"provenance_ids": {"minItems": 1}},
+                    },
+                }
+            )
+        if name == "case_reported_indicator":
+            schema.setdefault("allOf", []).append(
+                {
+                    "properties": {
+                        "value": {"not": {"type": "null"}},
+                        "provenance_ids": {"minItems": 1},
+                    },
+                    "required": ["value", "provenance_ids"],
+                }
+            )
+        if name == "demand":
+            schema.setdefault("allOf", []).append(
+                {
+                    "anyOf": [
+                        {
+                            "properties": {field: {"type": "string", "minLength": 1}},
+                            "required": [field],
+                        }
+                        for field in (
+                            "text_original",
+                            "theme_original",
+                            "category_original",
+                            "competent_entity_original",
+                        )
+                    ]
+                }
+            )
         if name == "report":
             schema.setdefault("allOf", []).extend(
                 [

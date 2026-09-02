@@ -1,0 +1,62 @@
+{
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/benchmark/v0.1.0/benchmark_coverage_receipt.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "benchmark_schema_version": {
+      "const": "0.1.0",
+      "default": "0.1.0",
+      "title": "Benchmark Schema Version",
+      "type": "string"
+    },
+    "explicit_non_value_field_keys": {
+      "default": [],
+      "items": {
+        "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$",
+        "type": "string"
+      },
+      "title": "Explicit Non Value Field Keys",
+      "type": "array",
+      "uniqueItems": true
+    },
+    "observed_field_keys": {
+      "default": [],
+      "items": {
+        "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$",
+        "type": "string"
+      },
+      "title": "Observed Field Keys",
+      "type": "array",
+      "uniqueItems": true
+    },
+    "receipt_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Receipt Id",
+      "type": "string"
+    },
+    "required_field_keys": {
+      "items": {
+        "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Required Field Keys",
+      "type": "array",
+      "uniqueItems": true
+    },
+    "unit_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Unit Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "receipt_id",
+    "unit_id",
+    "required_field_keys"
+  ],
+  "title": "BenchmarkCoverageReceipt",
+  "type": "object"
+}

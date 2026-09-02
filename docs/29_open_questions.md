@@ -1,16 +1,24 @@
 # Open questions requiring evidence or approval
 
-## Deferred M2-01 ontology questions
+## M2-01 ontology questions: source-evidence decisions proposed
 
-M2-01 owns these five questions. They remain unresolved during M1; no speculative
-resolution is permitted in M1. Their answers require review of all ten fixed benchmark
-reports (260-269), source evidence, and the M2-01 annotation protocol.
+All ten fixed reports 260–269 were inspected with native PDF text. The full evidence
+and migration rationale are preserved in `docs/m2_01_ontology_decisions.md`.
 
-1. Whether `Demand.text_original` must be nullable for structured demand rows.
-2. Source-reported case-level dialogue/mechanism and cumulative-violence fields.
-3. A source-level case/problem description distinct from monthly facts.
-4. Longitudinal mediation-process identity/observation semantics.
-5. Any additional fields evidenced across reports 260-269.
+1. **Resolved by source evidence, pending owner approval:** `Demand.text_original`
+   is nullable for structured rows, but at least one original demand dimension is required.
+2. **Resolved by source evidence, pending owner approval:** source-reported case-month
+   indicators are separate from dated events and derived indicators.
+3. **Resolved by source evidence, pending owner approval:** report-specific structural
+   case description is distinct from monthly facts.
+4. **Resolved by source evidence, pending owner approval:** mediation observation is
+   report-local; persistent process identity is optional and requires separate evidence.
+5. **Resolved for v0.3.0, pending owner approval:** only the evidenced case description,
+   case-reported indicator, and mediation-observation changes are added. Closed taxonomies,
+   automatic annex-to-case links, and timeless descriptions remain rejected/deferred.
+
+Historical format stability beyond reports 260–269 remains unresolved and must not be
+inferred from these decisions.
 
 ## Other evidence and approval questions
 

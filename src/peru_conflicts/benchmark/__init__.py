@@ -1,0 +1,41 @@
+"""Public benchmark contract and deterministic metric API."""
+
+from peru_conflicts.benchmark.models import (
+    BENCHMARK_MODEL_REGISTRY,
+    BENCHMARK_SCHEMA_VERSION,
+    AnnotationDisagreement,
+    AnnotationState,
+    AnnotationUnit,
+    AnnotationUnitType,
+    AnnotatorSubmission,
+    BenchmarkCoverageReceipt,
+    BenchmarkPartition,
+    BenchmarkPartitionAssignment,
+    EvidenceAnchor,
+    EvidenceGranularity,
+    FieldAnnotation,
+    GoldAdjudication,
+    PartitionRole,
+    SubmissionStatus,
+    derive_annotation_unit_id,
+)
+
+__all__ = [
+    "BENCHMARK_MODEL_REGISTRY",
+    "BENCHMARK_SCHEMA_VERSION",
+    "AnnotationDisagreement",
+    "AnnotationState",
+    "AnnotationUnit",
+    "AnnotationUnitType",
+    "AnnotatorSubmission",
+    "BenchmarkCoverageReceipt",
+    "BenchmarkPartition",
+    "BenchmarkPartitionAssignment",
+    "EvidenceAnchor",
+    "EvidenceGranularity",
+    "FieldAnnotation",
+    "GoldAdjudication",
+    "PartitionRole",
+    "SubmissionStatus",
+    "derive_annotation_unit_id",
+]

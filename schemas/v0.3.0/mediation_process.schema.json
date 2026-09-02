@@ -1,0 +1,108 @@
+{
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/v0.3.0/mediation_process.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "case_id": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "case_id"
+        ]
+      },
+      "then": {
+        "properties": {
+          "provenance_ids": {
+            "minItems": 1
+          }
+        },
+        "required": [
+          "provenance_ids"
+        ]
+      }
+    }
+  ],
+  "description": "Optional longitudinal identity, created only when cross-report evidence supports it.",
+  "properties": {
+    "canonical_label": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Canonical Label"
+    },
+    "case_id": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Case Id"
+    },
+    "identity_confidence": {
+      "anyOf": [
+        {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Identity Confidence"
+    },
+    "identity_method": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Identity Method",
+      "type": "string"
+    },
+    "mediation_process_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Mediation Process Id",
+      "type": "string"
+    },
+    "provenance_ids": {
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Provenance Ids",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "0.3.0",
+      "default": "0.3.0",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "mediation_process_id",
+    "identity_method",
+    "provenance_ids"
+  ],
+  "title": "MediationProcess",
+  "type": "object"
+}

@@ -1,0 +1,308 @@
+{
+  "$defs": {
+    "ReportIdentityEvidenceType": {
+      "description": "Evidence classes allowed to support report number or reference period.",
+      "enum": [
+        "document_visible",
+        "official_metadata",
+        "embedded_pdf_title"
+      ],
+      "title": "ReportIdentityEvidenceType",
+      "type": "string"
+    }
+  },
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/v0.3.0/report.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "report_number": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "report_number"
+        ]
+      },
+      "then": {
+        "properties": {
+          "report_number_evidence_types": {
+            "contains": {
+              "enum": [
+                "document_visible",
+                "official_metadata"
+              ]
+            }
+          },
+          "report_number_provenance_ids": {
+            "minItems": 1
+          }
+        },
+        "required": [
+          "report_number_evidence_types",
+          "report_number_provenance_ids"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "reference_period": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "reference_period"
+        ]
+      },
+      "then": {
+        "properties": {
+          "reference_period_evidence_types": {
+            "contains": {
+              "enum": [
+                "document_visible",
+                "official_metadata"
+              ]
+            }
+          },
+          "reference_period_provenance_ids": {
+            "minItems": 1
+          }
+        },
+        "required": [
+          "reference_period_evidence_types",
+          "reference_period_provenance_ids"
+        ]
+      }
+    }
+  ],
+  "properties": {
+    "byte_size": {
+      "minimum": 0,
+      "title": "Byte Size",
+      "type": "integer"
+    },
+    "canonical_filename": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Canonical Filename"
+    },
+    "format_regime": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Format Regime"
+    },
+    "native_text_status": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Native Text Status"
+    },
+    "page_count": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Page Count"
+    },
+    "provenance_ids": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "title": "Provenance Ids",
+      "type": "array"
+    },
+    "publication_date": {
+      "anyOf": [
+        {
+          "format": "date",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Publication Date"
+    },
+    "reference_period": {
+      "anyOf": [
+        {
+          "pattern": "^\\d{4}-\\d{2}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Reference Period"
+    },
+    "reference_period_evidence_types": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ReportIdentityEvidenceType"
+      },
+      "title": "Reference Period Evidence Types",
+      "type": "array"
+    },
+    "reference_period_provenance_ids": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "title": "Reference Period Provenance Ids",
+      "type": "array"
+    },
+    "report_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Report Id",
+      "type": "string"
+    },
+    "report_number": {
+      "anyOf": [
+        {
+          "minimum": 1,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Report Number"
+    },
+    "report_number_evidence_types": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ReportIdentityEvidenceType"
+      },
+      "title": "Report Number Evidence Types",
+      "type": "array"
+    },
+    "report_number_provenance_ids": {
+      "default": [],
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "title": "Report Number Provenance Ids",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "0.3.0",
+      "default": "0.3.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Sha256",
+      "type": "string"
+    },
+    "source_filename": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Source Filename",
+      "type": "string"
+    },
+    "source_status": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Source Status"
+    },
+    "source_url_original": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Source Url Original"
+    },
+    "source_version_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Source Version Id",
+      "type": "string"
+    },
+    "supersedes_source_version_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Supersedes Source Version Id"
+    },
+    "title_original": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Title Original"
+    }
+  },
+  "required": [
+    "report_id",
+    "source_version_id",
+    "source_filename",
+    "sha256",
+    "byte_size"
+  ],
+  "title": "ReportRecord",
+  "type": "object"
+}

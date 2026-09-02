@@ -1,0 +1,88 @@
+{
+  "$defs": {
+    "AnnotationUnitType": {
+      "enum": [
+        "report",
+        "report_month_aggregate",
+        "case_observation",
+        "case_subobject",
+        "report_annex_event",
+        "source_only_object"
+      ],
+      "title": "AnnotationUnitType",
+      "type": "string"
+    }
+  },
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/benchmark/v0.1.0/annotation_unit.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "benchmark_schema_version": {
+      "const": "0.1.0",
+      "default": "0.1.0",
+      "title": "Benchmark Schema Version",
+      "type": "string"
+    },
+    "pages": {
+      "items": {
+        "type": "integer"
+      },
+      "minItems": 1,
+      "title": "Pages",
+      "type": "array"
+    },
+    "report_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Report Id",
+      "type": "string"
+    },
+    "report_number": {
+      "minimum": 1,
+      "title": "Report Number",
+      "type": "integer"
+    },
+    "sections": {
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Sections",
+      "type": "array"
+    },
+    "source_locator": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Source Locator",
+      "type": "string"
+    },
+    "source_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Source Sha256",
+      "type": "string"
+    },
+    "unit_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Unit Id",
+      "type": "string"
+    },
+    "unit_type": {
+      "$ref": "#/$defs/AnnotationUnitType"
+    }
+  },
+  "required": [
+    "unit_id",
+    "report_id",
+    "report_number",
+    "source_sha256",
+    "pages",
+    "unit_type",
+    "source_locator",
+    "sections"
+  ],
+  "title": "AnnotationUnit",
+  "type": "object"
+}

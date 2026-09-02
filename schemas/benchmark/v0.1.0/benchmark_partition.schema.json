@@ -1,0 +1,69 @@
+{
+  "$defs": {
+    "BenchmarkPartitionAssignment": {
+      "additionalProperties": false,
+      "properties": {
+        "benchmark_schema_version": {
+          "const": "0.1.0",
+          "default": "0.1.0",
+          "title": "Benchmark Schema Version",
+          "type": "string"
+        },
+        "report_number": {
+          "minimum": 1,
+          "title": "Report Number",
+          "type": "integer"
+        },
+        "role": {
+          "$ref": "#/$defs/PartitionRole"
+        }
+      },
+      "required": [
+        "report_number",
+        "role"
+      ],
+      "title": "BenchmarkPartitionAssignment",
+      "type": "object"
+    },
+    "PartitionRole": {
+      "enum": [
+        "protocol_pilot",
+        "parser_development",
+        "held_out_evaluation"
+      ],
+      "title": "PartitionRole",
+      "type": "string"
+    }
+  },
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/benchmark/v0.1.0/benchmark_partition.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "assignments": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkPartitionAssignment"
+      },
+      "minItems": 1,
+      "title": "Assignments",
+      "type": "array"
+    },
+    "benchmark_schema_version": {
+      "const": "0.1.0",
+      "default": "0.1.0",
+      "title": "Benchmark Schema Version",
+      "type": "string"
+    },
+    "partition_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Partition Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "partition_id",
+    "assignments"
+  ],
+  "title": "BenchmarkPartition",
+  "type": "object"
+}

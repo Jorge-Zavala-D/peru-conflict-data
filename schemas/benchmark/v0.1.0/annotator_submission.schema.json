@@ -1,0 +1,402 @@
+{
+  "$defs": {
+    "AnnotationState": {
+      "enum": [
+        "observed",
+        "explicit_zero",
+        "not_reported",
+        "not_applicable",
+        "source_ambiguous",
+        "structurally_unavailable",
+        "illegible_uninspectable",
+        "annotation_uncertain"
+      ],
+      "title": "AnnotationState",
+      "type": "string"
+    },
+    "EvidenceAnchor": {
+      "additionalProperties": false,
+      "properties": {
+        "benchmark_schema_version": {
+          "const": "0.1.0",
+          "default": "0.1.0",
+          "title": "Benchmark Schema Version",
+          "type": "string"
+        },
+        "granularity": {
+          "$ref": "#/$defs/EvidenceGranularity"
+        },
+        "page": {
+          "minimum": 1,
+          "title": "Page",
+          "type": "integer"
+        },
+        "page_only_rationale": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Page Only Rationale"
+        },
+        "report_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Report Id",
+          "type": "string"
+        },
+        "report_number": {
+          "minimum": 1,
+          "title": "Report Number",
+          "type": "integer"
+        },
+        "section": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Section",
+          "type": "string"
+        },
+        "source_bbox": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceBBox"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "source_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Source Sha256",
+          "type": "string"
+        },
+        "source_span": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceSpan"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "source_table": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Table"
+        },
+        "source_text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Text"
+        },
+        "table_column_original": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Table Column Original"
+        },
+        "table_row_original": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Table Row Original"
+        }
+      },
+      "required": [
+        "report_id",
+        "report_number",
+        "source_sha256",
+        "page",
+        "section",
+        "granularity"
+      ],
+      "title": "EvidenceAnchor",
+      "type": "object"
+    },
+    "EvidenceGranularity": {
+      "enum": [
+        "page_only",
+        "section",
+        "span",
+        "bounding_box",
+        "table_cell"
+      ],
+      "title": "EvidenceGranularity",
+      "type": "string"
+    },
+    "FieldAnnotation": {
+      "additionalProperties": false,
+      "properties": {
+        "annotation_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Annotation Id",
+          "type": "string"
+        },
+        "annotator_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Annotator Id",
+          "type": "string"
+        },
+        "benchmark_schema_version": {
+          "const": "0.1.0",
+          "default": "0.1.0",
+          "title": "Benchmark Schema Version",
+          "type": "string"
+        },
+        "cardinality_index": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Cardinality Index",
+          "type": "integer"
+        },
+        "domain_object_type": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Domain Object Type",
+          "type": "string"
+        },
+        "evidence_anchors": {
+          "items": {
+            "$ref": "#/$defs/EvidenceAnchor"
+          },
+          "minItems": 1,
+          "title": "Evidence Anchors",
+          "type": "array"
+        },
+        "field_name": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Field Name",
+          "type": "string"
+        },
+        "raw_value_json": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Raw Value Json"
+        },
+        "state": {
+          "$ref": "#/$defs/AnnotationState"
+        },
+        "uncertainty_comment": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Uncertainty Comment"
+        },
+        "unit_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Unit Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "annotation_id",
+        "unit_id",
+        "annotator_id",
+        "domain_object_type",
+        "field_name",
+        "state",
+        "evidence_anchors"
+      ],
+      "title": "FieldAnnotation",
+      "type": "object"
+    },
+    "PartitionRole": {
+      "enum": [
+        "protocol_pilot",
+        "parser_development",
+        "held_out_evaluation"
+      ],
+      "title": "PartitionRole",
+      "type": "string"
+    },
+    "SourceBBox": {
+      "additionalProperties": false,
+      "properties": {
+        "x0": {
+          "title": "X0",
+          "type": "number"
+        },
+        "x1": {
+          "title": "X1",
+          "type": "number"
+        },
+        "y0": {
+          "title": "Y0",
+          "type": "number"
+        },
+        "y1": {
+          "title": "Y1",
+          "type": "number"
+        }
+      },
+      "required": [
+        "x0",
+        "y0",
+        "x1",
+        "y1"
+      ],
+      "title": "SourceBBox",
+      "type": "object"
+    },
+    "SourceSpan": {
+      "additionalProperties": false,
+      "properties": {
+        "end": {
+          "minimum": 0,
+          "title": "End",
+          "type": "integer"
+        },
+        "start": {
+          "minimum": 0,
+          "title": "Start",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ],
+      "title": "SourceSpan",
+      "type": "object"
+    },
+    "SubmissionStatus": {
+      "enum": [
+        "draft",
+        "locked",
+        "superseded"
+      ],
+      "title": "SubmissionStatus",
+      "type": "string"
+    }
+  },
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/benchmark/v0.1.0/annotator_submission.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "annotations": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/FieldAnnotation"
+      },
+      "title": "Annotations",
+      "type": "array"
+    },
+    "annotator_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Annotator Id",
+      "type": "string"
+    },
+    "benchmark_schema_version": {
+      "const": "0.1.0",
+      "default": "0.1.0",
+      "title": "Benchmark Schema Version",
+      "type": "string"
+    },
+    "locked_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Locked At"
+    },
+    "partition_role": {
+      "$ref": "#/$defs/PartitionRole"
+    },
+    "status": {
+      "$ref": "#/$defs/SubmissionStatus"
+    },
+    "submission_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Submission Id",
+      "type": "string"
+    },
+    "supersedes_submission_id": {
+      "anyOf": [
+        {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Supersedes Submission Id"
+    },
+    "unit_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Unit Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "submission_id",
+    "annotator_id",
+    "unit_id",
+    "partition_role",
+    "status"
+  ],
+  "title": "AnnotatorSubmission",
+  "type": "object"
+}

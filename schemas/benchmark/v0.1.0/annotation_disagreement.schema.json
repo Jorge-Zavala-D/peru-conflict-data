@@ -1,0 +1,89 @@
+{
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/benchmark/v0.1.0/annotation_disagreement.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "annotation_a_ids": {
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Annotation A Ids",
+      "type": "array"
+    },
+    "annotation_b_ids": {
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Annotation B Ids",
+      "type": "array"
+    },
+    "benchmark_schema_version": {
+      "const": "0.1.0",
+      "default": "0.1.0",
+      "title": "Benchmark Schema Version",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "disagreement_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Disagreement Id",
+      "type": "string"
+    },
+    "issue_type": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Issue Type",
+      "type": "string"
+    },
+    "status": {
+      "default": "open",
+      "enum": [
+        "open",
+        "adjudicated"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "submission_a_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Submission A Id",
+      "type": "string"
+    },
+    "submission_b_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Submission B Id",
+      "type": "string"
+    },
+    "unit_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Unit Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "disagreement_id",
+    "unit_id",
+    "submission_a_id",
+    "submission_b_id",
+    "annotation_a_ids",
+    "annotation_b_ids",
+    "issue_type",
+    "created_at"
+  ],
+  "title": "AnnotationDisagreement",
+  "type": "object"
+}
