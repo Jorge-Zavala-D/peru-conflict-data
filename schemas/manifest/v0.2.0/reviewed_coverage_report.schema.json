@@ -1,0 +1,243 @@
+{
+  "$defs": {
+    "AdjudicationOutcome": {
+      "description": "Owner-approved conservative outcomes for the frozen M1 review queue.",
+      "enum": [
+        "evidence_insufficient_retain_unresolved",
+        "bytes_not_observed_remain_unknown",
+        "retain_unresolved_opaque_filename"
+      ],
+      "title": "AdjudicationOutcome",
+      "type": "string"
+    }
+  },
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/manifest/v0.2.0/reviewed_coverage_report.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Owner-reviewed identity coverage with explicit byte-corpus limitations.",
+  "properties": {
+    "approved_coverage_claims": {
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Approved Coverage Claims",
+      "type": "array"
+    },
+    "approved_outcome_counts": {
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/AdjudicationOutcome"
+      },
+      "title": "Approved Outcome Counts",
+      "type": "object"
+    },
+    "authoritative_byte_corpus_complete": {
+      "const": false,
+      "title": "Authoritative Byte Corpus Complete",
+      "type": "boolean"
+    },
+    "byte_unknown_report_numbers": {
+      "items": {
+        "enum": [
+          69,
+          153,
+          169
+        ],
+        "type": "integer"
+      },
+      "maxItems": 3,
+      "minItems": 3,
+      "title": "Byte Unknown Report Numbers",
+      "type": "array"
+    },
+    "byte_verified_report_count": {
+      "const": 10,
+      "title": "Byte Verified Report Count",
+      "type": "integer"
+    },
+    "coverage_accounting_status": {
+      "const": "reviewed_with_explicit_limitations",
+      "title": "Coverage Accounting Status",
+      "type": "string"
+    },
+    "deferred_byte_acquisition_count": {
+      "const": 237,
+      "title": "Deferred Byte Acquisition Count",
+      "type": "integer"
+    },
+    "factual_gap_count": {
+      "const": 287,
+      "title": "Factual Gap Count",
+      "type": "integer"
+    },
+    "historical_unnumbered_lead_years": {
+      "items": {
+        "enum": [
+          2004,
+          2005
+        ],
+        "type": "integer"
+      },
+      "maxItems": 2,
+      "minItems": 2,
+      "title": "Historical Unnumbered Lead Years",
+      "type": "array"
+    },
+    "human_review_status": {
+      "const": "owner_approved",
+      "title": "Human Review Status",
+      "type": "string"
+    },
+    "month_to_report_conflict_count": {
+      "const": 0,
+      "title": "Month To Report Conflict Count",
+      "type": "integer"
+    },
+    "observation_cutoff": {
+      "const": "2026-07",
+      "title": "Observation Cutoff",
+      "type": "string"
+    },
+    "observed_numbered_report_count": {
+      "const": 247,
+      "title": "Observed Numbered Report Count",
+      "type": "integer"
+    },
+    "observed_numbered_report_max": {
+      "const": 269,
+      "title": "Observed Numbered Report Max",
+      "type": "integer"
+    },
+    "observed_numbered_report_min": {
+      "const": 23,
+      "title": "Observed Numbered Report Min",
+      "type": "integer"
+    },
+    "observed_reference_month_count": {
+      "const": 247,
+      "title": "Observed Reference Month Count",
+      "type": "integer"
+    },
+    "observed_reference_month_max": {
+      "const": "2026-07",
+      "title": "Observed Reference Month Max",
+      "type": "string"
+    },
+    "observed_reference_month_min": {
+      "const": "2006-01",
+      "title": "Observed Reference Month Min",
+      "type": "string"
+    },
+    "opaque_association_report_numbers": {
+      "items": {
+        "enum": [
+          261,
+          263
+        ],
+        "type": "integer"
+      },
+      "maxItems": 2,
+      "minItems": 2,
+      "title": "Opaque Association Report Numbers",
+      "type": "array"
+    },
+    "owner_approval_id": {
+      "const": "m1-04b-owner-adjudications-v1",
+      "title": "Owner Approval Id",
+      "type": "string"
+    },
+    "owner_approval_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Owner Approval Sha256",
+      "type": "string"
+    },
+    "owner_approved_decision_count": {
+      "const": 50,
+      "title": "Owner Approved Decision Count",
+      "type": "integer"
+    },
+    "prohibited_overclaims": {
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Prohibited Overclaims",
+      "type": "array"
+    },
+    "report_to_month_conflict_count": {
+      "const": 0,
+      "title": "Report To Month Conflict Count",
+      "type": "integer"
+    },
+    "reports_1_22_status": {
+      "const": "unobserved_report_number_hypotheses",
+      "title": "Reports 1 22 Status",
+      "type": "string"
+    },
+    "research_coverage_start": {
+      "const": "2004-04",
+      "title": "Research Coverage Start",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "0.2.0",
+      "default": "0.2.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "unresolved_evidence_retained": {
+      "const": true,
+      "title": "Unresolved Evidence Retained",
+      "type": "boolean"
+    },
+    "unresolved_historical_months": {
+      "items": {
+        "pattern": "^\\d{4}-\\d{2}$",
+        "type": "string"
+      },
+      "maxItems": 21,
+      "minItems": 21,
+      "title": "Unresolved Historical Months",
+      "type": "array"
+    }
+  },
+  "required": [
+    "research_coverage_start",
+    "observation_cutoff",
+    "observed_numbered_report_min",
+    "observed_numbered_report_max",
+    "observed_numbered_report_count",
+    "observed_reference_month_min",
+    "observed_reference_month_max",
+    "observed_reference_month_count",
+    "report_to_month_conflict_count",
+    "month_to_report_conflict_count",
+    "human_review_status",
+    "owner_approved_decision_count",
+    "approved_outcome_counts",
+    "coverage_accounting_status",
+    "factual_gap_count",
+    "unresolved_evidence_retained",
+    "deferred_byte_acquisition_count",
+    "byte_verified_report_count",
+    "authoritative_byte_corpus_complete",
+    "reports_1_22_status",
+    "unresolved_historical_months",
+    "historical_unnumbered_lead_years",
+    "byte_unknown_report_numbers",
+    "opaque_association_report_numbers",
+    "approved_coverage_claims",
+    "prohibited_overclaims",
+    "owner_approval_id",
+    "owner_approval_sha256"
+  ],
+  "title": "ReviewedCoverageReport",
+  "type": "object"
+}

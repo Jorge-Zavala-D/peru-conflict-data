@@ -1,0 +1,140 @@
+{
+  "$defs": {
+    "AdjudicationOutcome": {
+      "description": "Owner-approved conservative outcomes for the frozen M1 review queue.",
+      "enum": [
+        "evidence_insufficient_retain_unresolved",
+        "bytes_not_observed_remain_unknown",
+        "retain_unresolved_opaque_filename"
+      ],
+      "title": "AdjudicationOutcome",
+      "type": "string"
+    }
+  },
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/manifest/v0.2.0/manifest_adjudication_record.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Append-only human decision that retains the underlying unresolved evidence.",
+  "properties": {
+    "adjudication_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Adjudication Id",
+      "type": "string"
+    },
+    "approved_by": {
+      "const": "Jorge Zavala",
+      "title": "Approved By",
+      "type": "string"
+    },
+    "approved_outcome": {
+      "$ref": "#/$defs/AdjudicationOutcome"
+    },
+    "byte_assertion_changes": {
+      "const": false,
+      "title": "Byte Assertion Changes",
+      "type": "boolean"
+    },
+    "decided_at": {
+      "format": "date-time",
+      "title": "Decided At",
+      "type": "string"
+    },
+    "decision_rationale": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Decision Rationale",
+      "type": "string"
+    },
+    "evidence_refs": {
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Evidence Refs",
+      "type": "array"
+    },
+    "identity_changes": {
+      "const": false,
+      "title": "Identity Changes",
+      "type": "boolean"
+    },
+    "month_mapping_changes": {
+      "const": false,
+      "title": "Month Mapping Changes",
+      "type": "boolean"
+    },
+    "owner_approval_id": {
+      "const": "m1-04b-owner-adjudications-v1",
+      "title": "Owner Approval Id",
+      "type": "string"
+    },
+    "owner_approval_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Owner Approval Sha256",
+      "type": "string"
+    },
+    "proposed_adjudications_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Proposed Adjudications Sha256",
+      "type": "string"
+    },
+    "related_gap_ids": {
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "title": "Related Gap Ids",
+      "type": "array"
+    },
+    "related_manifest_ids": {
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "title": "Related Manifest Ids",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "0.2.0",
+      "default": "0.2.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "source_review_unit_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Source Review Unit Id",
+      "type": "string"
+    },
+    "unresolved_evidence_retained": {
+      "const": true,
+      "title": "Unresolved Evidence Retained",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "adjudication_id",
+    "source_review_unit_id",
+    "related_gap_ids",
+    "related_manifest_ids",
+    "proposed_adjudications_sha256",
+    "approved_outcome",
+    "approved_by",
+    "owner_approval_id",
+    "owner_approval_sha256",
+    "evidence_refs",
+    "identity_changes",
+    "month_mapping_changes",
+    "byte_assertion_changes",
+    "unresolved_evidence_retained",
+    "decision_rationale",
+    "decided_at"
+  ],
+  "title": "ManifestAdjudicationRecord",
+  "type": "object"
+}

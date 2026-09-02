@@ -18,10 +18,15 @@ Parallel work is limited to independent, read-heavy or isolated outputs. No two 
 M0/M0.1, M1-01/M1-02.2, and M1-03 are complete on protected `main` for the bounded
 discovery, acquisition-safety, and ten-report compare-only objective. M1-03B.2 ended
 `completed / all_ten_remote_bytes_identical`; its authorization is spent, no raw
-object was staged or promoted, and its operational evidence is immutable. M1-04A is
-the active package: it reconciles frozen discovery and completed acquisition evidence
-into a candidate, noncanonical manifest package. Final corpus completeness remains a
-later M1-04 human-review decision. M2-01 has not started.
+object was staged or promoted, and its operational evidence is immutable. M1-04A
+technical reconciliation is merged and M1-04B owner review is complete. In M1-04C.1
+the owner approved all 50 conservative review outcomes and the explicit deferral of
+237 future byte acquisitions. The reviewed v0.2.0 contract preserves all v0.1.1
+evidence and unresolved conditions while distinguishing owner-review closure,
+coverage accounting, and authoritative byte completeness. Authoritative byte-corpus
+completeness remains false. The external canonical package has not yet been written;
+that single write requires a separate post-merge owner authorization. M2-01 has not
+started.
 
 ## Global gates
 
