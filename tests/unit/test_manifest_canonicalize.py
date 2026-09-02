@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
@@ -210,6 +211,16 @@ def _package() -> CanonicalPackage:
     )
 
 
+def _assert_written_package(package: CanonicalPackage, directory: Path) -> None:
+    expected_names = set(package.rendered_files) | {canonicalize.CANONICAL_RECEIPT_NAME}
+    assert {path.name for path in directory.iterdir()} == expected_names
+    for name, raw in package.rendered_files.items():
+        assert (directory / name).read_bytes() == raw
+    receipt_raw = (directory / canonicalize.CANONICAL_RECEIPT_NAME).read_bytes()
+    assert receipt_raw == package.receipt_bytes
+    assert CanonicalizationReceipt.model_validate_json(receipt_raw) == package.receipt
+
+
 def test_canonicalization_module_has_separate_preview_and_writer() -> None:
     assert canonicalize.CANONICAL_TARGET_RELATIVE.as_posix() == (
         "06_validation/m1_corpus_manifest/v0.2.0"
@@ -345,19 +356,64 @@ def test_fixed_target_rejects_symlink_or_junction_escape(tmp_path: Path) -> None
         canonicalize.require_new_canonical_target(paths, link / "v0.2.0")
 
 
-def test_preview_is_byte_deterministic_and_receipt_is_written_last(tmp_path: Path) -> None:
+def test_preview_is_byte_deterministic_and_receipt_is_written_last(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     package = _package()
     first = tmp_path / ".cache" / "first"
     second = tmp_path / ".cache" / "second"
     repo = tmp_path
+    write_calls: list[Path] = []
+    real_write_file_fsync = cast(
+        Callable[[Path, bytes], None], canonicalize.__dict__["_write_file_fsync"]
+    )
+
+    def record_write(path: Path, raw: bytes) -> None:
+        write_calls.append(path)
+        real_write_file_fsync(path, raw)
+
+    monkeypatch.setattr(canonicalize, "_write_file_fsync", record_write)
 
     canonicalize.materialize_canonical_preview(package, output_dir=first, repository_root=repo)
     canonicalize.materialize_canonical_preview(package, output_dir=second, repository_root=repo)
 
-    assert [path.name for path in first.iterdir()][-1] == "canonicalization_receipt.json"
+    for output in (first, second):
+        output_calls = [path.name for path in write_calls if path.parent == output]
+        assert output_calls == [
+            *sorted(package.rendered_files),
+            canonicalize.CANONICAL_RECEIPT_NAME,
+        ]
+        assert output_calls.count(canonicalize.CANONICAL_RECEIPT_NAME) == 1
     assert {path.name: path.read_bytes() for path in first.iterdir()} == {
         path.name: path.read_bytes() for path in second.iterdir()
     }
+
+
+def test_external_writer_writes_receipt_after_all_outputs(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    paths = _data_paths(tmp_path)
+    package = _package()
+    write_calls: list[Path] = []
+    real_write_file_fsync = cast(
+        Callable[[Path, bytes], None], canonicalize.__dict__["_write_file_fsync"]
+    )
+
+    def record_write(path: Path, raw: bytes) -> None:
+        write_calls.append(path)
+        real_write_file_fsync(path, raw)
+
+    monkeypatch.setattr(canonicalize, "_write_file_fsync", record_write)
+
+    target = canonicalize.write_canonical_package(package, data_paths=paths)
+
+    package_calls = [path.name for path in write_calls]
+    assert package_calls == [
+        *sorted(package.rendered_files),
+        canonicalize.CANONICAL_RECEIPT_NAME,
+    ]
+    assert package_calls.count(canonicalize.CANONICAL_RECEIPT_NAME) == 1
+    _assert_written_package(package, target)
 
 
 def test_external_writer_is_write_new_and_preserves_partial_evidence_on_failure(
@@ -373,16 +429,39 @@ def test_external_writer_is_write_new_and_preserves_partial_evidence_on_failure(
         canonicalize.write_canonical_package(package, data_paths=paths)
 
     second_paths = _data_paths(tmp_path / "second")
-    original_rename = Path.rename
+    if os.name == "nt":
+        original_rename = Path.rename
 
-    def fail_rename(self: Path, target: Path) -> Path:
-        if self.name.startswith(".m1-04c1-v020-"):
+        def fail_rename(self: Path, target: Path) -> Path:
+            if self.name.startswith(".m1-04c1-v020-"):
+                raise OSError("simulated promotion failure")
+            return original_rename(self, target)
+
+        monkeypatch.setattr(Path, "rename", fail_rename)
+    else:
+
+        def fail_no_replace(
+            source_directory: object,
+            source_name: str,
+            target_directory: object,
+            target_name: str,
+        ) -> None:
+            assert source_directory is target_directory
+            assert source_name.startswith(".m1-04c1-v020-")
+            assert target_name == "v0.2.0"
             raise OSError("simulated promotion failure")
-        return original_rename(self, target)
 
-    monkeypatch.setattr(Path, "rename", fail_rename)
+        monkeypatch.setattr(
+            canonicalize,
+            "rename_between_directories_no_replace",
+            fail_no_replace,
+        )
     with pytest.raises(canonicalize.CanonicalizationError, match="promotion failed"):
         canonicalize.write_canonical_package(package, data_paths=second_paths)
-    partials = tuple((second_paths.validation / "m1_corpus_manifest").glob(".m1-04c1-v020-*"))
+    package_parent = second_paths.validation / "m1_corpus_manifest"
+    final_target = package_parent / "v0.2.0"
+    partials = tuple(package_parent.glob(".m1-04c1-v020-*"))
+    assert not final_target.exists()
     assert len(partials) == 1
-    assert (partials[0] / "canonicalization_receipt.json").is_file()
+    _assert_written_package(package, partials[0])
+    assert not (package_parent / canonicalize.CANONICAL_LOCK_NAME).exists()
