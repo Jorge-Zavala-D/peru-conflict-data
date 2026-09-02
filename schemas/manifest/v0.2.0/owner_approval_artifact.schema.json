@@ -1,0 +1,376 @@
+{
+  "$defs": {
+    "AdjudicationOutcome": {
+      "description": "Owner-approved conservative outcomes for the frozen M1 review queue.",
+      "enum": [
+        "evidence_insufficient_retain_unresolved",
+        "bytes_not_observed_remain_unknown",
+        "retain_unresolved_opaque_filename"
+      ],
+      "title": "AdjudicationOutcome",
+      "type": "string"
+    },
+    "ApprovalFingerprint": {
+      "additionalProperties": false,
+      "description": "Portable exact-byte binding used by an owner approval event.",
+      "properties": {
+        "bytes": {
+          "minimum": 0,
+          "title": "Bytes",
+          "type": "integer"
+        },
+        "path": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Path",
+          "type": "string"
+        },
+        "record_count": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Record Count"
+        },
+        "sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "bytes",
+        "sha256"
+      ],
+      "title": "ApprovalFingerprint",
+      "type": "object"
+    },
+    "ApprovalScientificAssertions": {
+      "additionalProperties": false,
+      "description": "Negative scientific assertions that prevent owner approval from adding facts.",
+      "properties": {
+        "authoritative_byte_corpus_complete": {
+          "const": false,
+          "title": "Authoritative Byte Corpus Complete",
+          "type": "boolean"
+        },
+        "new_byte_identities_created": {
+          "const": false,
+          "title": "New Byte Identities Created",
+          "type": "boolean"
+        },
+        "new_month_mappings_created": {
+          "const": false,
+          "title": "New Month Mappings Created",
+          "type": "boolean"
+        },
+        "new_report_identities_created": {
+          "const": false,
+          "title": "New Report Identities Created",
+          "type": "boolean"
+        },
+        "unresolved_evidence_retained": {
+          "const": true,
+          "title": "Unresolved Evidence Retained",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "new_report_identities_created",
+        "new_month_mappings_created",
+        "new_byte_identities_created",
+        "unresolved_evidence_retained",
+        "authoritative_byte_corpus_complete"
+      ],
+      "title": "ApprovalScientificAssertions",
+      "type": "object"
+    },
+    "ApprovedDecision": {
+      "additionalProperties": false,
+      "description": "One exact owner-approved review-unit outcome.",
+      "properties": {
+        "approved_outcome": {
+          "$ref": "#/$defs/AdjudicationOutcome"
+        },
+        "review_unit_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Review Unit Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "review_unit_id",
+        "approved_outcome"
+      ],
+      "title": "ApprovedDecision",
+      "type": "object"
+    },
+    "ApprovedDeferredAcquisitionPolicy": {
+      "additionalProperties": false,
+      "description": "Owner decision to retain, not erase, the future byte-acquisition queue.",
+      "properties": {
+        "authoritative_byte_corpus_complete": {
+          "const": false,
+          "title": "Authoritative Byte Corpus Complete",
+          "type": "boolean"
+        },
+        "blocks_identity_coverage_canonicalization": {
+          "const": false,
+          "title": "Blocks Identity Coverage Canonicalization",
+          "type": "boolean"
+        },
+        "count": {
+          "const": 237,
+          "title": "Count",
+          "type": "integer"
+        },
+        "future_evidence_classification": {
+          "const": "useful_but_deferred",
+          "title": "Future Evidence Classification",
+          "type": "string"
+        },
+        "report_numbers": {
+          "items": {
+            "type": "integer"
+          },
+          "maxItems": 237,
+          "minItems": 237,
+          "title": "Report Numbers",
+          "type": "array"
+        }
+      },
+      "required": [
+        "authoritative_byte_corpus_complete",
+        "blocks_identity_coverage_canonicalization",
+        "count",
+        "future_evidence_classification",
+        "report_numbers"
+      ],
+      "title": "ApprovedDeferredAcquisitionPolicy",
+      "type": "object"
+    },
+    "ArtifactFingerprint": {
+      "additionalProperties": false,
+      "description": "Portable path and immutable byte fingerprint for one input/output artifact.",
+      "properties": {
+        "artifact_role": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Artifact Role",
+          "type": "string"
+        },
+        "bytes": {
+          "minimum": 0,
+          "title": "Bytes",
+          "type": "integer"
+        },
+        "path": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Path",
+          "type": "string"
+        },
+        "record_count": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Record Count"
+        },
+        "sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "artifact_role",
+        "path",
+        "bytes",
+        "sha256"
+      ],
+      "title": "ArtifactFingerprint",
+      "type": "object"
+    },
+    "GitStateBinding": {
+      "additionalProperties": false,
+      "description": "Protected-main state to which the reviewed evidence was bound.",
+      "properties": {
+        "commit": {
+          "pattern": "^[a-f0-9]{40}$",
+          "title": "Commit",
+          "type": "string"
+        },
+        "tree": {
+          "pattern": "^[a-f0-9]{40}$",
+          "title": "Tree",
+          "type": "string"
+        }
+      },
+      "required": [
+        "commit",
+        "tree"
+      ],
+      "title": "GitStateBinding",
+      "type": "object"
+    },
+    "ManifestContractBinding": {
+      "additionalProperties": false,
+      "description": "Frozen candidate contract reviewed by the owner.",
+      "properties": {
+        "materializer_version": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Materializer Version",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "0.1.1",
+          "title": "Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "materializer_version"
+      ],
+      "title": "ManifestContractBinding",
+      "type": "object"
+    }
+  },
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/manifest/v0.2.0/owner_approval_artifact.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Exact owner approval event over the frozen M1-04B evidence bytes.",
+  "properties": {
+    "approval_id": {
+      "const": "m1-04b-owner-adjudications-v1",
+      "title": "Approval Id",
+      "type": "string"
+    },
+    "approved_at": {
+      "format": "date-time",
+      "title": "Approved At",
+      "type": "string"
+    },
+    "approved_by": {
+      "const": "Jorge Zavala",
+      "title": "Approved By",
+      "type": "string"
+    },
+    "approved_decisions": {
+      "items": {
+        "$ref": "#/$defs/ApprovedDecision"
+      },
+      "maxItems": 50,
+      "minItems": 50,
+      "title": "Approved Decisions",
+      "type": "array"
+    },
+    "approved_deferred_acquisition_policy": {
+      "$ref": "#/$defs/ApprovedDeferredAcquisitionPolicy"
+    },
+    "approved_outcome_counts": {
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "propertyNames": {
+        "$ref": "#/$defs/AdjudicationOutcome"
+      },
+      "title": "Approved Outcome Counts",
+      "type": "object"
+    },
+    "approved_permissible_coverage_statement": {
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Approved Permissible Coverage Statement",
+      "type": "array"
+    },
+    "candidate_fingerprints": {
+      "items": {
+        "$ref": "#/$defs/ArtifactFingerprint"
+      },
+      "maxItems": 6,
+      "minItems": 6,
+      "title": "Candidate Fingerprints",
+      "type": "array"
+    },
+    "manifest_contract": {
+      "$ref": "#/$defs/ManifestContractBinding"
+    },
+    "owner_approved": {
+      "const": true,
+      "title": "Owner Approved",
+      "type": "boolean"
+    },
+    "post_merge_materialization_receipt": {
+      "$ref": "#/$defs/ApprovalFingerprint"
+    },
+    "prohibited_overclaims": {
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Prohibited Overclaims",
+      "type": "array"
+    },
+    "protected_main": {
+      "$ref": "#/$defs/GitStateBinding"
+    },
+    "review_input_fingerprints": {
+      "additionalProperties": {
+        "$ref": "#/$defs/ApprovalFingerprint"
+      },
+      "title": "Review Input Fingerprints",
+      "type": "object"
+    },
+    "schema_version": {
+      "const": "0.2.0",
+      "default": "0.2.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "scientific_assertions": {
+      "$ref": "#/$defs/ApprovalScientificAssertions"
+    }
+  },
+  "required": [
+    "approval_id",
+    "approved_by",
+    "approved_at",
+    "owner_approved",
+    "protected_main",
+    "manifest_contract",
+    "candidate_fingerprints",
+    "post_merge_materialization_receipt",
+    "review_input_fingerprints",
+    "approved_decisions",
+    "approved_outcome_counts",
+    "approved_deferred_acquisition_policy",
+    "approved_permissible_coverage_statement",
+    "prohibited_overclaims",
+    "scientific_assertions"
+  ],
+  "title": "OwnerApprovalArtifact",
+  "type": "object"
+}

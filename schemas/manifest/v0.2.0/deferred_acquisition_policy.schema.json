@@ -1,0 +1,76 @@
+{
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/manifest/v0.2.0/deferred_acquisition_policy.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Reviewed policy for observed reports whose authoritative bytes remain deferred.",
+  "properties": {
+    "authoritative_byte_corpus_complete": {
+      "const": false,
+      "title": "Authoritative Byte Corpus Complete",
+      "type": "boolean"
+    },
+    "authoritative_bytes_acquired": {
+      "const": false,
+      "title": "Authoritative Bytes Acquired",
+      "type": "boolean"
+    },
+    "deferred_report_count": {
+      "const": 237,
+      "title": "Deferred Report Count",
+      "type": "integer"
+    },
+    "future_evidence_classification": {
+      "const": "useful_but_deferred",
+      "title": "Future Evidence Classification",
+      "type": "string"
+    },
+    "owner_approval_id": {
+      "const": "m1-04b-owner-adjudications-v1",
+      "title": "Owner Approval Id",
+      "type": "string"
+    },
+    "owner_approval_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Owner Approval Sha256",
+      "type": "string"
+    },
+    "policy_id": {
+      "const": "m1-deferred-byte-acquisition-23-259-v1",
+      "title": "Policy Id",
+      "type": "string"
+    },
+    "report_identities_observed": {
+      "const": true,
+      "title": "Report Identities Observed",
+      "type": "boolean"
+    },
+    "report_numbers": {
+      "items": {
+        "type": "integer"
+      },
+      "maxItems": 237,
+      "minItems": 237,
+      "title": "Report Numbers",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "0.2.0",
+      "default": "0.2.0",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "policy_id",
+    "report_numbers",
+    "deferred_report_count",
+    "report_identities_observed",
+    "authoritative_bytes_acquired",
+    "authoritative_byte_corpus_complete",
+    "future_evidence_classification",
+    "owner_approval_id",
+    "owner_approval_sha256"
+  ],
+  "title": "DeferredAcquisitionPolicy",
+  "type": "object"
+}

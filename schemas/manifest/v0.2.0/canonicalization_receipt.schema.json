@@ -1,0 +1,303 @@
+{
+  "$defs": {
+    "ApprovalFingerprint": {
+      "additionalProperties": false,
+      "description": "Portable exact-byte binding used by an owner approval event.",
+      "properties": {
+        "bytes": {
+          "minimum": 0,
+          "title": "Bytes",
+          "type": "integer"
+        },
+        "path": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Path",
+          "type": "string"
+        },
+        "record_count": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Record Count"
+        },
+        "sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "bytes",
+        "sha256"
+      ],
+      "title": "ApprovalFingerprint",
+      "type": "object"
+    },
+    "ArtifactFingerprint": {
+      "additionalProperties": false,
+      "description": "Portable path and immutable byte fingerprint for one input/output artifact.",
+      "properties": {
+        "artifact_role": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Artifact Role",
+          "type": "string"
+        },
+        "bytes": {
+          "minimum": 0,
+          "title": "Bytes",
+          "type": "integer"
+        },
+        "path": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Path",
+          "type": "string"
+        },
+        "record_count": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Record Count"
+        },
+        "sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "artifact_role",
+        "path",
+        "bytes",
+        "sha256"
+      ],
+      "title": "ArtifactFingerprint",
+      "type": "object"
+    }
+  },
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/manifest/v0.2.0/canonicalization_receipt.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Immutable receipt for one reviewed v0.2.0 canonical package.",
+  "properties": {
+    "adjudication_records_artifact": {
+      "$ref": "#/$defs/ArtifactFingerprint"
+    },
+    "approved_coverage_claims": {
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Approved Coverage Claims",
+      "type": "array"
+    },
+    "authoritative_byte_corpus_complete": {
+      "const": false,
+      "title": "Authoritative Byte Corpus Complete",
+      "type": "boolean"
+    },
+    "byte_verified_count": {
+      "const": 10,
+      "title": "Byte Verified Count",
+      "type": "integer"
+    },
+    "candidate_input_artifacts": {
+      "items": {
+        "$ref": "#/$defs/ArtifactFingerprint"
+      },
+      "minItems": 6,
+      "title": "Candidate Input Artifacts",
+      "type": "array"
+    },
+    "canonical_target_relative_path": {
+      "const": "06_validation/m1_corpus_manifest/v0.2.0",
+      "title": "Canonical Target Relative Path",
+      "type": "string"
+    },
+    "deferred_acquisition_count": {
+      "const": 237,
+      "title": "Deferred Acquisition Count",
+      "type": "integer"
+    },
+    "deterministic_sort_rules": {
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Deterministic Sort Rules",
+      "type": "array"
+    },
+    "discovery_input_artifacts": {
+      "items": {
+        "$ref": "#/$defs/ArtifactFingerprint"
+      },
+      "minItems": 1,
+      "title": "Discovery Input Artifacts",
+      "type": "array"
+    },
+    "execution_commit": {
+      "pattern": "^[a-f0-9]{40}$",
+      "title": "Execution Commit",
+      "type": "string"
+    },
+    "implementation_tree_sha": {
+      "pattern": "^[a-f0-9]{40}$",
+      "title": "Implementation Tree Sha",
+      "type": "string"
+    },
+    "manifest_schema_version": {
+      "const": "0.2.0",
+      "title": "Manifest Schema Version",
+      "type": "string"
+    },
+    "no_network_assertion": {
+      "const": true,
+      "title": "No Network Assertion",
+      "type": "boolean"
+    },
+    "no_raw_write_assertion": {
+      "const": true,
+      "title": "No Raw Write Assertion",
+      "type": "boolean"
+    },
+    "operational_input_artifacts": {
+      "items": {
+        "$ref": "#/$defs/ArtifactFingerprint"
+      },
+      "minItems": 1,
+      "title": "Operational Input Artifacts",
+      "type": "array"
+    },
+    "output_artifacts": {
+      "items": {
+        "$ref": "#/$defs/ArtifactFingerprint"
+      },
+      "minItems": 10,
+      "title": "Output Artifacts",
+      "type": "array"
+    },
+    "owner_approval_artifact": {
+      "$ref": "#/$defs/ApprovalFingerprint"
+    },
+    "proposed_adjudications_artifact": {
+      "$ref": "#/$defs/ApprovalFingerprint"
+    },
+    "receipt_written_last": {
+      "const": true,
+      "title": "Receipt Written Last",
+      "type": "boolean"
+    },
+    "record_counts": {
+      "items": {
+        "maxItems": 2,
+        "minItems": 2,
+        "prefixItems": [
+          {
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "type": "string"
+          },
+          {
+            "type": "integer"
+          }
+        ],
+        "type": "array"
+      },
+      "minItems": 10,
+      "title": "Record Counts",
+      "type": "array"
+    },
+    "review_input_artifacts": {
+      "items": {
+        "$ref": "#/$defs/ApprovalFingerprint"
+      },
+      "minItems": 6,
+      "title": "Review Input Artifacts",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "0.2.0",
+      "default": "0.2.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "task_id": {
+      "const": "M1-04C.1",
+      "title": "Task Id",
+      "type": "string"
+    },
+    "unresolved_gap_counts": {
+      "items": {
+        "maxItems": 2,
+        "minItems": 2,
+        "prefixItems": [
+          {
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "type": "string"
+          },
+          {
+            "type": "integer"
+          }
+        ],
+        "type": "array"
+      },
+      "title": "Unresolved Gap Counts",
+      "type": "array"
+    },
+    "write_once_no_overwrite": {
+      "const": true,
+      "title": "Write Once No Overwrite",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "task_id",
+    "execution_commit",
+    "implementation_tree_sha",
+    "manifest_schema_version",
+    "canonical_target_relative_path",
+    "candidate_input_artifacts",
+    "review_input_artifacts",
+    "discovery_input_artifacts",
+    "operational_input_artifacts",
+    "owner_approval_artifact",
+    "proposed_adjudications_artifact",
+    "adjudication_records_artifact",
+    "output_artifacts",
+    "record_counts",
+    "unresolved_gap_counts",
+    "deferred_acquisition_count",
+    "byte_verified_count",
+    "authoritative_byte_corpus_complete",
+    "approved_coverage_claims",
+    "deterministic_sort_rules",
+    "no_network_assertion",
+    "no_raw_write_assertion",
+    "write_once_no_overwrite",
+    "receipt_written_last"
+  ],
+  "title": "CanonicalizationReceipt",
+  "type": "object"
+}
