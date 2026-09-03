@@ -15,7 +15,9 @@ Annotators A and B receive the same PDF bytes, handbook, unit boundaries, and bl
 not see each other's work, machine suggestions, parser output, or adjudications before both
 submissions lock. A locked submission is immutable. Corrections create a superseding submission;
 disagreements and adjudications never overwrite A or B. Annotator IDs are pseudonymous role IDs,
-not personal information.
+not personal information. A valid A/B pair must have different submission and annotator IDs, the
+same unit and partition role, and two locked current submissions; draft or superseded submissions
+cannot form the comparison pair.
 
 ## 2. Annotation states
 
@@ -48,15 +50,23 @@ Unit IDs are SHA-256-derived from report number, source SHA, unit type, exact so
 a reviewed source locator. Changing any boundary creates a new unit ID. Pilot units are fixed in
 `config/benchmark/m2_partition_v1.yaml`.
 
+Within a unit, each annotator independently declares every source object they believe exists. An
+object instance is keyed only by unit, object type, and a local zero-based cardinality index; it is
+not a longitudinal case identity. Each declaration lists the required source-value fields for that
+instance. A locked submission accounts for every declared field with exactly one annotation state.
+Different A/B object counts remain explicit disagreement evidence.
+
 ## 4. Page-evidence contract
 
 Every critical annotation carries report ID/number, exact PDF SHA, one-based page, and section.
-Use an exact text span for prose or a bounding box when layout is material. A table cell anchor also
+Use one typed locator appropriate to the evidence: an exact text span for prose or a bounding box
+when layout is material. A table cell anchor also
 records table title, row label, and column label. Page-only evidence is allowed only for a fact whose
 entire page is the meaningful unit (for example, a page-wide absence/format observation) and requires
 a rationale. Cross-page evidence uses multiple anchors in reading order. Repeated statements may
 share one anchor across multiple field annotations; do not duplicate or paraphrase source text.
-When two pages conflict, retain both anchors and open a discrepancy.
+When two pages conflict, retain both anchors and open a discrepancy. A span does not require a bbox;
+a bbox does not require a span.
 
 ## 5. Scientific field dictionary
 
@@ -75,7 +85,7 @@ null by human annotators, and `provenance_ids` contains the evidence records sup
 
 | Object | Fields and annotation rule | Cardinality / evidence | Critical |
 |---|---|---|---|
-| `ConflictCase` | `case_id`, `official_code`, `canonical_name`, `identity_method`, `identity_confidence`, `provenance_ids`. Human annotation records source observations; canonical identity/linkage is not decided here unless an official code is visible. | Zero/one linked identity per observation; official-code anchor required. | ID/code. |
+| `ConflictCase` | `case_id`, `official_code`, `canonical_name`, `identity_method`, `identity_confidence`, `provenance_ids`. Human annotation records source observations; canonical identity/linkage is not decided here unless an official code is visible. `case_id` is technical/later-stage identity and is never an M2 source-value accuracy target. | Zero/one linked identity per observation; official-code anchor required. | Visible official code only. |
 | `CaseName` | `case_name_id`, `case_id`, `report_id`, `name_original`, `name_normalized`, `provenance_ids`. Copy the exact displayed case/denomination label. | One or more names per case observation. | original name. |
 | `CaseMonth` | `case_month_id`, `case_id`, `report_id`, `reference_period`, `official_code_original`, `name_original`, stock status original/normalized, phase original/normalized, conflict type original/normalized, `case_description_original`, `transitions`, `monthly_facts_original`, `provenance_ids`. Structural description and current/month facts are separate even if repeated. | One per case/report observation; field-level anchors. | status, phase, type, description, monthly facts, transitions. |
 | `CaseReportedIndicator` | `case_reported_indicator_id`, `case_month_id`, `case_id`, `report_id`, `metric_original`, non-null `value`, `unit_original`, `scope_original`, `provenance_ids`. Use only for a value explicitly reported at case/reporting scope; never calculate from events. | Zero or more per case-month; exact label/cell anchor. | violence/casualty/dialogue indicators. |
@@ -105,7 +115,7 @@ null by human annotators, and `provenance_ids` contains the evidence records sup
 | Object | Fields and annotation rule | Cardinality / evidence | Critical |
 |---|---|---|---|
 | `DialogueEvent` | event ID, report/case/mediation IDs, date/original/precision, description, status, provenance. Requires a dated or distinctly bounded dialogue occurrence; source-reported case status alone belongs in `CaseReportedIndicator`. | Zero or more events; mediation link evidence mandatory. | date, description, status. |
-| `MediationObservation` | observation ID, report ID, optional process/case IDs, start date/original/precision, status, requester, actors, mediation type, mediator, case description, demands, progress, provenance. Transcribe one report-local block. Do not assign process identity. | One per published mediation block. | start date, status/type/mediator, description/progress. |
+| `MediationObservation` | observation ID, report ID, optional process/case IDs, start date/original/precision, status, requester, actors, mediation type, mediator, case description, demands, progress, provenance. Transcribe one report-local block. Source column `Estado` maps to `status_original`; `Estado situacional` maps to `progress_original` when it contains the situation/progress narrative. Never merge the two or treat the narrative as another status code. Do not assign process identity. | One per published mediation block. | start date, status/type/mediator, description/progress. |
 | `MediationProcess` | process ID, optional case ID, canonical label, required identity method, optional confidence, and mandatory provenance. This is a later evidence-backed identity object, not a direct annotation answer. | Created only after linkage review; usually zero in raw annotations. | identity evidence if created. |
 
 ### Agreements, actions, alerts, and relationships
@@ -121,18 +131,22 @@ null by human annotators, and `provenance_ids` contains the evidence records sup
 
 | Object | Fields and annotation rule | Cardinality / evidence | Critical |
 |---|---|---|---|
-| `ProvenanceRecord` | provenance/object/field IDs; report ID/SHA/page/section/table/bbox/span/text; extraction method; extractor/parser/model metadata; confidence/status. Human annotations use `manual`; no model invocation. | At least one per critical fact; reusable across fields. | report/SHA/page/section/span/bbox. |
+| `ProvenanceRecord` | provenance/object/field IDs; report ID/SHA/page/section/table/bbox/span/text; extraction method; extractor/parser/model metadata; confidence/status. Human annotations use `manual`; no model invocation. | At least one per critical fact; reusable across fields. | report/SHA/page/section plus one granularity-appropriate locator. |
 | `DiscrepancyRecord` | discrepancy/report IDs, type, severity, values and both provenance sides, status, rationale, parser version, review ID. Source contradictions use `SOURCE_INCONSISTENCY`; parser differences use `PARSER_ERROR`. | One per identified discrepancy. | type and both evidence sides. |
 | `ManualReviewItem` | review/object IDs, issue type, candidate JSON, optional machine suggestion plus invocation, evidence IDs, neighboring periods, status, second-review flag, creation time/parser version. Machine suggestions are prohibited in A/B forms. | Append-only review queue item. | evidence and status. |
 | `AdjudicationRecord` | adjudication/review IDs, decision/action/payload, rationale, reviewer/time/version, evidence IDs, supersession and second-review fields. Never rewrite the underlying submissions. | Append-only decisions; second reviewer differs. | decision, rationale, evidence. |
 
 ## 6. Benchmark technical records
 
-`AnnotationUnit` freezes source bounds. `EvidenceAnchor` implements Section 4. `FieldAnnotation`
-stores one field/cardinality position and one explicit state. `AnnotatorSubmission` preserves an
-immutable A or B submission after lock. `AnnotationDisagreement` references both submissions and
-their annotations. `GoldAdjudication` records a separate reviewed decision. `BenchmarkCoverageReceipt`
-proves every required field is either observed or assigned an allowed non-value state.
+`AnnotationUnit` freezes source bounds. `AnnotationObjectInstance` declares report-local repeated
+objects; `AnnotationSlot` identifies one instance field. `EvidenceAnchor` and `EvidenceRequirement`
+implement Section 4. `FieldAnnotation` stores one slot and explicit state. `AnnotatorSubmission`
+preserves an immutable A or B submission after lock and requires complete coverage of its own
+inventory. `validate_independent_submissions()` checks the versioned submission history, enforces
+A/B independence using two locked submissions without locked successors, and surfaces object-count
+mismatches. `AnnotationDisagreement` references both submissions and their annotations.
+`GoldAdjudication` records a separate reviewed decision. `BenchmarkCoverageReceipt` proves every
+field of every reviewed object instance is observed or assigned an allowed non-value state.
 `BenchmarkPartition` freezes report-level roles.
 
 ## 7. Common ambiguities and prohibited inference

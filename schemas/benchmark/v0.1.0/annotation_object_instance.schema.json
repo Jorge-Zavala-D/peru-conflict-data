@@ -1,0 +1,50 @@
+{
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/benchmark/v0.1.0/annotation_object_instance.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "A report-local object instance declared independently by one annotator.",
+  "properties": {
+    "benchmark_schema_version": {
+      "const": "0.1.0",
+      "default": "0.1.0",
+      "title": "Benchmark Schema Version",
+      "type": "string"
+    },
+    "cardinality_index": {
+      "minimum": 0,
+      "title": "Cardinality Index",
+      "type": "integer"
+    },
+    "domain_object_type": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Domain Object Type",
+      "type": "string"
+    },
+    "required_field_names": {
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Required Field Names",
+      "type": "array",
+      "uniqueItems": true
+    },
+    "unit_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Unit Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "unit_id",
+    "domain_object_type",
+    "cardinality_index",
+    "required_field_names"
+  ],
+  "title": "AnnotationObjectInstance",
+  "type": "object"
+}

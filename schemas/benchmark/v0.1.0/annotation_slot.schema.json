@@ -1,0 +1,45 @@
+{
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/benchmark/v0.1.0/annotation_slot.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "One source-bounded object-instance field within an annotation unit.",
+  "properties": {
+    "benchmark_schema_version": {
+      "const": "0.1.0",
+      "default": "0.1.0",
+      "title": "Benchmark Schema Version",
+      "type": "string"
+    },
+    "cardinality_index": {
+      "minimum": 0,
+      "title": "Cardinality Index",
+      "type": "integer"
+    },
+    "domain_object_type": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Domain Object Type",
+      "type": "string"
+    },
+    "field_name": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Field Name",
+      "type": "string"
+    },
+    "unit_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Unit Id",
+      "type": "string"
+    }
+  },
+  "required": [
+    "unit_id",
+    "domain_object_type",
+    "cardinality_index",
+    "field_name"
+  ],
+  "title": "AnnotationSlot",
+  "type": "object"
+}

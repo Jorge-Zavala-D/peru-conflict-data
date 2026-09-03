@@ -1,0 +1,135 @@
+{
+  "$defs": {
+    "AnnotationSlot": {
+      "additionalProperties": false,
+      "description": "One source-bounded object-instance field within an annotation unit.",
+      "properties": {
+        "benchmark_schema_version": {
+          "const": "0.1.0",
+          "default": "0.1.0",
+          "title": "Benchmark Schema Version",
+          "type": "string"
+        },
+        "cardinality_index": {
+          "minimum": 0,
+          "title": "Cardinality Index",
+          "type": "integer"
+        },
+        "domain_object_type": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Domain Object Type",
+          "type": "string"
+        },
+        "field_name": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Field Name",
+          "type": "string"
+        },
+        "unit_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Unit Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "unit_id",
+        "domain_object_type",
+        "cardinality_index",
+        "field_name"
+      ],
+      "title": "AnnotationSlot",
+      "type": "object"
+    },
+    "EvidenceGranularity": {
+      "enum": [
+        "page_only",
+        "section",
+        "span",
+        "bounding_box",
+        "table_cell"
+      ],
+      "title": "EvidenceGranularity",
+      "type": "string"
+    }
+  },
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/benchmark/v0.1.0/evidence_requirement.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Exact custody, page, section, and typed-locator requirement for one slot.",
+  "properties": {
+    "allowed_granularities": {
+      "items": {
+        "enum": [
+          "span",
+          "bounding_box",
+          "table_cell",
+          "page_only"
+        ],
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Allowed Granularities",
+      "type": "array",
+      "uniqueItems": true
+    },
+    "benchmark_schema_version": {
+      "const": "0.1.0",
+      "default": "0.1.0",
+      "title": "Benchmark Schema Version",
+      "type": "string"
+    },
+    "pages": {
+      "items": {
+        "type": "integer"
+      },
+      "minItems": 1,
+      "title": "Pages",
+      "type": "array",
+      "uniqueItems": true
+    },
+    "report_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Report Id",
+      "type": "string"
+    },
+    "report_number": {
+      "minimum": 1,
+      "title": "Report Number",
+      "type": "integer"
+    },
+    "sections": {
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Sections",
+      "type": "array",
+      "uniqueItems": true
+    },
+    "slot": {
+      "$ref": "#/$defs/AnnotationSlot"
+    },
+    "source_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Source Sha256",
+      "type": "string"
+    }
+  },
+  "required": [
+    "slot",
+    "report_id",
+    "report_number",
+    "source_sha256",
+    "pages",
+    "sections",
+    "allowed_granularities"
+  ],
+  "title": "EvidenceRequirement",
+  "type": "object"
+}

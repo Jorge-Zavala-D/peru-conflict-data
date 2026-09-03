@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import hashlib
 import json
+from collections.abc import Sequence
 from enum import StrEnum
-from typing import Annotated, Literal, Self
+from typing import Literal, Self
 
-from pydantic import AwareDatetime, Field, StringConstraints, model_validator
+from pydantic import AwareDatetime, Field, model_validator
 
 from peru_conflicts.hashing import canonical_json_bytes
 from peru_conflicts.models.common import (
@@ -20,7 +21,6 @@ from peru_conflicts.models.common import (
 )
 
 BENCHMARK_SCHEMA_VERSION = "0.1.0"
-FieldKey = Annotated[str, StringConstraints(pattern=r"^[a-z][a-z0-9_]*\.[a-z][a-z0-9_]*$")]
 
 
 class BenchmarkVersionedModel(StrictModel):
@@ -138,11 +138,97 @@ class EvidenceAnchor(BenchmarkVersionedModel):
         if self.granularity is EvidenceGranularity.BOUNDING_BOX and self.source_bbox is None:
             raise ValueError("bounding-box evidence requires source_bbox")
         if self.granularity is EvidenceGranularity.TABLE_CELL and (
-            not self.source_table or not self.table_row_original or not self.table_column_original
+            not isinstance(self.source_table, str)
+            or not self.source_table.strip()
+            or not isinstance(self.table_row_original, str)
+            or not self.table_row_original.strip()
+            or not isinstance(self.table_column_original, str)
+            or not self.table_column_original.strip()
         ):
             raise ValueError("table-cell evidence requires table, row, and column labels")
-        if self.granularity is EvidenceGranularity.PAGE_ONLY and not self.page_only_rationale:
+        if self.granularity is EvidenceGranularity.PAGE_ONLY and (
+            not isinstance(self.page_only_rationale, str) or not self.page_only_rationale.strip()
+        ):
             raise ValueError("page-only evidence requires page_only_rationale")
+        return self
+
+
+class AnnotationSlot(BenchmarkVersionedModel):
+    """One source-bounded object-instance field within an annotation unit."""
+
+    unit_id: Identifier
+    domain_object_type: Identifier
+    cardinality_index: int = Field(ge=0)
+    field_name: Identifier
+
+    @property
+    def key(self) -> tuple[str, str, str, int]:
+        return (
+            self.unit_id,
+            self.domain_object_type,
+            self.field_name,
+            self.cardinality_index,
+        )
+
+
+class AnnotationObjectInstance(BenchmarkVersionedModel):
+    """A report-local object instance declared independently by one annotator."""
+
+    unit_id: Identifier
+    domain_object_type: Identifier
+    cardinality_index: int = Field(ge=0)
+    required_field_names: tuple[Identifier, ...] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def validate_required_fields(self) -> Self:
+        if len(self.required_field_names) != len(set(self.required_field_names)):
+            raise ValueError("object-instance required field names must be unique")
+        return self
+
+    @property
+    def key(self) -> tuple[str, str, int]:
+        return (self.unit_id, self.domain_object_type, self.cardinality_index)
+
+    @property
+    def required_slots(self) -> tuple[AnnotationSlot, ...]:
+        return tuple(
+            AnnotationSlot(
+                unit_id=self.unit_id,
+                domain_object_type=self.domain_object_type,
+                cardinality_index=self.cardinality_index,
+                field_name=field_name,
+            )
+            for field_name in self.required_field_names
+        )
+
+
+class EvidenceRequirement(BenchmarkVersionedModel):
+    """Exact custody, page, section, and typed-locator requirement for one slot."""
+
+    slot: AnnotationSlot
+    report_id: Identifier
+    report_number: int = Field(ge=1)
+    source_sha256: Sha256
+    pages: tuple[int, ...] = Field(min_length=1)
+    sections: tuple[Identifier, ...] = Field(min_length=1)
+    allowed_granularities: tuple[EvidenceGranularity, ...] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def validate_requirement(self) -> Self:
+        if tuple(sorted(set(self.pages))) != self.pages or any(page < 1 for page in self.pages):
+            raise ValueError("evidence requirement pages must be positive, sorted, and unique")
+        if len(self.sections) != len(set(self.sections)):
+            raise ValueError("evidence requirement sections must be unique")
+        if len(self.allowed_granularities) != len(set(self.allowed_granularities)):
+            raise ValueError("allowed evidence granularities must be unique")
+        locator_granularities = {
+            EvidenceGranularity.SPAN,
+            EvidenceGranularity.BOUNDING_BOX,
+            EvidenceGranularity.TABLE_CELL,
+            EvidenceGranularity.PAGE_ONLY,
+        }
+        if not set(self.allowed_granularities).issubset(locator_granularities):
+            raise ValueError("evidence requirements allow only typed locator granularities")
         return self
 
 
@@ -192,6 +278,7 @@ class AnnotatorSubmission(BenchmarkVersionedModel):
     status: SubmissionStatus
     locked_at: AwareDatetime | None = None
     supersedes_submission_id: Identifier | None = None
+    object_inventory: tuple[AnnotationObjectInstance, ...] = ()
     annotations: tuple[FieldAnnotation, ...] = ()
 
     @model_validator(mode="after")
@@ -202,6 +289,13 @@ class AnnotatorSubmission(BenchmarkVersionedModel):
             raise ValueError("draft submissions cannot have locked_at")
         if self.status is SubmissionStatus.LOCKED and not self.annotations:
             raise ValueError("locked submissions require annotations")
+        if self.status is SubmissionStatus.LOCKED and not self.object_inventory:
+            raise ValueError("locked submissions require an object inventory")
+        if any(instance.unit_id != self.unit_id for instance in self.object_inventory):
+            raise ValueError("every object instance must have the submission unit ID")
+        inventory_keys = [instance.key for instance in self.object_inventory]
+        if len(inventory_keys) != len(set(inventory_keys)):
+            raise ValueError("submission object-instance keys must be unique")
         if any(annotation.annotator_id != self.annotator_id for annotation in self.annotations):
             raise ValueError("every annotation must have the submission annotator ID")
         if any(annotation.unit_id != self.unit_id for annotation in self.annotations):
@@ -216,9 +310,97 @@ class AnnotatorSubmission(BenchmarkVersionedModel):
         ]
         if len(keys) != len(set(keys)):
             raise ValueError("submission annotation keys must be unique")
+        if self.status is SubmissionStatus.LOCKED:
+            required_slots = {
+                slot.key for instance in self.object_inventory for slot in instance.required_slots
+            }
+            annotation_slots = {
+                (
+                    annotation.unit_id,
+                    annotation.domain_object_type,
+                    annotation.field_name,
+                    annotation.cardinality_index,
+                )
+                for annotation in self.annotations
+            }
+            if annotation_slots != required_slots:
+                raise ValueError("every declared object field must be annotated exactly once")
         if self.supersedes_submission_id == self.submission_id:
             raise ValueError("a submission cannot supersede itself")
         return self
+
+
+class ObjectInstanceCountMismatch(BenchmarkVersionedModel):
+    """A source-object count disagreement between two independent submissions."""
+
+    domain_object_type: Identifier
+    submission_a_count: int = Field(ge=0)
+    submission_b_count: int = Field(ge=0)
+
+    @model_validator(mode="after")
+    def require_mismatch(self) -> Self:
+        if self.submission_a_count == self.submission_b_count:
+            raise ValueError("object-instance count mismatch values must differ")
+        return self
+
+
+def validate_independent_submissions(
+    submission_a: AnnotatorSubmission,
+    submission_b: AnnotatorSubmission,
+    *,
+    submission_history: Sequence[AnnotatorSubmission],
+) -> tuple[ObjectInstanceCountMismatch, ...]:
+    """Validate a normative current independent A/B pair and return count disagreements."""
+
+    history_by_id: dict[str, AnnotatorSubmission] = {}
+    for submission in submission_history:
+        if submission.submission_id in history_by_id:
+            raise ValueError("submission history IDs must be unique")
+        history_by_id[submission.submission_id] = submission
+    for submission in (submission_a, submission_b):
+        if history_by_id.get(submission.submission_id) != submission:
+            raise ValueError(
+                "independent submissions must be present exactly in submission history"
+            )
+
+    superseded_ids = {
+        submission.supersedes_submission_id
+        for submission in submission_history
+        if submission.status is SubmissionStatus.LOCKED
+        and submission.supersedes_submission_id is not None
+    }
+
+    if submission_a.submission_id == submission_b.submission_id:
+        raise ValueError("independent submission IDs must differ")
+    if submission_a.annotator_id == submission_b.annotator_id:
+        raise ValueError("independent annotator IDs must differ")
+    if submission_a.unit_id != submission_b.unit_id:
+        raise ValueError("independent submissions must cover the same annotation unit")
+    if submission_a.partition_role is not submission_b.partition_role:
+        raise ValueError("independent submissions must have the same partition role")
+    if (
+        submission_a.status is not SubmissionStatus.LOCKED
+        or submission_b.status is not SubmissionStatus.LOCKED
+        or submission_a.submission_id in superseded_ids
+        or submission_b.submission_id in superseded_ids
+    ):
+        raise ValueError("independent submissions must both be locked and current")
+
+    counts_a: dict[str, int] = {}
+    counts_b: dict[str, int] = {}
+    for instance in submission_a.object_inventory:
+        counts_a[instance.domain_object_type] = counts_a.get(instance.domain_object_type, 0) + 1
+    for instance in submission_b.object_inventory:
+        counts_b[instance.domain_object_type] = counts_b.get(instance.domain_object_type, 0) + 1
+    return tuple(
+        ObjectInstanceCountMismatch(
+            domain_object_type=object_type,
+            submission_a_count=counts_a.get(object_type, 0),
+            submission_b_count=counts_b.get(object_type, 0),
+        )
+        for object_type in sorted(counts_a.keys() | counts_b.keys())
+        if counts_a.get(object_type, 0) != counts_b.get(object_type, 0)
+    )
 
 
 class AnnotationDisagreement(BenchmarkVersionedModel):
@@ -260,25 +442,43 @@ class GoldAdjudication(BenchmarkVersionedModel):
 class BenchmarkCoverageReceipt(BenchmarkVersionedModel):
     receipt_id: Identifier
     unit_id: Identifier
-    required_field_keys: tuple[FieldKey, ...] = Field(min_length=1)
-    observed_field_keys: tuple[FieldKey, ...] = ()
-    explicit_non_value_field_keys: tuple[FieldKey, ...] = ()
+    object_inventory: tuple[AnnotationObjectInstance, ...] = Field(min_length=1)
+    observed_slots: tuple[AnnotationSlot, ...] = ()
+    explicit_non_value_slots: tuple[AnnotationSlot, ...] = ()
+
+    @property
+    def required_slots(self) -> tuple[AnnotationSlot, ...]:
+        return tuple(
+            sorted(
+                (slot for instance in self.object_inventory for slot in instance.required_slots),
+                key=lambda slot: slot.key,
+            )
+        )
 
     @model_validator(mode="after")
     def require_complete_coverage(self) -> Self:
-        required = set(self.required_field_keys)
-        observed = set(self.observed_field_keys)
-        non_value = set(self.explicit_non_value_field_keys)
-        if len(required) != len(self.required_field_keys):
-            raise ValueError("required field keys must be unique")
-        if len(observed) != len(self.observed_field_keys):
-            raise ValueError("observed field keys must be unique")
-        if len(non_value) != len(self.explicit_non_value_field_keys):
-            raise ValueError("explicit non-value field keys must be unique")
+        if any(instance.unit_id != self.unit_id for instance in self.object_inventory):
+            raise ValueError("every object instance must have the receipt unit ID")
+        if any(slot.unit_id != self.unit_id for slot in self.observed_slots):
+            raise ValueError("every observed slot must have the receipt unit ID")
+        if any(slot.unit_id != self.unit_id for slot in self.explicit_non_value_slots):
+            raise ValueError("every explicit non-value slot must have the receipt unit ID")
+        inventory_keys = [instance.key for instance in self.object_inventory]
+        if len(inventory_keys) != len(set(inventory_keys)):
+            raise ValueError("coverage object-instance keys must be unique")
+        required = {slot.key for slot in self.required_slots}
+        observed = {slot.key for slot in self.observed_slots}
+        non_value = {slot.key for slot in self.explicit_non_value_slots}
+        if len(observed) != len(self.observed_slots):
+            raise ValueError("observed slots must be unique")
+        if len(non_value) != len(self.explicit_non_value_slots):
+            raise ValueError("explicit non-value slots must be unique")
         if observed & non_value:
-            raise ValueError("field keys cannot be both observed and explicit non-value")
+            raise ValueError("slots cannot be both observed and explicit non-value")
         if observed | non_value != required:
-            raise ValueError("every required field must be accounted for exactly once")
+            raise ValueError(
+                "every required object-instance field must be accounted for exactly once"
+            )
         return self
 
 
@@ -303,13 +503,17 @@ class BenchmarkPartition(BenchmarkVersionedModel):
 
 
 BENCHMARK_MODEL_REGISTRY: dict[str, type[BenchmarkVersionedModel]] = {
+    "annotation_object_instance": AnnotationObjectInstance,
     "annotation_disagreement": AnnotationDisagreement,
+    "annotation_slot": AnnotationSlot,
     "annotation_unit": AnnotationUnit,
     "annotator_submission": AnnotatorSubmission,
     "benchmark_coverage_receipt": BenchmarkCoverageReceipt,
     "benchmark_partition": BenchmarkPartition,
     "benchmark_partition_assignment": BenchmarkPartitionAssignment,
     "evidence_anchor": EvidenceAnchor,
+    "evidence_requirement": EvidenceRequirement,
     "field_annotation": FieldAnnotation,
     "gold_adjudication": GoldAdjudication,
+    "object_instance_count_mismatch": ObjectInstanceCountMismatch,
 }

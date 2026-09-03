@@ -1,4 +1,97 @@
 {
+  "$defs": {
+    "AnnotationObjectInstance": {
+      "additionalProperties": false,
+      "description": "A report-local object instance declared independently by one annotator.",
+      "properties": {
+        "benchmark_schema_version": {
+          "const": "0.1.0",
+          "default": "0.1.0",
+          "title": "Benchmark Schema Version",
+          "type": "string"
+        },
+        "cardinality_index": {
+          "minimum": 0,
+          "title": "Cardinality Index",
+          "type": "integer"
+        },
+        "domain_object_type": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Domain Object Type",
+          "type": "string"
+        },
+        "required_field_names": {
+          "items": {
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Required Field Names",
+          "type": "array",
+          "uniqueItems": true
+        },
+        "unit_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Unit Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "unit_id",
+        "domain_object_type",
+        "cardinality_index",
+        "required_field_names"
+      ],
+      "title": "AnnotationObjectInstance",
+      "type": "object"
+    },
+    "AnnotationSlot": {
+      "additionalProperties": false,
+      "description": "One source-bounded object-instance field within an annotation unit.",
+      "properties": {
+        "benchmark_schema_version": {
+          "const": "0.1.0",
+          "default": "0.1.0",
+          "title": "Benchmark Schema Version",
+          "type": "string"
+        },
+        "cardinality_index": {
+          "minimum": 0,
+          "title": "Cardinality Index",
+          "type": "integer"
+        },
+        "domain_object_type": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Domain Object Type",
+          "type": "string"
+        },
+        "field_name": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Field Name",
+          "type": "string"
+        },
+        "unit_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Unit Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "unit_id",
+        "domain_object_type",
+        "cardinality_index",
+        "field_name"
+      ],
+      "title": "AnnotationSlot",
+      "type": "object"
+    }
+  },
   "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/benchmark/v0.1.0/benchmark_coverage_receipt.schema.json",
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
@@ -9,23 +102,30 @@
       "title": "Benchmark Schema Version",
       "type": "string"
     },
-    "explicit_non_value_field_keys": {
+    "explicit_non_value_slots": {
       "default": [],
       "items": {
-        "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$",
-        "type": "string"
+        "$ref": "#/$defs/AnnotationSlot"
       },
-      "title": "Explicit Non Value Field Keys",
+      "title": "Explicit Non Value Slots",
       "type": "array",
       "uniqueItems": true
     },
-    "observed_field_keys": {
+    "object_inventory": {
+      "items": {
+        "$ref": "#/$defs/AnnotationObjectInstance"
+      },
+      "minItems": 1,
+      "title": "Object Inventory",
+      "type": "array",
+      "uniqueItems": true
+    },
+    "observed_slots": {
       "default": [],
       "items": {
-        "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$",
-        "type": "string"
+        "$ref": "#/$defs/AnnotationSlot"
       },
-      "title": "Observed Field Keys",
+      "title": "Observed Slots",
       "type": "array",
       "uniqueItems": true
     },
@@ -34,16 +134,6 @@
       "pattern": ".*\\S.*",
       "title": "Receipt Id",
       "type": "string"
-    },
-    "required_field_keys": {
-      "items": {
-        "pattern": "^[a-z][a-z0-9_]*\\.[a-z][a-z0-9_]*$",
-        "type": "string"
-      },
-      "minItems": 1,
-      "title": "Required Field Keys",
-      "type": "array",
-      "uniqueItems": true
     },
     "unit_id": {
       "minLength": 1,
@@ -55,7 +145,7 @@
   "required": [
     "receipt_id",
     "unit_id",
-    "required_field_keys"
+    "object_inventory"
   ],
   "title": "BenchmarkCoverageReceipt",
   "type": "object"

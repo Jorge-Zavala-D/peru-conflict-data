@@ -1,14 +1,12 @@
 schema_version: "0.1.0"
 critical_field_set_id: m2-critical-fields-v1
 scope: reports-260-269-human-benchmark
-groups:
+source_value_critical:
   identity:
-    rationale: Case and report identity errors corrupt every longitudinal result.
+    rationale: Source-visible report and case labels support observation matching without assigning longitudinal identity.
     fields:
       - report.report_number
       - report.reference_period
-      - report.sha256
-      - case.case_id
       - case.official_code
       - case_name.name_original
   monthly_status:
@@ -21,7 +19,7 @@ groups:
       - case_month.monthly_facts_original
       - case_month.transitions
   location:
-    rationale: Multi-level geography is central to case identification and spatial analysis.
+    rationale: Multi-level geography is central to source-observation matching and spatial analysis.
     fields:
       - location.location_text_original
       - location.department_original
@@ -62,12 +60,36 @@ groups:
       - dialogue_event.event_date_precision_original
       - agreement.agreement_date_original
       - agreement.agreement_date_precision_original
-  provenance:
-    rationale: Critical values are unusable without exact report, page, section, and source-byte custody.
-    fields:
-      - provenance.source_report_id
-      - provenance.source_sha256
-      - provenance.source_page
-      - provenance.source_section
-      - provenance.source_span
-      - provenance.source_bbox
+
+custody_prerequisites:
+  rationale: Immutable source bytes are verified before scoring and are not human transcription targets.
+  fields:
+    - report.sha256
+    - provenance.source_sha256
+
+technical_matching_keys:
+  rationale: Source-bounded observation keys enable matching but are not human source-value accuracy targets.
+  fields:
+    - annotation_unit.unit_id
+    - provenance.source_report_id
+
+evidence_requirements:
+  rationale: Every critical source value requires exact custody, page, section, and one typed locator.
+  required_components:
+    - exact_source_sha
+    - exact_page
+    - source_section
+    - granularity_appropriate_locator
+  typed_locator_rules:
+    span: source_span
+    bounding_box: source_bbox
+    table_cell:
+      - source_table
+      - table_row_original
+      - table_column_original
+    page_only: page_only_rationale
+
+excluded_later_stage_fields:
+  rationale: M4 owns longitudinal case identity; M2/M3 score report-local observations.
+  fields:
+    - case.case_id

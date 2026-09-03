@@ -50,11 +50,35 @@ def test_benchmark_schemas_export_cross_field_and_uniqueness_guards() -> None:
         },
     } in annotation["allOf"]
     for field in (
-        "required_field_keys",
-        "observed_field_keys",
-        "explicit_non_value_field_keys",
+        "object_inventory",
+        "observed_slots",
+        "explicit_non_value_slots",
     ):
         assert coverage["properties"][field]["uniqueItems"] is True
+
+    object_instance = schemas["annotation_object_instance.schema.json"]
+    assert object_instance["properties"]["required_field_names"]["uniqueItems"] is True
+
+    evidence_requirement = schemas["evidence_requirement.schema.json"]
+    for field in ("pages", "sections", "allowed_granularities"):
+        assert evidence_requirement["properties"][field]["uniqueItems"] is True
+    assert evidence_requirement["properties"]["allowed_granularities"]["items"] == {
+        "enum": ["span", "bounding_box", "table_cell", "page_only"],
+        "type": "string",
+    }
+
+
+def test_composite_submission_schema_preserves_nested_model_guards() -> None:
+    schema = json.loads(rendered_benchmark_schemas()["annotator_submission.schema.json"])
+    field_annotation = schema["$defs"]["FieldAnnotation"]
+    object_instance = schema["$defs"]["AnnotationObjectInstance"]
+
+    assert any(
+        guard.get("if", {}).get("properties", {}).get("state")
+        == {"enum": ["source_ambiguous", "annotation_uncertain"]}
+        for guard in field_annotation["allOf"]
+    )
+    assert object_instance["properties"]["required_field_names"]["uniqueItems"] is True
 
 
 def test_top_level_schema_check_includes_benchmark_drift(tmp_path: Path) -> None:

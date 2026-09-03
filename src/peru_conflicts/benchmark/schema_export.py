@@ -4,8 +4,42 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import cast
 
 from peru_conflicts.benchmark.models import BENCHMARK_MODEL_REGISTRY, BENCHMARK_SCHEMA_VERSION
+
+
+def _apply_model_guards(model_name: str, schema: dict[str, object]) -> None:
+    raw_properties = schema.get("properties")
+    if not isinstance(raw_properties, dict):
+        return
+    properties = cast(dict[str, dict[str, object]], raw_properties)
+    if model_name == "FieldAnnotation":
+        all_of = cast(list[object], schema.setdefault("allOf", []))
+        all_of.append(
+            {
+                "if": {
+                    "properties": {"state": {"enum": ["source_ambiguous", "annotation_uncertain"]}},
+                    "required": ["state"],
+                },
+                "then": {
+                    "properties": {"uncertainty_comment": {"type": "string", "minLength": 1}},
+                    "required": ["uncertainty_comment"],
+                },
+            }
+        )
+    if model_name == "BenchmarkCoverageReceipt":
+        for field in ("object_inventory", "observed_slots", "explicit_non_value_slots"):
+            properties[field]["uniqueItems"] = True
+    if model_name == "AnnotationObjectInstance":
+        properties["required_field_names"]["uniqueItems"] = True
+    if model_name == "EvidenceRequirement":
+        for field in ("pages", "sections", "allowed_granularities"):
+            properties[field]["uniqueItems"] = True
+        properties["allowed_granularities"]["items"] = {
+            "enum": ["span", "bounding_box", "table_cell", "page_only"],
+            "type": "string",
+        }
 
 
 def rendered_benchmark_schemas() -> dict[str, str]:
@@ -17,28 +51,10 @@ def rendered_benchmark_schemas() -> dict[str, str]:
             "https://github.com/Jorge-Zavala-D/peru-conflict-data/"
             f"schemas/benchmark/v{BENCHMARK_SCHEMA_VERSION}/{name}.schema.json"
         )
-        if name == "field_annotation":
-            schema.setdefault("allOf", []).append(
-                {
-                    "if": {
-                        "properties": {
-                            "state": {"enum": ["source_ambiguous", "annotation_uncertain"]}
-                        },
-                        "required": ["state"],
-                    },
-                    "then": {
-                        "properties": {"uncertainty_comment": {"type": "string", "minLength": 1}},
-                        "required": ["uncertainty_comment"],
-                    },
-                }
-            )
-        if name == "benchmark_coverage_receipt":
-            for field in (
-                "required_field_keys",
-                "observed_field_keys",
-                "explicit_non_value_field_keys",
-            ):
-                schema["properties"][field]["uniqueItems"] = True
+        _apply_model_guards(model.__name__, schema)
+        definitions = cast(dict[str, dict[str, object]], schema.get("$defs", {}))
+        for model_name, definition in definitions.items():
+            _apply_model_guards(model_name, definition)
         result[f"{name}.schema.json"] = (
             json.dumps(schema, ensure_ascii=False, indent=2, sort_keys=True) + "\n"
         )

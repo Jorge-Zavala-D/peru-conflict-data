@@ -42,8 +42,11 @@ explicitly identified. Approval remains with Jorge.
 - **Current behavior:** v0.2.0 exposes `CaseMonth.monthly_facts_original` but no case-description
   field on the observation.
 - **Source facts:** report 260 p. 16 presents `Descripción del caso`, `Descripción de los acuerdos`,
-  and `Hechos del mes` as distinct columns. Report 269 p. 15 similarly separates `Problemática`,
-  `Acuerdos`, and `Avances de cumplimiento`. Equivalent separation recurs in all ten reports.
+  and `Hechos del mes` as distinct columns. Report 267 p. 12 presents `Descripción del caso`,
+  `Descripción de los acuerdos`, and `Avances de cumplimiento`. Report 268 p. 17 begins the
+  agreement-monitoring section with `Descripción del caso`, `Acuerdos`, and `Avances de
+  cumplimiento`; report 269 p. 15 similarly separates `Problemática`, `Acuerdos`, and `Avances de
+  cumplimiento`. Equivalent separation recurs in all ten reports.
 - **Decision:** add `CaseMonth.case_description_original`. It records the structural description as
   published in that report; it is not treated as timeless canonical text and is not conflated with
   `monthly_facts_original`.
@@ -62,6 +65,9 @@ explicitly identified. Approval remains with Jorge.
   `MediationObservation` owns `report_id` and all published fields. Its process/case links are
   optional and require provenance. `MediationProcess` is created only after evidence-backed
   cross-report linkage; visually similar labels do not establish continuity.
+- **Source-column mapping:** in report 264 p. 6, `Estado` is the source status and maps to
+  `MediationObservation.status_original`; the `Estado situacional` narrative maps to
+  `MediationObservation.progress_original`. They are not interchangeable status codes.
 - **Annotation impact:** annotators create source-local observations. They do not assign a process
   identity. Later linkage/adjudication may add identity records without rewriting observations.
 - **Migration:** each v0.2.0 process row becomes a v0.3.0 observation; a process row is created only

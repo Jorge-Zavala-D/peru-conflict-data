@@ -5,6 +5,7 @@ from datetime import UTC, datetime
 import pytest
 from pydantic import ValidationError
 
+import peru_conflicts.benchmark as benchmark
 from peru_conflicts.benchmark import (
     AnnotationDisagreement,
     AnnotationState,
@@ -74,6 +75,67 @@ def _observed_annotation() -> FieldAnnotation:
     )
 
 
+def _object_instance(
+    *,
+    domain_object_type: str = "mediation_observation",
+    cardinality_index: int = 0,
+    required_field_names: tuple[str, ...] = ("mediation_type_original",),
+) -> benchmark.AnnotationObjectInstance:
+    return benchmark.AnnotationObjectInstance(
+        unit_id=_unit().unit_id,
+        domain_object_type=domain_object_type,
+        cardinality_index=cardinality_index,
+        required_field_names=required_field_names,
+    )
+
+
+def _locked_submission(
+    *,
+    submission_id: str,
+    annotator_id: str,
+    partition_role: PartitionRole = PartitionRole.PROTOCOL_PILOT,
+    status: SubmissionStatus = SubmissionStatus.LOCKED,
+    unit_id: str | None = None,
+    cardinality_indexes: tuple[int, ...] = (0,),
+) -> AnnotatorSubmission:
+    resolved_unit_id = unit_id or _unit().unit_id
+    instances = tuple(
+        benchmark.AnnotationObjectInstance(
+            unit_id=resolved_unit_id,
+            domain_object_type="mediation_observation",
+            cardinality_index=index,
+            required_field_names=("mediation_type_original",),
+        )
+        for index in cardinality_indexes
+    )
+    annotations = tuple(
+        FieldAnnotation(
+            annotation_id=f"annotation-{annotator_id}-{index}",
+            unit_id=resolved_unit_id,
+            annotator_id=annotator_id,
+            domain_object_type="mediation_observation",
+            field_name="mediation_type_original",
+            state=AnnotationState.OBSERVED,
+            raw_value_json='"Pasiva"',
+            evidence_anchors=(_anchor(),),
+            cardinality_index=index,
+        )
+        for index in cardinality_indexes
+    )
+    return AnnotatorSubmission(
+        submission_id=submission_id,
+        annotator_id=annotator_id,
+        unit_id=resolved_unit_id,
+        partition_role=partition_role,
+        status=status,
+        locked_at=(
+            datetime(2026, 9, 2, tzinfo=UTC) if status is not SubmissionStatus.DRAFT else None
+        ),
+        object_inventory=instances,
+        annotations=annotations,
+    )
+
+
 def test_annotation_unit_id_is_deterministic_and_model_enforces_it() -> None:
     unit = _unit()
     assert unit.unit_id == _unit().unit_id
@@ -140,6 +202,41 @@ def test_evidence_anchor_enforces_granularity_contract() -> None:
             }
         )
 
+    for mutation in (
+        {
+            "granularity": EvidenceGranularity.PAGE_ONLY,
+            "source_span": None,
+            "page_only_rationale": "   ",
+        },
+        {
+            "granularity": EvidenceGranularity.TABLE_CELL,
+            "source_span": None,
+            "source_table": "   ",
+            "table_row_original": "row",
+            "table_column_original": "column",
+        },
+    ):
+        with pytest.raises(ValidationError, match="requires"):
+            EvidenceAnchor.model_validate({**_anchor().model_dump(), **mutation})
+
+
+def test_evidence_requirement_rejects_section_as_a_locator_alternative() -> None:
+    with pytest.raises(ValidationError, match="typed locator granularities"):
+        benchmark.EvidenceRequirement(
+            slot=benchmark.AnnotationSlot(
+                unit_id=_unit().unit_id,
+                domain_object_type="case_month",
+                cardinality_index=0,
+                field_name="phase_original",
+            ),
+            report_id="report-264",
+            report_number=264,
+            source_sha256=SHA,
+            pages=(6,),
+            sections=("Mediación",),
+            allowed_granularities=(benchmark.EvidenceGranularity.SECTION,),
+        )
+
 
 def test_locked_submission_is_immutable_complete_and_annotator_consistent() -> None:
     submission = AnnotatorSubmission(
@@ -149,6 +246,7 @@ def test_locked_submission_is_immutable_complete_and_annotator_consistent() -> N
         partition_role=PartitionRole.PROTOCOL_PILOT,
         status=SubmissionStatus.LOCKED,
         locked_at=datetime(2026, 9, 2, tzinfo=UTC),
+        object_inventory=(_object_instance(),),
         annotations=(_observed_annotation(),),
     )
     assert submission.status is SubmissionStatus.LOCKED
@@ -195,29 +293,163 @@ def test_disagreement_and_gold_adjudication_preserve_both_submissions() -> None:
 
 
 def test_coverage_receipt_requires_every_field_to_be_accounted_for_once() -> None:
+    phase_instance = benchmark.AnnotationObjectInstance(
+        unit_id=_unit().unit_id,
+        domain_object_type="case_month",
+        cardinality_index=0,
+        required_field_names=("phase_original",),
+    )
+    violence_instance = benchmark.AnnotationObjectInstance(
+        unit_id=_unit().unit_id,
+        domain_object_type="violence_event",
+        cardinality_index=0,
+        required_field_names=("fatalities_total",),
+    )
+    observed_slot = benchmark.AnnotationSlot(
+        unit_id=_unit().unit_id,
+        domain_object_type="case_month",
+        cardinality_index=0,
+        field_name="phase_original",
+    )
+    non_value_slot = benchmark.AnnotationSlot(
+        unit_id=_unit().unit_id,
+        domain_object_type="violence_event",
+        cardinality_index=0,
+        field_name="fatalities_total",
+    )
     receipt = BenchmarkCoverageReceipt(
         receipt_id="coverage-1",
         unit_id=_unit().unit_id,
-        required_field_keys=("case_month.phase_original", "violence_event.fatalities_total"),
-        observed_field_keys=("case_month.phase_original",),
-        explicit_non_value_field_keys=("violence_event.fatalities_total",),
+        object_inventory=(phase_instance, violence_instance),
+        observed_slots=(observed_slot,),
+        explicit_non_value_slots=(non_value_slot,),
     )
-    assert set(receipt.required_field_keys) == (
-        set(receipt.observed_field_keys) | set(receipt.explicit_non_value_field_keys)
+    assert set(receipt.required_slots) == (
+        set(receipt.observed_slots) | set(receipt.explicit_non_value_slots)
     )
     with pytest.raises(ValidationError, match="accounted"):
         BenchmarkCoverageReceipt.model_validate(
-            {**receipt.model_dump(), "explicit_non_value_field_keys": ()}
+            {**receipt.model_dump(), "explicit_non_value_slots": ()}
         )
     with pytest.raises(ValidationError, match="unique"):
         BenchmarkCoverageReceipt.model_validate(
             {
                 **receipt.model_dump(),
-                "observed_field_keys": (
-                    "case_month.phase_original",
-                    "case_month.phase_original",
-                ),
+                "observed_slots": (observed_slot.model_dump(), observed_slot.model_dump()),
             }
+        )
+
+
+def test_instance_aware_coverage_rejects_one_actor_when_five_are_required() -> None:
+    inventory = tuple(
+        benchmark.AnnotationObjectInstance(
+            unit_id=_unit().unit_id,
+            domain_object_type="actor",
+            cardinality_index=index,
+            required_field_names=("name_original",),
+        )
+        for index in range(5)
+    )
+    only_one_actor = benchmark.AnnotationSlot(
+        unit_id=_unit().unit_id,
+        domain_object_type="actor",
+        cardinality_index=0,
+        field_name="name_original",
+    )
+
+    with pytest.raises(ValidationError, match="accounted"):
+        BenchmarkCoverageReceipt(
+            receipt_id="incomplete-five-actor-coverage",
+            unit_id=_unit().unit_id,
+            object_inventory=inventory,
+            observed_slots=(only_one_actor,),
+        )
+
+
+def test_locked_submission_requires_every_declared_instance_slot() -> None:
+    complete = _locked_submission(
+        submission_id="submission-complete",
+        annotator_id="annotator-a",
+        cardinality_indexes=(0, 1),
+    )
+    assert len(complete.object_inventory) == 2
+
+    with pytest.raises(ValidationError, match="every declared object field"):
+        AnnotatorSubmission.model_validate(
+            {**complete.model_dump(), "annotations": (complete.annotations[0].model_dump(),)}
+        )
+
+
+def test_independent_submission_validation_rejects_same_annotator() -> None:
+    submission_a = _locked_submission(submission_id="submission-a", annotator_id="annotator-a")
+    submission_b = _locked_submission(submission_id="submission-b", annotator_id="annotator-a")
+
+    with pytest.raises(ValueError, match="annotator IDs must differ"):
+        benchmark.validate_independent_submissions(
+            submission_a, submission_b, submission_history=(submission_a, submission_b)
+        )
+
+
+@pytest.mark.parametrize(
+    ("mutation", "message"),
+    [
+        ({"unit_id": "annotation-unit-other"}, "same annotation unit"),
+        ({"partition_role": PartitionRole.HELD_OUT_EVALUATION}, "same partition role"),
+        ({"status": SubmissionStatus.DRAFT, "locked_at": None}, "must both be locked"),
+        ({"status": SubmissionStatus.SUPERSEDED}, "must both be locked"),
+    ],
+)
+def test_independent_submission_validation_rejects_invalid_pairings(
+    mutation: dict[str, object], message: str
+) -> None:
+    submission_a = _locked_submission(submission_id="submission-a", annotator_id="annotator-a")
+    base_b = _locked_submission(submission_id="submission-b", annotator_id="annotator-b")
+    submission_b = base_b.model_copy(update=mutation)
+
+    with pytest.raises(ValueError, match=message):
+        benchmark.validate_independent_submissions(
+            submission_a, submission_b, submission_history=(submission_a, submission_b)
+        )
+
+
+def test_independent_submission_validation_surfaces_object_count_mismatch() -> None:
+    submission_a = _locked_submission(
+        submission_id="submission-a",
+        annotator_id="annotator-a",
+        cardinality_indexes=(0, 1, 2, 3, 4),
+    )
+    submission_b = _locked_submission(
+        submission_id="submission-b",
+        annotator_id="annotator-b",
+        cardinality_indexes=(0, 1, 2, 3),
+    )
+
+    mismatches = benchmark.validate_independent_submissions(
+        submission_a, submission_b, submission_history=(submission_a, submission_b)
+    )
+
+    assert [
+        mismatch.model_dump(exclude={"benchmark_schema_version"}) for mismatch in mismatches
+    ] == [
+        {
+            "domain_object_type": "mediation_observation",
+            "submission_a_count": 5,
+            "submission_b_count": 4,
+        }
+    ]
+
+
+def test_independent_submission_validation_rejects_locked_submission_with_successor() -> None:
+    stale_a = _locked_submission(submission_id="submission-a-old", annotator_id="annotator-a")
+    current_a = _locked_submission(submission_id="submission-a-current", annotator_id="annotator-a")
+    current_a = current_a.model_copy(update={"supersedes_submission_id": stale_a.submission_id})
+    submission_b = _locked_submission(submission_id="submission-b", annotator_id="annotator-b")
+
+    with pytest.raises(ValueError, match="locked and current"):
+        benchmark.validate_independent_submissions(
+            stale_a,
+            submission_b,
+            submission_history=(stale_a, current_a, submission_b),
         )
 
 

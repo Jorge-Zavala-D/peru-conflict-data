@@ -316,14 +316,14 @@ progress without inventing cross-report continuity.
 | `start_date` | Parsed start date | date | N | 0..1 | P/source-date evidence | S/D |
 | `start_date_original` | Exact `Fecha de inicio` | orig str | N | 0..1 | P | S |
 | `start_date_precision_original` | Open source precision | orig str | N | 0..1 | P | S |
-| `status_original` | Published status | orig str | N | 0..1 | P | S |
+| `status_original` | Published mediation `Estado` | orig str | N | 0..1 | P | S |
 | `requester_original` | `Solicitante` | orig str | N | 0..1 | P | S |
 | `actors_original` | `Actores` | orig str | N | 0..1 | P | S |
 | `mediation_type_original` | `Tipo de mediación` | orig str | N | 0..1 | P | S |
 | `mediator_original` | `Mediador` | orig str | N | 0..1 | P | S |
 | `case_description_original` | `Descripción de caso` | orig str | N | 0..1 | P | S |
 | `demands_original` | Source demand text in block | orig str | N | 0..1 | P | S |
-| `progress_original` | Source progress/status text | orig str | N | 0..1 | P | S |
+| `progress_original` | Source `Estado situacional` progress narrative | orig str | N | 0..1 | P | S |
 | `provenance_ids` | Observation/link evidence | ids | empty | 0..* | Links require nonempty evidence | T |
 
 ## `agreement` (`Agreement`)

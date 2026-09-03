@@ -24,8 +24,8 @@ screen. This establishes inspectability, not annotation accuracy. Reports 261 an
 | 264 | 2026-02 | 104 | 609,154 | Aggregates/alerts pp. 1–5; mediation pp. 5–15, including `Tipo de mediación` and source-local status; agreement monitoring p. 16 onward; structured demands pp. 25–26; violence/actions; taxonomy pp. 103–104. |
 | 265 | 2026-03 | 99 | 561,559 | Aggregates/alerts pp. 1–5; mediation pp. 5–10; agreement monitoring pp. 11–23; structured demands p. 24; case inventory/monthly facts; protest/violence/actions; taxonomy pp. 98–99. |
 | 266 | 2026-04 | 102 | 611,619 | Aggregates/alerts pp. 1–5; mediation pp. 5–12; agreement monitoring p. 13 onward; structured demands p. 28; case inventory/monthly facts; protests/violence/actions; taxonomy pp. 101–102. |
-| 267 | 2026-05 | 102 | 599,851 | Aggregates/alerts pp. 1–5; mediation pp. 6–11; agreement monitoring p. 12 onward; structured demands pp. 28–29; case inventory/monthly facts; protests/violence/actions; taxonomy pp. 101–102. |
-| 268 | 2026-06 | 122 | 754,554 | Aggregates/alerts pp. 1–5; mediation pp. 6–13; agreement monitoring p. 14 onward; structured demands pp. 38–39; case inventory/monthly facts; protests/violence/actions; taxonomy p. 121. |
+| 267 | 2026-05 | 102 | 599,851 | Aggregates/alerts pp. 1–5; mediation pp. 6–11; agreement monitoring p. 12 onward with `Descripción del caso`, `Descripción de los acuerdos`, and `Avances de cumplimiento`; structured demands pp. 28–29; case inventory/monthly facts; protests/violence/actions; taxonomy pp. 101–102. |
+| 268 | 2026-06 | 122 | 754,554 | Aggregates/alerts pp. 1–5; mediation pp. 6–16; agreement monitoring begins p. 17 with complete `Descripción del caso`, `Acuerdos`, and `Avances de cumplimiento` rows; structured demands pp. 38–39; case inventory/monthly facts; protests/violence/actions; taxonomy p. 121. |
 | 269 | 2026-07 | 117 | 676,057 | Aggregates/alerts pp. 1–5; mediation pp. 5–14; agreement monitoring pp. 15–39; structured demands pp. 40–41; case inventory/monthly facts; protest/violence/action annex pp. 94–113; taxonomy p. 116. |
 
 ## Cross-report source facts
@@ -36,10 +36,12 @@ screen. This establishes inspectability, not annotation accuracy. Reports 261 an
   stock status or phase, and monthly facts. These labels are not perfectly uniform across reports.
 - Agreement-monitoring tables visibly separate `Descripción del caso`, `Descripción de los
   acuerdos`/`Acuerdos`, and `Hechos del mes`/`Avances de cumplimiento` (for example report 260
-  p. 16 and report 269 p. 15). Structural description and monthly evolution are therefore distinct.
+  p. 16, report 267 p. 12, report 268 p. 17, and report 269 p. 15). Structural description and
+  monthly evolution are therefore distinct.
 - Mediation tables are report-local blocks. Report 264 p. 6 displays `Fecha de inicio`,
   `Descripción de caso`, `Estado situacional`, `Estado`, `Solicitante`, `Actores`, `Tipo de
-  mediación`, and `Mediador`. Equivalent blocks recur, but no stable source mediation-process ID
+  mediación`, and `Mediador`. `Estado` is the status field; the `Estado situacional` narrative is
+  progress/situation evidence. Equivalent blocks recur, but no stable source mediation-process ID
   was observed in any report.
 - Structured demand tables enumerate case denomination, theme, category, count, and competent
   entity without reproducing the case's verbatim demand sentence (for example report 260 pp.

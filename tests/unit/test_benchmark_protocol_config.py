@@ -46,20 +46,33 @@ def test_critical_field_config_is_selective_and_grouped() -> None:
     payload = yaml.safe_load(
         (repo_root / "config/benchmark/m2_critical_fields_v1.yaml").read_text(encoding="utf-8")
     )
-    groups = payload["groups"]
-    fields = [field for group in groups.values() for field in group["fields"]]
+    source_groups = payload["source_value_critical"]
+    source_fields = [field for group in source_groups.values() for field in group["fields"]]
 
-    assert set(groups) == {
+    assert set(source_groups) == {
         "identity",
         "monthly_status",
         "location",
         "violence_casualty",
         "dialogue_mediation",
         "event_dates",
-        "provenance",
     }
-    assert len(fields) == len(set(fields))
-    assert 35 <= len(fields) <= 55
-    assert "case_month.monthly_facts_original" in fields
-    assert "case_reported_indicator.value" in fields
-    assert "provenance.source_page" in fields
+    assert len(source_fields) == len(set(source_fields)) == 40
+    assert "case_month.monthly_facts_original" in source_fields
+    assert "case_reported_indicator.value" in source_fields
+    assert "case.case_id" not in source_fields
+    assert payload["custody_prerequisites"]["fields"] == [
+        "report.sha256",
+        "provenance.source_sha256",
+    ]
+    assert payload["technical_matching_keys"]["fields"] == [
+        "annotation_unit.unit_id",
+        "provenance.source_report_id",
+    ]
+    assert payload["evidence_requirements"]["required_components"] == [
+        "exact_source_sha",
+        "exact_page",
+        "source_section",
+        "granularity_appropriate_locator",
+    ]
+    assert payload["excluded_later_stage_fields"]["fields"] == ["case.case_id"]
