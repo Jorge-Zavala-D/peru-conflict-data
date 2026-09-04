@@ -1,0 +1,162 @@
+{
+  "$defs": {
+    "GatePolicyStatus": {
+      "enum": [
+        "owner_review_draft",
+        "owner_approved"
+      ],
+      "title": "GatePolicyStatus",
+      "type": "string"
+    },
+    "ObjectMetricThreshold": {
+      "additionalProperties": false,
+      "properties": {
+        "benchmark_schema_version": {
+          "const": "0.1.0",
+          "default": "0.1.0",
+          "title": "Benchmark Schema Version",
+          "type": "string"
+        },
+        "object_type": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Object Type",
+          "type": "string"
+        },
+        "precision_threshold": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Precision Threshold",
+          "type": "number"
+        },
+        "recall_threshold": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Recall Threshold",
+          "type": "number"
+        }
+      },
+      "required": [
+        "object_type",
+        "precision_threshold",
+        "recall_threshold"
+      ],
+      "title": "ObjectMetricThreshold",
+      "type": "object"
+    }
+  },
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/benchmark/v0.1.0/benchmark_acceptance_gate_spec.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Versioned policy applied separately to deterministic benchmark metrics.",
+  "properties": {
+    "benchmark_schema_version": {
+      "const": "0.1.0",
+      "default": "0.1.0",
+      "title": "Benchmark Schema Version",
+      "type": "string"
+    },
+    "case_detection_precision_threshold": {
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Case Detection Precision Threshold",
+      "type": "number"
+    },
+    "case_detection_recall_threshold": {
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Case Detection Recall Threshold",
+      "type": "number"
+    },
+    "evidence_completeness_threshold": {
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Evidence Completeness Threshold",
+      "type": "number"
+    },
+    "evidence_policy_interpretation": {
+      "const": "PROPOSED_OWNER_GATE_INTERPRETATION",
+      "title": "Evidence Policy Interpretation",
+      "type": "string"
+    },
+    "exact_page_attribution_threshold": {
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Exact Page Attribution Threshold",
+      "type": "number"
+    },
+    "gate_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Gate Id",
+      "type": "string"
+    },
+    "object_metric_policy": {
+      "const": "selected_thresholds_with_all_metrics_reported",
+      "title": "Object Metric Policy",
+      "type": "string"
+    },
+    "object_metric_thresholds": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ObjectMetricThreshold"
+      },
+      "title": "Object Metric Thresholds",
+      "type": "array"
+    },
+    "owner_approval_required": {
+      "const": true,
+      "default": true,
+      "title": "Owner Approval Required",
+      "type": "boolean"
+    },
+    "owner_approved": {
+      "title": "Owner Approved",
+      "type": "boolean"
+    },
+    "policy_status": {
+      "$ref": "#/$defs/GatePolicyStatus"
+    },
+    "require_arithmetic_discrepancies_classified": {
+      "title": "Require Arithmetic Discrepancies Classified",
+      "type": "boolean"
+    },
+    "require_critical_parser_errors_closed": {
+      "title": "Require Critical Parser Errors Closed",
+      "type": "boolean"
+    },
+    "source_references": {
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Source References",
+      "type": "array"
+    },
+    "strict_source_value_accuracy_threshold": {
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Strict Source Value Accuracy Threshold",
+      "type": "number"
+    }
+  },
+  "required": [
+    "gate_id",
+    "policy_status",
+    "owner_approved",
+    "source_references",
+    "case_detection_precision_threshold",
+    "case_detection_recall_threshold",
+    "exact_page_attribution_threshold",
+    "strict_source_value_accuracy_threshold",
+    "evidence_completeness_threshold",
+    "evidence_policy_interpretation",
+    "object_metric_policy",
+    "require_critical_parser_errors_closed",
+    "require_arithmetic_discrepancies_classified"
+  ],
+  "title": "BenchmarkAcceptanceGateSpec",
+  "type": "object"
+}

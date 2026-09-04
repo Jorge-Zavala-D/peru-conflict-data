@@ -1,0 +1,222 @@
+{
+  "$defs": {
+    "ModelInvocation": {
+      "additionalProperties": false,
+      "properties": {
+        "inference_settings": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ModelSetting"
+          },
+          "title": "Inference Settings",
+          "type": "array"
+        },
+        "model": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Model",
+          "type": "string"
+        },
+        "output_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Output Hash",
+          "type": "string"
+        },
+        "output_schema_version": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Output Schema Version",
+          "type": "string"
+        },
+        "prompt_version": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Prompt Version",
+          "type": "string"
+        },
+        "provider": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Provider",
+          "type": "string"
+        },
+        "source_span_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Source Span Hash",
+          "type": "string"
+        }
+      },
+      "required": [
+        "provider",
+        "model",
+        "prompt_version",
+        "output_schema_version",
+        "source_span_hash",
+        "output_hash"
+      ],
+      "title": "ModelInvocation",
+      "type": "object"
+    },
+    "ModelSetting": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Name",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "integer"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Value"
+        }
+      },
+      "required": [
+        "name",
+        "value"
+      ],
+      "title": "ModelSetting",
+      "type": "object"
+    }
+  },
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/v0.3.0/manual_review.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "candidate_payloads_json": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Candidate Payloads Json",
+      "type": "array"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "evidence_provenance_ids": {
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Evidence Provenance Ids",
+      "type": "array"
+    },
+    "issue_type": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Issue Type",
+      "type": "string"
+    },
+    "machine_model_invocation": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ModelInvocation"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "machine_suggestion_json": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Machine Suggestion Json"
+    },
+    "neighboring_periods": {
+      "default": [],
+      "items": {
+        "pattern": "^\\d{4}-\\d{2}$",
+        "type": "string"
+      },
+      "title": "Neighboring Periods",
+      "type": "array"
+    },
+    "object_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Object Id"
+    },
+    "object_type": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Object Type",
+      "type": "string"
+    },
+    "parser_version": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Parser Version",
+      "type": "string"
+    },
+    "review_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Review Id",
+      "type": "string"
+    },
+    "review_status": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Review Status",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "0.3.0",
+      "default": "0.3.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "second_review_required": {
+      "default": false,
+      "title": "Second Review Required",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "review_id",
+    "object_type",
+    "issue_type",
+    "evidence_provenance_ids",
+    "review_status",
+    "created_at",
+    "parser_version"
+  ],
+  "title": "ManualReviewItem",
+  "type": "object"
+}

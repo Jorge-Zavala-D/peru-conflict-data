@@ -1,0 +1,37 @@
+{
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/benchmark/v0.1.0/object_instance_count_mismatch.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "A source-object count disagreement between two independent submissions.",
+  "properties": {
+    "benchmark_schema_version": {
+      "const": "0.1.0",
+      "default": "0.1.0",
+      "title": "Benchmark Schema Version",
+      "type": "string"
+    },
+    "domain_object_type": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Domain Object Type",
+      "type": "string"
+    },
+    "submission_a_count": {
+      "minimum": 0,
+      "title": "Submission A Count",
+      "type": "integer"
+    },
+    "submission_b_count": {
+      "minimum": 0,
+      "title": "Submission B Count",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "domain_object_type",
+    "submission_a_count",
+    "submission_b_count"
+  ],
+  "title": "ObjectInstanceCountMismatch",
+  "type": "object"
+}

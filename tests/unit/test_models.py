@@ -14,6 +14,7 @@ from peru_conflicts.models import (
     CaseMonth,
     CaseProtestLink,
     CaseRelationship,
+    CaseReportedIndicator,
     CasualtyComponent,
     ConflictCase,
     DefensoriaAction,
@@ -25,6 +26,7 @@ from peru_conflicts.models import (
     IndicatorBasis,
     Location,
     ManualReviewItem,
+    MediationObservation,
     MediationProcess,
     ModelInvocation,
     ProtestEvent,
@@ -81,10 +83,33 @@ def test_demand_preserves_distinct_source_dimensions() -> None:
     assert demand.category_normalized == "education"
 
 
+def test_structured_demand_can_omit_verbatim_text_but_not_all_source_dimensions() -> None:
+    demand = Demand(
+        demand_id="demand_structured_1",
+        text_original=None,
+        theme_original="Servicios públicos y otras prestaciones del Estado",
+        category_original="Acceso, regulación, mejoramiento y financiamiento",
+        competent_entity_original="Gobierno local",
+        provenance_ids=("prov_demand_table",),
+    )
+    assert demand.text_original is None
+
+    with pytest.raises(ValidationError, match="source-visible demand dimension"):
+        Demand(demand_id="demand_empty", text_original=None)
+
+
 def test_mediation_process_is_distinct_from_dated_dialogue_events() -> None:
     process = MediationProcess(
         mediation_process_id="mediation_1",
+        case_id="case_1514",
+        identity_method="manual_evidence_link",
+        identity_confidence=0.9,
+        provenance_ids=("prov_mediation_identity",),
+    )
+    observation = MediationObservation(
+        mediation_observation_id="mediation_observation_1",
         report_id="report_269",
+        mediation_process_id=process.mediation_process_id,
         case_id="case_1514",
         start_date_original="15/07/2026",
         start_date_precision_original="day",
@@ -109,7 +134,8 @@ def test_mediation_process_is_distinct_from_dated_dialogue_events() -> None:
         provenance_ids=("prov_dialogue_mediation",),
     )
 
-    assert process.progress_original == "Se continúa coordinando"
+    assert observation.progress_original == "Se continúa coordinando"
+    assert observation.report_id == "report_269"
     assert event.mediation_process_id == process.mediation_process_id
     assert event.event_date_original == "22/07/2026"
 
@@ -146,11 +172,68 @@ def test_dialogue_mediation_link_rejects_blank_provenance_identifier() -> None:
 
 
 def test_mediation_process_case_link_requires_provenance() -> None:
+    with pytest.raises(ValidationError, match="identity_method"):
+        MediationProcess.model_validate({"mediation_process_id": "mediation_bare"})
+
     with pytest.raises(ValidationError, match="provenance"):
-        MediationProcess(
-            mediation_process_id="mediation_2",
-            report_id="report_269",
-            case_id="case_1514",
+        MediationProcess.model_validate(
+            {
+                "mediation_process_id": "mediation_2",
+                "case_id": "case_1514",
+                "identity_method": "manual_evidence_link",
+            }
+        )
+
+
+def test_source_local_mediation_observation_does_not_invent_longitudinal_identity() -> None:
+    observation = MediationObservation(
+        mediation_observation_id="mediation_observation_2",
+        report_id="report_264",
+        case_description_original="Descripción visible del caso",
+        mediation_type_original="Pasiva",
+        provenance_ids=("prov_mediation_page_6",),
+    )
+    assert observation.mediation_process_id is None
+
+    with pytest.raises(ValidationError, match="provenance"):
+        MediationObservation(
+            mediation_observation_id="mediation_observation_3",
+            report_id="report_264",
+            case_id="case_unlinked",
+        )
+
+
+def test_case_description_and_source_reported_case_indicators_are_not_events() -> None:
+    case_month = CaseMonth(
+        case_month_id="case_month_description",
+        case_id="case_1",
+        report_id="report_260",
+        reference_period="2025-10",
+        case_description_original="Problema estructural descrito por la fuente.",
+        monthly_facts_original="Durante octubre se celebró una reunión.",
+    )
+    indicator = CaseReportedIndicator(
+        case_reported_indicator_id="case_indicator_1",
+        case_month_id=case_month.case_month_id,
+        case_id=case_month.case_id,
+        report_id=case_month.report_id,
+        metric_original="Heridos acumulados del caso",
+        value=7,
+        unit_original="personas",
+        scope_original="acumulado informado en el reporte",
+        provenance_ids=("prov_case_indicator",),
+    )
+    assert case_month.case_description_original != case_month.monthly_facts_original
+    assert indicator.value == 7
+    with pytest.raises(ValidationError, match="non-null source value"):
+        CaseReportedIndicator(
+            case_reported_indicator_id="case_indicator_2",
+            case_month_id=case_month.case_month_id,
+            case_id=case_month.case_id,
+            report_id=case_month.report_id,
+            metric_original="Heridos acumulados del caso",
+            value=None,
+            provenance_ids=("prov_case_indicator",),
         )
 
 
@@ -435,7 +518,7 @@ def test_adjudication_is_versioned_append_only_data() -> None:
     )
 
     assert decision.supersedes_adjudication_id == "adj_1"
-    assert decision.schema_version == "0.2.0"
+    assert decision.schema_version == "0.3.0"
 
 
 def test_adjudication_rejects_invalid_review_chain() -> None:
@@ -498,10 +581,12 @@ def test_registry_covers_every_canonical_foundation_entity() -> None:
         "case_month",
         "case_name",
         "case_protest_link",
+        "case_reported_indicator",
         "case_relationship",
         "demand",
         "dialogue_event",
         "mediation_process",
+        "mediation_observation",
         "discrepancy",
         "dp_action",
         "location",

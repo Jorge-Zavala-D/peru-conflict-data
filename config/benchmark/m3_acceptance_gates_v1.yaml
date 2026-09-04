@@ -1,0 +1,19 @@
+benchmark_schema_version: 0.1.0
+gate_id: m3-acceptance-gates-v1
+policy_status: owner_review_draft
+owner_approval_required: true
+owner_approved: false
+source_references:
+  - docs/execution_plan.md#M3-02
+  - docs/execution_plan.md#M3-03
+  - docs/execution_plan.md#M3-04
+case_detection_precision_threshold: 0.99
+case_detection_recall_threshold: 0.99
+exact_page_attribution_threshold: 0.99
+strict_source_value_accuracy_threshold: 0.99
+evidence_completeness_threshold: 1.0
+evidence_policy_interpretation: PROPOSED_OWNER_GATE_INTERPRETATION
+object_metric_policy: selected_thresholds_with_all_metrics_reported
+object_metric_thresholds: []
+require_critical_parser_errors_closed: true
+require_arithmetic_discrepancies_classified: true

@@ -1,11 +1,12 @@
-# Canonical field-level data dictionary (schema v0.2.0)
+# Canonical field-level data dictionary (schema v0.3.0)
 
-This dictionary is synchronized with the 24 models in
-`peru_conflicts.models.MODEL_REGISTRY` and the generated files in `schemas/v0.2.0/`.
+This dictionary is synchronized with the 26 models in
+`peru_conflicts.models.MODEL_REGISTRY` and the generated files in `schemas/v0.3.0/`.
 The Python models and their validators are authoritative; this document explains the
 research meaning and storage contract. `schemas/v0.1.0/` is retained as the immutable
 M0 snapshot and is documented by the migration note in
-`docs/schema_migrations/v0.1.0_to_v0.2.0.md`.
+`docs/schema_migrations/v0.1.0_to_v0.2.0.md`. The M2-01 migration is documented in
+`docs/scientific_schema_v0_3_0_migration.md`; v0.2.0 also remains immutable.
 
 ## Conventions
 
@@ -33,7 +34,7 @@ M0 snapshot and is documented by the migration note in
   strings. The only closed values below are pipeline controls, not historical taxonomies.
 
 Every registry model also has `schema_version` (`1`, `str`, `T`, `0..1` with a default
-equal to `0.2.0`, `—`, record version) and must validate against the generated schema.
+equal to `0.3.0`, `—`, record version) and must validate against the generated schema.
 
 ## `report` (`ReportRecord`)
 
@@ -122,9 +123,27 @@ indicator.
 | `phase_normalized` | Versioned phase derivative | norm str | N | 0..1 | Method/crosswalk evidence | D |
 | `conflict_type_original` | Published conflict type | orig str | N | 0..1 | P | S |
 | `conflict_type_normalized` | Versioned harmonized type | norm str | N | 0..1 | Taxonomy version required | D |
+| `case_description_original` | Structural/problem description as published in this report; not timeless canonical text | orig str | N | 0..1 | P; distinct from monthly facts | S |
 | `transitions` | Transition evidence records, not stock flags | tuple of records | empty | 0..* | Each nested record requires provenance | S/D |
 | `monthly_facts_original` | Published monthly facts text | orig str | N | 0..1 | P | S |
 | `provenance_ids` | Observation evidence | ids | empty | 0..* | FK to `provenance` | T |
+
+## `case_reported_indicator` (`CaseReportedIndicator`)
+
+This table stores a source-reported value scoped to one case-month. It is not an
+event and cannot contain a derived value.
+
+| Field | Meaning / representation | Orig/norm | Null | Mult | Provenance / relationship | Origin |
+|---|---|---|---|---|---|---|
+| `case_reported_indicator_id` | Stable indicator observation key | id | — | 1 | Key | T |
+| `case_month_id` | Case-month observation | id | — | 1 | FK to `case_month` | T |
+| `case_id` | Case identity | id | — | 1 | FK to `case` | T |
+| `report_id` | Report containing the value | id | — | 1 | FK to `report` | T |
+| `metric_original` | Exact source label/open metric name | orig str | — | 1 | P | S |
+| `value` | Explicit source value; null is invalid for an existing row | scalar | — | 1 | P | S |
+| `unit_original` | Published unit | orig str | N | 0..1 | P when visible | S |
+| `scope_original` | Published case/time/population scope | orig str | N | 0..1 | P; never inferred | S |
+| `provenance_ids` | Exact source evidence | ids | — | 1..* | FK to `provenance` | T |
 
 ## `location` (`Location`)
 
@@ -185,7 +204,7 @@ indicator.
 | Field | Meaning / representation | Orig/norm | Null | Mult | Provenance / relationship | Origin |
 |---|---|---|---|---|---|---|
 | `demand_id` | Demand key | id | — | 1 | Referenced by `case_demand` | T |
-| `text_original` | Full demand text | orig str | — | 1 | P | S |
+| `text_original` | Full demand text when source-visible | orig str | N | 0..1 | P | S |
 | `text_normalized` | Search/analysis normalization | norm str | N | 0..1 | Never replaces original | D |
 | `theme_original` | `Tema de demanda social` | orig str | N | 0..1 | P | S |
 | `theme_normalized` | Optional theme derivative | norm str | N | 0..1 | Taxonomy/version evidence | D |
@@ -193,6 +212,9 @@ indicator.
 | `category_normalized` | Optional category derivative | norm str | N | 0..1 | Only after an approved taxonomy | D |
 | `competent_entity_original` | `Entidad pública competente` | orig str | N | 0..1 | P; distinct from theme/category | S |
 | `provenance_ids` | Demand evidence | ids | empty | 0..* | FK to `provenance` | T |
+
+At least one original source dimension among text, theme, category, and competent
+entity is required. Structured-only rows never receive synthesized demand prose.
 
 ## `case_demand` (`CaseDemand`)
 
@@ -267,27 +289,42 @@ indicator.
 
 ## `mediation_process` (`MediationProcess`)
 
-This relation preserves report-269 process records such as `Fecha de inicio`, `Estado`,
-`Solicitante`, `Actores`, `Tipo de mediación`, `Mediador`, `Descripción de caso`,
-`Demandas`, and process progress. It is not collapsed into one generic event.
+This is an optional evidence-linked longitudinal identity. Similar source labels do
+not establish continuity.
 
 | Field | Meaning / representation | Orig/norm | Null | Mult | Provenance / relationship | Origin |
 |---|---|---|---|---|---|---|
-| `mediation_process_id` | Continuing mediation/process key | id | — | 1 | Referenced by dialogue events | T |
-| `report_id` | Report key | id | — | 1 | FK to `report` | T |
-| `case_id` | Linked case when evidenced | id | N | 0..1 | Explicit link evidence; if populated, `provenance_ids` is required | S/D |
-| `start_date` | Parsed process start date | date | N | 0..1 | P/source-date evidence | S/D |
-| `start_date_original` | Exact `Fecha de inicio` value | orig str | N | 0..1 | P | S |
+| `mediation_process_id` | Continuing mediation identity | id | — | 1 | Referenced only after linkage review | T |
+| `case_id` | Linked case when evidenced | id | N | 0..1 | Explicit link evidence required | S/D |
+| `canonical_label` | Reviewed display label | norm str | N | 0..1 | Identity adjudication | D |
+| `identity_method` | Open linkage method | str | — | 1 | Review/run evidence | D |
+| `identity_confidence` | Linkage confidence `[0,1]` | float | N | 0..1 | Candidate/review evidence | D |
+| `provenance_ids` | Identity/link evidence | ids | — | 1..* | Required for every process identity | T |
+
+## `mediation_observation` (`MediationObservation`)
+
+One report-local source block. It preserves `Fecha de inicio`, `Estado`, `Solicitante`,
+`Actores`, `Tipo de mediación`, `Mediador`, `Descripción de caso`, `Demandas`, and
+progress without inventing cross-report continuity.
+
+| Field | Meaning / representation | Orig/norm | Null | Mult | Provenance / relationship | Origin |
+|---|---|---|---|---|---|---|
+| `mediation_observation_id` | Source-observation key | id | — | 1 | Key | T |
+| `report_id` | Report containing the block | id | — | 1 | FK to `report` | T |
+| `mediation_process_id` | Optional reviewed process link | id | N | 0..1 | Evidence required if populated | D/S |
+| `case_id` | Optional case link | id | N | 0..1 | Evidence required if populated | D/S |
+| `start_date` | Parsed start date | date | N | 0..1 | P/source-date evidence | S/D |
+| `start_date_original` | Exact `Fecha de inicio` | orig str | N | 0..1 | P | S |
 | `start_date_precision_original` | Open source precision | orig str | N | 0..1 | P | S |
-| `status_original` | Process `Estado` | orig str | N | 0..1 | P | S |
+| `status_original` | Published mediation `Estado` | orig str | N | 0..1 | P | S |
 | `requester_original` | `Solicitante` | orig str | N | 0..1 | P | S |
-| `actors_original` | `Actores` cell/text | orig str | N | 0..1 | P | S |
+| `actors_original` | `Actores` | orig str | N | 0..1 | P | S |
 | `mediation_type_original` | `Tipo de mediación` | orig str | N | 0..1 | P | S |
 | `mediator_original` | `Mediador` | orig str | N | 0..1 | P | S |
 | `case_description_original` | `Descripción de caso` | orig str | N | 0..1 | P | S |
-| `demands_original` | Process-level `Demandas` | orig str | N | 0..1 | P | S |
-| `progress_original` | Process progress/advance text | orig str | N | 0..1 | P | S |
-| `provenance_ids` | Process evidence | ids | empty | 0..* | FK to `provenance` | T |
+| `demands_original` | Source demand text in block | orig str | N | 0..1 | P | S |
+| `progress_original` | Source `Estado situacional` progress narrative | orig str | N | 0..1 | P | S |
+| `provenance_ids` | Observation/link evidence | ids | empty | 0..* | Links require nonempty evidence | T |
 
 ## `agreement` (`Agreement`)
 

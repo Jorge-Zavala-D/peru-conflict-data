@@ -1,0 +1,95 @@
+{
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/v0.3.0/case_relationship.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "case_id_from": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Case Id From",
+      "type": "string"
+    },
+    "case_id_to": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Case Id To",
+      "type": "string"
+    },
+    "confidence": {
+      "anyOf": [
+        {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Confidence"
+    },
+    "effective_period": {
+      "anyOf": [
+        {
+          "pattern": "^\\d{4}-\\d{2}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Effective Period"
+    },
+    "provenance_ids": {
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Provenance Ids",
+      "type": "array"
+    },
+    "relationship_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Relationship Id",
+      "type": "string"
+    },
+    "relationship_type_normalized": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Relationship Type Normalized"
+    },
+    "relationship_type_original": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Relationship Type Original",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "0.3.0",
+      "default": "0.3.0",
+      "title": "Schema Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "relationship_id",
+    "case_id_from",
+    "case_id_to",
+    "relationship_type_original",
+    "provenance_ids"
+  ],
+  "title": "CaseRelationship",
+  "type": "object"
+}

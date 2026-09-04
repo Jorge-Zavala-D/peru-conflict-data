@@ -1,6 +1,6 @@
 # Execution plan: Milestones 1-12
 
-Version: 0.2.0 (M1-only working content baseline; not the final M2 gold schema)
+Version: 0.3.0 (M2-01 scientific schema and benchmark protocol approved)
 
 ## Plan contract
 
@@ -15,18 +15,22 @@ Parallel work is limited to independent, read-heavy or isolated outputs. No two 
 
 ## Current execution status
 
-M0/M0.1, M1-01/M1-02.2, and M1-03 are complete on protected `main` for the bounded
-discovery, acquisition-safety, and ten-report compare-only objective. M1-03B.2 ended
-`completed / all_ten_remote_bytes_identical`; its authorization is spent, no raw
-object was staged or promoted, and its operational evidence is immutable. M1-04A
-technical reconciliation is merged and M1-04B owner review is complete. In M1-04C.1
-the owner approved all 50 conservative review outcomes and the explicit deferral of
-237 future byte acquisitions. The reviewed v0.2.0 contract preserves all v0.1.1
-evidence and unresolved conditions while distinguishing owner-review closure,
-coverage accounting, and authoritative byte completeness. Authoritative byte-corpus
-completeness remains false. The external canonical package has not yet been written;
-that single write requires a separate post-merge owner authorization. M2-01 has not
-started.
+M0/M0.1 and Milestone 1 are complete on protected `main`. The one-shot M1-03B.2
+comparison ended `completed / all_ten_remote_bytes_identical`; no raw object was
+staged or promoted. M1-04 owner review approved 50 conservative adjudications and
+deferred 237 future byte acquisitions. The write-once canonical identity/coverage
+package now exists at `06_validation/m1_corpus_manifest/v0.2.0/`, preserving all
+v0.1.1 evidence and unresolved conditions. It establishes corpus identity/coverage
+closure while authoritative byte-corpus completeness remains false. M2-01 is complete:
+Jorge approved scientific v0.3.0, benchmark v0.1.0, the handbook, metrics, split, and
+the protocol-coherence result of both non-gold pilots. No M2 human gold exists and
+M2-02/parser development have not started.
+
+Object Threshold Policy A is binding. All registered object-family metrics remain
+mandatory and reportable, but numerical object-family thresholds are deferred until
+M2-03 freezes human-gold composition. No M3 parser-development implementation may begin while the
+gate remains `owner_review_draft`. A new versioned, owner-approved M3 gate with selected
+object-family thresholds must exist after M2-03 and before any M3 parser-development implementation.
 
 ## Global gates
 
@@ -104,12 +108,13 @@ started.
 
 ## Milestone 2: human gold benchmark and workbook overlap
 
-M2-01 owns the five deferred ontology questions in `docs/29_open_questions.md`:
+M2-01 resolved the five deferred ontology questions in `docs/29_open_questions.md`:
 whether `Demand.text_original` must be nullable for structured demand rows;
 source-reported case-level dialogue/mechanism and cumulative-violence fields; a
 source-level case/problem description distinct from monthly facts; longitudinal
 mediation-process identity/observation semantics; and any additional fields evidenced
-across reports 260-269. M1 makes no speculative resolution of these questions.
+across reports 260-269. The approved decisions and exclusions are recorded in
+`config/benchmark/m2_01_owner_approval_v1.yaml`.
 
 ### M2-01 — benchmark protocol and sampling units
 
@@ -120,8 +125,8 @@ across reports 260-269. M1 makes no speculative resolution of these questions.
 | Inputs | Reports 260-269, schemas, research contract |
 | Outputs | Annotation handbook, gold schemas, annotator forms, critical-field list, metric implementation spec |
 | Tests | Schema validation; impossible-value and null/zero examples; metric unit tests with synthetic confusion matrices only |
-| Acceptance | Two pilot annotations expose no unresolved definition-level ambiguity in critical fields |
-| Human review | Jorge approves handbook and any proposed gate interpretation |
+| Acceptance | Complete: two non-gold pilot exercises exposed no unresolved definition-level ambiguity in critical fields |
+| Human review | Complete for the M2-01 handbook, ontology, and gate components; final M3 gate remains unapproved under Object Policy A |
 | Tools | PDF viewer, structured annotation files; no extraction model |
 | Compute/cost risk | Low compute, high expert time |
 | Parallelization | Independent handbook review allowed; handbook has one owner |

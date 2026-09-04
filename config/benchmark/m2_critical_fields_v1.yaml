@@ -1,0 +1,95 @@
+schema_version: "0.1.0"
+critical_field_set_id: m2-critical-fields-v1
+scope: reports-260-269-human-benchmark
+source_value_critical:
+  identity:
+    rationale: Source-visible report and case labels support observation matching without assigning longitudinal identity.
+    fields:
+      - report.report_number
+      - report.reference_period
+      - case.official_code
+      - case_name.name_original
+  monthly_status:
+    rationale: Stock, phase, transition, structural description, and monthly evolution must remain distinct.
+    fields:
+      - case_month.stock_status_original
+      - case_month.phase_original
+      - case_month.conflict_type_original
+      - case_month.case_description_original
+      - case_month.monthly_facts_original
+      - case_month.transitions
+  location:
+    rationale: Multi-level geography is central to source-observation matching and spatial analysis.
+    fields:
+      - location.location_text_original
+      - location.department_original
+      - location.province_original
+      - location.district_original
+      - location.population_center_original
+      - case_location.relationship_original
+  violence_casualty:
+    rationale: Violence and casualty errors are scientifically material; unknown and zero must not collapse.
+    fields:
+      - violence_event.event_date_original
+      - violence_event.violence_type_original
+      - violence_event.description_original
+      - violence_event.fatalities_total
+      - violence_event.injured_total
+      - violence_event.casualty_components
+      - case_reported_indicator.metric_original
+      - case_reported_indicator.value
+      - case_reported_indicator.scope_original
+  dialogue_mediation:
+    rationale: Source-local mediation observations and dated dialogue events must not imply unsupported continuity.
+    fields:
+      - dialogue_event.event_date_original
+      - dialogue_event.description_original
+      - dialogue_event.status_original
+      - mediation_observation.start_date_original
+      - mediation_observation.status_original
+      - mediation_observation.mediation_type_original
+      - mediation_observation.mediator_original
+      - mediation_observation.case_description_original
+      - mediation_observation.progress_original
+  event_dates:
+    rationale: Exact source dates and their precision determine temporal ordering without invented precision.
+    fields:
+      - protest_event.event_date_original
+      - protest_event.event_date_precision_original
+      - violence_event.event_date_precision_original
+      - dialogue_event.event_date_precision_original
+      - agreement.agreement_date_original
+      - agreement.agreement_date_precision_original
+
+custody_prerequisites:
+  rationale: Immutable source bytes are verified before scoring and are not human transcription targets.
+  fields:
+    - report.sha256
+    - provenance.source_sha256
+
+technical_matching_keys:
+  rationale: Source-bounded observation keys enable matching but are not human source-value accuracy targets.
+  fields:
+    - annotation_unit.unit_id
+    - provenance.source_report_id
+
+evidence_requirements:
+  rationale: Every critical source value requires exact custody, page, section, and one typed locator.
+  required_components:
+    - exact_source_sha
+    - exact_page
+    - source_section
+    - granularity_appropriate_locator
+  typed_locator_rules:
+    span: source_span
+    bounding_box: source_bbox
+    table_cell:
+      - source_table
+      - table_row_original
+      - table_column_original
+    page_only: page_only_rationale
+
+excluded_later_stage_fields:
+  rationale: M4 owns longitudinal case identity; M2/M3 score report-local observations.
+  fields:
+    - case.case_id

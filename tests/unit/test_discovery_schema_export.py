@@ -7,6 +7,7 @@ import sys
 from pathlib import Path
 
 from peru_conflicts.acquisition.schema_export import export_acquisition_schemas
+from peru_conflicts.benchmark.schema_export import export_benchmark_schemas
 from peru_conflicts.discovery.schema_export import (
     PILOT_ACQUISITION_PLAN_SCHEMA_FILENAME,
     discovery_schemas_are_current,
@@ -237,6 +238,7 @@ def test_existing_schema_check_gate_includes_discovery_drift(tmp_path: Path) -> 
     written = export_discovery_schemas(tmp_path)
     export_acquisition_schemas(tmp_path)
     export_manifest_schemas(tmp_path)
+    export_benchmark_schemas(tmp_path / "benchmark")
     command = [
         sys.executable,
         "scripts/export_schemas.py",

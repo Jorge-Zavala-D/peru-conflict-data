@@ -1,0 +1,53 @@
+{
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/benchmark/v0.1.0/benchmark_gate_metric_result.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "benchmark_schema_version": {
+      "const": "0.1.0",
+      "default": "0.1.0",
+      "title": "Benchmark Schema Version",
+      "type": "string"
+    },
+    "metric_name": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Metric Name",
+      "type": "string"
+    },
+    "missing": {
+      "title": "Missing",
+      "type": "boolean"
+    },
+    "observed": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Observed"
+    },
+    "passed": {
+      "title": "Passed",
+      "type": "boolean"
+    },
+    "threshold": {
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Threshold",
+      "type": "number"
+    }
+  },
+  "required": [
+    "metric_name",
+    "threshold",
+    "observed",
+    "missing",
+    "passed"
+  ],
+  "title": "BenchmarkGateMetricResult",
+  "type": "object"
+}

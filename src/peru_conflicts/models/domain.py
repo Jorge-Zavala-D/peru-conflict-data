@@ -161,9 +161,30 @@ class CaseMonth(VersionedModel):
     phase_normalized: str | None = None
     conflict_type_original: str | None = None
     conflict_type_normalized: str | None = None
+    case_description_original: str | None = None
     transitions: tuple[TransitionEvidence, ...] = ()
     monthly_facts_original: str | None = None
     provenance_ids: tuple[str, ...] = ()
+
+
+class CaseReportedIndicator(VersionedModel):
+    """A value the source reports for a case-month, never a value derived from events."""
+
+    case_reported_indicator_id: Identifier
+    case_month_id: Identifier
+    case_id: Identifier
+    report_id: Identifier
+    metric_original: Identifier
+    value: ScalarValue
+    unit_original: str | None = None
+    scope_original: str | None = None
+    provenance_ids: tuple[Identifier, ...] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def require_source_value(self) -> Self:
+        if self.value is None:
+            raise ValueError("a case-reported indicator requires a non-null source value")
+        return self
 
 
 class Location(VersionedModel):
@@ -214,7 +235,7 @@ class CaseActor(VersionedModel):
 
 class Demand(VersionedModel):
     demand_id: Identifier
-    text_original: Identifier
+    text_original: str | None = None
     text_normalized: str | None = None
     theme_original: str | None = None
     theme_normalized: str | None = None
@@ -222,6 +243,20 @@ class Demand(VersionedModel):
     category_normalized: str | None = None
     competent_entity_original: str | None = None
     provenance_ids: tuple[Identifier, ...] = ()
+
+    @model_validator(mode="after")
+    def require_source_dimension(self) -> Self:
+        if not any(
+            value is not None and value.strip()
+            for value in (
+                self.text_original,
+                self.theme_original,
+                self.category_original,
+                self.competent_entity_original,
+            )
+        ):
+            raise ValueError("a demand requires at least one source-visible demand dimension")
+        return self
 
 
 class CaseDemand(VersionedModel):
@@ -298,8 +333,28 @@ class DialogueEvent(VersionedModel):
 
 
 class MediationProcess(VersionedModel):
+    """Optional longitudinal identity, created only when cross-report evidence supports it."""
+
     mediation_process_id: Identifier
+    case_id: Identifier | None = None
+    canonical_label: str | None = None
+    identity_method: Identifier
+    identity_confidence: Confidence | None = None
+    provenance_ids: tuple[Identifier, ...] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def require_case_link_provenance(self) -> Self:
+        if self.case_id is not None and not self.provenance_ids:
+            raise ValueError("case_id links require provenance IDs")
+        return self
+
+
+class MediationObservation(VersionedModel):
+    """One source-local mediation block in one report; identity links are optional."""
+
+    mediation_observation_id: Identifier
     report_id: Identifier
+    mediation_process_id: Identifier | None = None
     case_id: Identifier | None = None
     start_date: date | None = None
     start_date_original: str | None = None
@@ -315,9 +370,11 @@ class MediationProcess(VersionedModel):
     provenance_ids: tuple[Identifier, ...] = ()
 
     @model_validator(mode="after")
-    def require_case_link_provenance(self) -> Self:
-        if self.case_id is not None and not self.provenance_ids:
-            raise ValueError("case_id links require provenance IDs")
+    def require_link_provenance(self) -> Self:
+        if (
+            self.case_id is not None or self.mediation_process_id is not None
+        ) and not self.provenance_ids:
+            raise ValueError("mediation observation links require provenance IDs")
         return self
 
 

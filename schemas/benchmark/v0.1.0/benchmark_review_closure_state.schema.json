@@ -1,0 +1,40 @@
+{
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/benchmark/v0.1.0/benchmark_review_closure_state.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Later reviewed M3-04 facts that numerical metrics cannot establish.",
+  "properties": {
+    "arithmetic_discrepancies_classified": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Arithmetic Discrepancies Classified"
+    },
+    "benchmark_schema_version": {
+      "const": "0.1.0",
+      "default": "0.1.0",
+      "title": "Benchmark Schema Version",
+      "type": "string"
+    },
+    "critical_parser_errors_closed": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Critical Parser Errors Closed"
+    }
+  },
+  "title": "BenchmarkReviewClosureState",
+  "type": "object"
+}
