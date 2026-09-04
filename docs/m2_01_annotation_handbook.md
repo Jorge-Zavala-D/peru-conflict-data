@@ -1,7 +1,7 @@
-# M2-01 human annotation handbook
+# M2-01 owner-approved human annotation handbook
 
-Version: 0.1.0. Scope: fixed PDFs for reports 260–269. Status: owner-review draft;
-not human gold. Scientific target: v0.3.0. Benchmark technical contract: v0.1.0.
+Version: 0.1.0. Scope: fixed PDFs for reports 260–269. Status: owner-approved M2-01
+protocol contract; not human gold. Scientific target: v0.3.0. Benchmark technical contract: v0.1.0.
 
 ## 1. Governing rules
 
@@ -164,7 +164,7 @@ field of every reviewed object instance is observed or assigned an allowed non-v
 
 ## 8. Pilot and handoff
 
-Reports 264 and 269 are protocol-pilot reports and cannot later be blind holdout. The two blank
-packets under `.cache/m2-01/pilots/` contain no substantive answers. Pilot review must confirm that
-two independent annotators can apply these rules without definition-level ambiguity before M2-01
-closes or M2-02 begins.
+Reports 264 and 269 are protocol-pilot reports and cannot later be blind holdout. Jorge verified
+both pilot exercises for protocol coherence: the handbook can be applied without unresolved
+definition-level ambiguity. The machine review aids remain `NON_GOLD_MACHINE_REVIEW_AID`; this
+verification created neither an Annotator A/B submission nor human gold. M2-02 has not started.

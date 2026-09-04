@@ -1,6 +1,6 @@
 # M2-01 benchmark metric specification
 
-Version 0.1.0 defines metrics only. No parser is evaluated in M2-01.
+Version 0.1.0 defines owner-approved M2 benchmark metrics. No parser was evaluated in M2-01.
 
 ## Evaluation population and leakage
 
@@ -125,19 +125,23 @@ evidence threshold is a `PROPOSED_OWNER_GATE_INTERPRETATION`, not a previously a
 
 ## Versioned M3 acceptance policy
 
-`config/benchmark/m3_acceptance_gates_v1.yaml` is an `owner_review_draft`. It restates the execution
+`config/benchmark/m3_acceptance_gates_v1.yaml` remains an `owner_review_draft`. It restates the execution
 plan's quantitative targets without rounding: case-detection precision and recall, exact source-page
 attribution, and strict source-value accuracy each pass when the observed metric is greater than or
 equal to 0.99. Missing required metrics fail closed. All registered repeated-object populations must
 still be supplied and reported, but the draft activates no object-specific threshold; deciding which
-object families receive additional thresholds remains an explicit owner decision.
+object families receive additional thresholds was resolved through owner-selected Object Policy A:
+threshold selection is deferred until M2-03 freezes human-gold composition.
 
 `apply_acceptance_gate()` returns each observed metric, its required threshold, missingness, and
 component result. Quantitative passage is separate from gate-policy approval and from the later
 reviewed M3-04 facts. In particular, zero unresolved critical parser errors and classified arithmetic
 discrepancies are explicit review-closure inputs; they are never inferred from numerical benchmark
 scores. An owner-review draft cannot yield final acceptance even if every metric and review flag
-passes. The execution-plan targets and any later written gate revision require Jorge's approval.
+passes. Jorge approved the four 0.99 components, 1.0 evidence completeness, and the qualitative
+closure requirements as components, but did not approve v1 as a complete final gate. A new
+versioned, owner-approved post-M2-03 gate must select object-family thresholds before any M3
+parser-development implementation begins.
 
 ## Critical-field categories
 

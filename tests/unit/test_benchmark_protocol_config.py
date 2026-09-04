@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime
 from pathlib import Path
 
 import yaml
@@ -100,3 +101,107 @@ def test_proposed_m3_gate_config_is_versioned_and_requires_owner_review() -> Non
     assert spec.object_metric_thresholds == ()
     assert spec.require_critical_parser_errors_closed is True
     assert spec.require_arithmetic_discrepancies_classified is True
+
+
+def test_m2_01_owner_approval_binds_reviewed_contract_without_approving_m3() -> None:
+    repo_root = Path(__file__).parents[2]
+    payload = yaml.safe_load(
+        (repo_root / "config/benchmark/m2_01_owner_approval_v1.yaml").read_text(encoding="utf-8")
+    )
+    approval = benchmark.M201OwnerApproval.model_validate_json(json.dumps(payload))
+
+    assert approval.milestone == "M2-01"
+    assert approval.owner == "Jorge Zavala"
+    assert approval.reviewed_pr_number == 11
+    assert approval.reviewed_head_sha == "7a2e2da82349f6d2311f0291b4d6f5ece1e72354"
+    assert approval.reviewed_tree_sha == "ecab90aae4681abe2b6e5a15451fa863e309494f"
+    assert approval.reviewed_base_sha == "46fab9b1f878453b3c1d3f2ec8b964ff5ecfb1e1"
+    assert approval.reviewed_actions_run_id == 33844007460
+    assert isinstance(approval.approved_at, datetime)
+    assert approval.approved_at.utcoffset() is not None
+    assert len(approval.approved_decision_ids) == 18
+    assert set(approval.approved_decision_ids) == {
+        "SCI-Q1",
+        "SCI-Q2",
+        "SCI-Q3",
+        "SCI-Q4",
+        "SCI-Q5",
+        "BENCH-STATES",
+        "BENCH-EVIDENCE",
+        "CRIT-SET",
+        "METRIC-STRICT",
+        "METRIC-OBJECTS",
+        "PARTITION",
+        "M3-GATE-CASE-PRECISION",
+        "M3-GATE-CASE-RECALL",
+        "M3-GATE-PAGE-ATTRIBUTION",
+        "M3-GATE-SOURCE-VALUE-ACCURACY",
+        "M3-GATE-EVIDENCE-COMPLETENESS",
+        "M3-GATE-CRITICAL-ERROR-CLOSURE",
+        "M3-GATE-ARITHMETIC-CLASSIFICATION",
+    }
+    assert len(approval.scientific_q5_rejections) == 5
+    assert set(approval.scientific_q5_rejections) == {
+        "closed_historical_taxonomies",
+        "automatic_annex_to_case_links",
+        "automatic_mediation_continuity",
+        "reconstructed_cumulative_violence_replacing_source_values",
+        "timeless_case_description",
+    }
+    assert approval.pilots.machine_aids_remain_non_gold is True
+    assert approval.pilots.human_submissions_created is False
+    assert approval.pilots.human_gold_created is False
+    assert approval.object_threshold_policy.option == "A"
+    assert approval.object_threshold_policy.final_m3_gate_approved is False
+    assert approval.object_threshold_policy.new_owner_approved_gate_required is True
+
+
+def test_owner_approval_evidence_hashes_are_exact_and_contains_no_machine_values() -> None:
+    repo_root = Path(__file__).parents[2]
+    approval_path = repo_root / "config/benchmark/m2_01_owner_approval_v1.yaml"
+    payload = yaml.safe_load(approval_path.read_text(encoding="utf-8"))
+    approval = benchmark.M201OwnerApproval.model_validate_json(json.dumps(payload))
+
+    assert approval.review_evidence.model_dump(mode="json") == {
+        "owner_decision_matrix_v3_sha256": (
+            "b04619da33f1f7bf7a39f46768cc4a53cb14be7a7a69c86204308c2816a8db1b"
+        ),
+        "owner_review_packet_v3_sha256": (
+            "b4498a91d4d2631d7a05401993ab30870c015088337f8a46363af3051c7bc62f"
+        ),
+        "pilot_264_v3_sha256": "10e043d1938d89f4461664a221bcf605e5ef04712da33563bec7aaf79f3aedb9",
+        "pilot_269_v3_sha256": "7471dc0d00f0b32b6590d0152ae5475a3e3e7d9af244127fff55b70a4ab33a1a",
+        "owner_review_session_packet_sha256": (
+            "001a2cd9d2710f44117d5ba03b5f35eacfeddbb9cab8aa89aec3939bdfd6a42f"
+        ),
+        "owner_review_form_sha256": (
+            "a03d6fdee779683d17df41cd12f9f403ab3f1662a109db092e17764624bc72cb"
+        ),
+    }
+    serialized = json.dumps(payload, ensure_ascii=False).lower()
+    for prohibited in (
+        "machine_proposed_source_reading",
+        "raw_value",
+        "annotator_a",
+        "annotator_b",
+    ):
+        assert prohibited not in serialized
+
+
+def test_m3_draft_remains_fail_closed_under_owner_selected_object_policy_a() -> None:
+    repo_root = Path(__file__).parents[2]
+    gate_payload = yaml.safe_load(
+        (repo_root / "config/benchmark/m3_acceptance_gates_v1.yaml").read_text(encoding="utf-8")
+    )
+    approval_payload = yaml.safe_load(
+        (repo_root / "config/benchmark/m2_01_owner_approval_v1.yaml").read_text(encoding="utf-8")
+    )
+    gate = benchmark.BenchmarkAcceptanceGateSpec.model_validate_json(json.dumps(gate_payload))
+    approval = benchmark.M201OwnerApproval.model_validate_json(json.dumps(approval_payload))
+
+    assert gate.policy_status is benchmark.GatePolicyStatus.OWNER_REVIEW_DRAFT
+    assert gate.owner_approved is False
+    assert gate.object_metric_thresholds == ()
+    assert approval.object_threshold_policy.option == "A"
+    assert approval.object_threshold_policy.threshold_selection_after_milestone == "M2-03"
+    assert approval.object_threshold_policy.final_m3_gate_approved is False

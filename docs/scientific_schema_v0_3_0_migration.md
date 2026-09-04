@@ -1,6 +1,6 @@
 # Scientific schema v0.3.0 migration
 
-Version 0.3.0 is the M2-01 source-evidence proposal. Historical `schemas/v0.1.0/` and
+Version 0.3.0 is the owner-approved M2-01 source-evidence contract. Historical `schemas/v0.1.0/` and
 `schemas/v0.2.0/` remain immutable snapshots; consumers must opt into v0.3.0.
 
 ## Mechanical migration

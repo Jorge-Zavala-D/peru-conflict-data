@@ -1,8 +1,9 @@
 # M2-01 source-grounded ontology decisions
 
-These are proposed owner decisions for scientific schema v0.3.0. “Source fact” means visible in
-the fixed reports 260–269; “modeling decision” states the proposed representation; “inference” is
-explicitly identified. Approval remains with Jorge.
+These are Jorge's approved M2-01 scientific decisions for schema v0.3.0. “Source fact” means
+visible in the fixed reports 260–269; “modeling decision” states the approved representation;
+“inference” remains explicitly identified. The exact approval provenance is recorded in
+`config/benchmark/m2_01_owner_approval_v1.yaml`.
 
 ## Q1 — nullable `Demand.text_original`
 
@@ -19,7 +20,7 @@ explicitly identified. Approval remains with Jorge.
 - **Annotation impact:** annotate each dimension independently. `not_reported` for text is not an
   empty string and does not erase observed structured dimensions.
 - **Migration/backward compatibility:** existing v0.2.0 rows migrate without value change; new
-  structured-only rows become valid in v0.3.0. Owner approval required.
+  structured-only rows become valid in v0.3.0. Owner approved.
 
 ## Q2 — source-reported case indicators versus events
 
@@ -35,7 +36,7 @@ explicitly identified. Approval remains with Jorge.
 - **Annotation impact:** record the visible value and scope; missing/zero/ambiguous state stays in
   benchmark metadata. Derived measures remain separate downstream records.
 - **Remaining uncertainty:** historical label stability is unknown; metric names remain open
-  source strings. Owner approval required.
+  source strings. Owner approved.
 
 ## Q3 — structural case description versus monthly facts
 
@@ -52,7 +53,7 @@ explicitly identified. Approval remains with Jorge.
   `monthly_facts_original`.
 - **Annotation impact:** both fields receive separate annotations/anchors, even when prose overlaps.
 - **Migration:** v0.2.0 case-month rows migrate with the new field null until source-annotated.
-  Owner approval required.
+  Owner approved.
 
 ## Q4 — mediation identity and observation
 
@@ -71,7 +72,7 @@ explicitly identified. Approval remains with Jorge.
 - **Annotation impact:** annotators create source-local observations. They do not assign a process
   identity. Later linkage/adjudication may add identity records without rewriting observations.
 - **Migration:** each v0.2.0 process row becomes a v0.3.0 observation; a process row is created only
-  when identity evidence exists. Owner approval required.
+  when identity evidence exists. Owner approved.
 
 ## Q5 — additional fields and rejected additions
 

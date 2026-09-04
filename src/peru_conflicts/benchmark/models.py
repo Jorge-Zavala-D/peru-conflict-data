@@ -25,6 +25,7 @@ BenchmarkThreshold = Annotated[
     float,
     Field(strict=True, ge=0.0, le=1.0, allow_inf_nan=False),
 ]
+GitSha1 = Annotated[str, Field(pattern=r"^[0-9a-f]{40}$")]
 
 BENCHMARK_OBJECT_TYPES = frozenset(
     {
@@ -641,6 +642,108 @@ class BenchmarkGateResult(BenchmarkVersionedModel):
         return self
 
 
+class M201ContractVersions(StrictModel):
+    scientific_schema: Literal["v0.3.0"]
+    benchmark_schema: Literal["v0.1.0"]
+    critical_field_set: Literal["m2-critical-fields-v1"]
+    partition: Literal["m2-ten-report-split-v1"]
+    m3_draft_gate: Literal["m3-acceptance-gates-v1"]
+
+
+class M201ReviewEvidence(StrictModel):
+    owner_decision_matrix_v3_sha256: Sha256
+    owner_review_packet_v3_sha256: Sha256
+    pilot_264_v3_sha256: Sha256
+    pilot_269_v3_sha256: Sha256
+    owner_review_session_packet_sha256: Sha256
+    owner_review_form_sha256: Sha256
+
+
+class M201PilotApproval(StrictModel):
+    pilot_264: Literal["VERIFIED_FOR_PROTOCOL_COHERENCE"]
+    pilot_269: Literal["VERIFIED_FOR_PROTOCOL_COHERENCE"]
+    machine_aids_remain_non_gold: bool
+    human_submissions_created: bool
+    human_gold_created: bool
+
+    @model_validator(mode="after")
+    def preserve_protocol_only_boundary(self) -> Self:
+        if (
+            not self.machine_aids_remain_non_gold
+            or self.human_submissions_created
+            or self.human_gold_created
+        ):
+            raise ValueError("protocol coherence verification cannot create human gold")
+        return self
+
+
+class M201ObjectThresholdPolicy(StrictModel):
+    option: Literal["A"]
+    threshold_selection_after_milestone: Literal["M2-03"]
+    final_m3_gate_approved: bool
+    new_owner_approved_gate_required: bool
+
+    @model_validator(mode="after")
+    def preserve_deferred_final_gate(self) -> Self:
+        if self.final_m3_gate_approved or not self.new_owner_approved_gate_required:
+            raise ValueError("Object Policy A cannot approve the final M3 gate")
+        return self
+
+
+class M201M3ComponentApprovals(StrictModel):
+    case_precision: BenchmarkThreshold
+    case_recall: BenchmarkThreshold
+    exact_page_attribution: BenchmarkThreshold
+    strict_source_value_accuracy: BenchmarkThreshold
+    critical_evidence_completeness: BenchmarkThreshold
+    zero_unresolved_critical_parser_errors: Literal[True]
+    arithmetic_discrepancies_classified: Literal[True]
+
+    @model_validator(mode="after")
+    def require_exact_approved_components(self) -> Self:
+        if (
+            self.case_precision,
+            self.case_recall,
+            self.exact_page_attribution,
+            self.strict_source_value_accuracy,
+            self.critical_evidence_completeness,
+        ) != (0.99, 0.99, 0.99, 0.99, 1.0):
+            raise ValueError("M2-01 approval must preserve the exact approved M3 components")
+        return self
+
+
+class M201OwnerApproval(BenchmarkVersionedModel):
+    """Owner approval of M2-01 protocol components, never of human gold or final M3."""
+
+    approval_record_version: Literal["1.0.0"]
+    milestone: Literal["M2-01"]
+    owner: Literal["Jorge Zavala"]
+    owner_decision_status: Literal["approved"]
+    approved_at: AwareDatetime
+    reviewed_pr_number: Literal[11]
+    reviewed_branch: Literal["codex/m2-01-benchmark-protocol-ontology"]
+    reviewed_head_sha: GitSha1
+    reviewed_tree_sha: GitSha1
+    reviewed_base_sha: GitSha1
+    reviewed_actions_run_id: Literal[33844007460]
+    contract_versions: M201ContractVersions
+    review_evidence: M201ReviewEvidence
+    approved_decision_ids: tuple[Identifier, ...] = Field(min_length=1)
+    scientific_q5_rejections: tuple[Identifier, ...] = Field(min_length=1)
+    pilots: M201PilotApproval
+    report_269_casualty: Literal["ACCEPT_SOURCE_AMBIGUOUS_DISCREPANCY"]
+    object_threshold_policy: M201ObjectThresholdPolicy
+    m3_component_approvals: M201M3ComponentApprovals
+
+    @model_validator(mode="after")
+    def validate_exact_owner_scope(self) -> Self:
+        if len(self.approved_decision_ids) != len(set(self.approved_decision_ids)):
+            raise ValueError("approved decision IDs must be unique")
+        if len(self.scientific_q5_rejections) != len(set(self.scientific_q5_rejections)):
+            raise ValueError("SCI-Q5 rejections must be unique")
+        return self
+
+
 BENCHMARK_MODEL_REGISTRY: dict[str, type[BenchmarkVersionedModel]] = {
     "annotation_object_instance": AnnotationObjectInstance,
     "annotation_disagreement": AnnotationDisagreement,
@@ -660,4 +763,5 @@ BENCHMARK_MODEL_REGISTRY: dict[str, type[BenchmarkVersionedModel]] = {
     "gold_adjudication": GoldAdjudication,
     "object_instance_count_mismatch": ObjectInstanceCountMismatch,
     "object_metric_threshold": ObjectMetricThreshold,
+    "m2_01_owner_approval": M201OwnerApproval,
 }

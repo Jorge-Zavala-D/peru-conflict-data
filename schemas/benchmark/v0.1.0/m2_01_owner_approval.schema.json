@@ -1,0 +1,341 @@
+{
+  "$defs": {
+    "M201ContractVersions": {
+      "additionalProperties": false,
+      "properties": {
+        "benchmark_schema": {
+          "const": "v0.1.0",
+          "title": "Benchmark Schema",
+          "type": "string"
+        },
+        "critical_field_set": {
+          "const": "m2-critical-fields-v1",
+          "title": "Critical Field Set",
+          "type": "string"
+        },
+        "m3_draft_gate": {
+          "const": "m3-acceptance-gates-v1",
+          "title": "M3 Draft Gate",
+          "type": "string"
+        },
+        "partition": {
+          "const": "m2-ten-report-split-v1",
+          "title": "Partition",
+          "type": "string"
+        },
+        "scientific_schema": {
+          "const": "v0.3.0",
+          "title": "Scientific Schema",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scientific_schema",
+        "benchmark_schema",
+        "critical_field_set",
+        "partition",
+        "m3_draft_gate"
+      ],
+      "title": "M201ContractVersions",
+      "type": "object"
+    },
+    "M201M3ComponentApprovals": {
+      "additionalProperties": false,
+      "properties": {
+        "arithmetic_discrepancies_classified": {
+          "const": true,
+          "title": "Arithmetic Discrepancies Classified",
+          "type": "boolean"
+        },
+        "case_precision": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Case Precision",
+          "type": "number"
+        },
+        "case_recall": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Case Recall",
+          "type": "number"
+        },
+        "critical_evidence_completeness": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Critical Evidence Completeness",
+          "type": "number"
+        },
+        "exact_page_attribution": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Exact Page Attribution",
+          "type": "number"
+        },
+        "strict_source_value_accuracy": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Strict Source Value Accuracy",
+          "type": "number"
+        },
+        "zero_unresolved_critical_parser_errors": {
+          "const": true,
+          "title": "Zero Unresolved Critical Parser Errors",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "case_precision",
+        "case_recall",
+        "exact_page_attribution",
+        "strict_source_value_accuracy",
+        "critical_evidence_completeness",
+        "zero_unresolved_critical_parser_errors",
+        "arithmetic_discrepancies_classified"
+      ],
+      "title": "M201M3ComponentApprovals",
+      "type": "object"
+    },
+    "M201ObjectThresholdPolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "final_m3_gate_approved": {
+          "title": "Final M3 Gate Approved",
+          "type": "boolean"
+        },
+        "new_owner_approved_gate_required": {
+          "title": "New Owner Approved Gate Required",
+          "type": "boolean"
+        },
+        "option": {
+          "const": "A",
+          "title": "Option",
+          "type": "string"
+        },
+        "threshold_selection_after_milestone": {
+          "const": "M2-03",
+          "title": "Threshold Selection After Milestone",
+          "type": "string"
+        }
+      },
+      "required": [
+        "option",
+        "threshold_selection_after_milestone",
+        "final_m3_gate_approved",
+        "new_owner_approved_gate_required"
+      ],
+      "title": "M201ObjectThresholdPolicy",
+      "type": "object"
+    },
+    "M201PilotApproval": {
+      "additionalProperties": false,
+      "properties": {
+        "human_gold_created": {
+          "title": "Human Gold Created",
+          "type": "boolean"
+        },
+        "human_submissions_created": {
+          "title": "Human Submissions Created",
+          "type": "boolean"
+        },
+        "machine_aids_remain_non_gold": {
+          "title": "Machine Aids Remain Non Gold",
+          "type": "boolean"
+        },
+        "pilot_264": {
+          "const": "VERIFIED_FOR_PROTOCOL_COHERENCE",
+          "title": "Pilot 264",
+          "type": "string"
+        },
+        "pilot_269": {
+          "const": "VERIFIED_FOR_PROTOCOL_COHERENCE",
+          "title": "Pilot 269",
+          "type": "string"
+        }
+      },
+      "required": [
+        "pilot_264",
+        "pilot_269",
+        "machine_aids_remain_non_gold",
+        "human_submissions_created",
+        "human_gold_created"
+      ],
+      "title": "M201PilotApproval",
+      "type": "object"
+    },
+    "M201ReviewEvidence": {
+      "additionalProperties": false,
+      "properties": {
+        "owner_decision_matrix_v3_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Owner Decision Matrix V3 Sha256",
+          "type": "string"
+        },
+        "owner_review_form_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Owner Review Form Sha256",
+          "type": "string"
+        },
+        "owner_review_packet_v3_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Owner Review Packet V3 Sha256",
+          "type": "string"
+        },
+        "owner_review_session_packet_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Owner Review Session Packet Sha256",
+          "type": "string"
+        },
+        "pilot_264_v3_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Pilot 264 V3 Sha256",
+          "type": "string"
+        },
+        "pilot_269_v3_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Pilot 269 V3 Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "owner_decision_matrix_v3_sha256",
+        "owner_review_packet_v3_sha256",
+        "pilot_264_v3_sha256",
+        "pilot_269_v3_sha256",
+        "owner_review_session_packet_sha256",
+        "owner_review_form_sha256"
+      ],
+      "title": "M201ReviewEvidence",
+      "type": "object"
+    }
+  },
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/benchmark/v0.1.0/m2_01_owner_approval.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Owner approval of M2-01 protocol components, never of human gold or final M3.",
+  "properties": {
+    "approval_record_version": {
+      "const": "1.0.0",
+      "title": "Approval Record Version",
+      "type": "string"
+    },
+    "approved_at": {
+      "format": "date-time",
+      "title": "Approved At",
+      "type": "string"
+    },
+    "approved_decision_ids": {
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Approved Decision Ids",
+      "type": "array"
+    },
+    "benchmark_schema_version": {
+      "const": "0.1.0",
+      "default": "0.1.0",
+      "title": "Benchmark Schema Version",
+      "type": "string"
+    },
+    "contract_versions": {
+      "$ref": "#/$defs/M201ContractVersions"
+    },
+    "m3_component_approvals": {
+      "$ref": "#/$defs/M201M3ComponentApprovals"
+    },
+    "milestone": {
+      "const": "M2-01",
+      "title": "Milestone",
+      "type": "string"
+    },
+    "object_threshold_policy": {
+      "$ref": "#/$defs/M201ObjectThresholdPolicy"
+    },
+    "owner": {
+      "const": "Jorge Zavala",
+      "title": "Owner",
+      "type": "string"
+    },
+    "owner_decision_status": {
+      "const": "approved",
+      "title": "Owner Decision Status",
+      "type": "string"
+    },
+    "pilots": {
+      "$ref": "#/$defs/M201PilotApproval"
+    },
+    "report_269_casualty": {
+      "const": "ACCEPT_SOURCE_AMBIGUOUS_DISCREPANCY",
+      "title": "Report 269 Casualty",
+      "type": "string"
+    },
+    "review_evidence": {
+      "$ref": "#/$defs/M201ReviewEvidence"
+    },
+    "reviewed_actions_run_id": {
+      "const": 33844007460,
+      "title": "Reviewed Actions Run Id",
+      "type": "integer"
+    },
+    "reviewed_base_sha": {
+      "pattern": "^[0-9a-f]{40}$",
+      "title": "Reviewed Base Sha",
+      "type": "string"
+    },
+    "reviewed_branch": {
+      "const": "codex/m2-01-benchmark-protocol-ontology",
+      "title": "Reviewed Branch",
+      "type": "string"
+    },
+    "reviewed_head_sha": {
+      "pattern": "^[0-9a-f]{40}$",
+      "title": "Reviewed Head Sha",
+      "type": "string"
+    },
+    "reviewed_pr_number": {
+      "const": 11,
+      "title": "Reviewed Pr Number",
+      "type": "integer"
+    },
+    "reviewed_tree_sha": {
+      "pattern": "^[0-9a-f]{40}$",
+      "title": "Reviewed Tree Sha",
+      "type": "string"
+    },
+    "scientific_q5_rejections": {
+      "items": {
+        "minLength": 1,
+        "pattern": ".*\\S.*",
+        "type": "string"
+      },
+      "minItems": 1,
+      "title": "Scientific Q5 Rejections",
+      "type": "array"
+    }
+  },
+  "required": [
+    "approval_record_version",
+    "milestone",
+    "owner",
+    "owner_decision_status",
+    "approved_at",
+    "reviewed_pr_number",
+    "reviewed_branch",
+    "reviewed_head_sha",
+    "reviewed_tree_sha",
+    "reviewed_base_sha",
+    "reviewed_actions_run_id",
+    "contract_versions",
+    "review_evidence",
+    "approved_decision_ids",
+    "scientific_q5_rejections",
+    "pilots",
+    "report_269_casualty",
+    "object_threshold_policy",
+    "m3_component_approvals"
+  ],
+  "title": "M201OwnerApproval",
+  "type": "object"
+}

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from datetime import UTC, datetime
 
 import pytest
@@ -550,3 +551,73 @@ def test_gate_metric_result_cannot_override_unrounded_comparison() -> None:
             missing=False,
             passed=True,
         )
+
+
+def test_m2_01_protocol_approval_cannot_claim_gold_or_final_m3_gate() -> None:
+    payload = {
+        "approval_record_version": "1.0.0",
+        "milestone": "M2-01",
+        "owner": "Jorge Zavala",
+        "owner_decision_status": "approved",
+        "approved_at": "2026-09-04T12:00:00+02:00",
+        "reviewed_pr_number": 11,
+        "reviewed_branch": "codex/m2-01-benchmark-protocol-ontology",
+        "reviewed_head_sha": "7a2e2da82349f6d2311f0291b4d6f5ece1e72354",
+        "reviewed_tree_sha": "ecab90aae4681abe2b6e5a15451fa863e309494f",
+        "reviewed_base_sha": "46fab9b1f878453b3c1d3f2ec8b964ff5ecfb1e1",
+        "reviewed_actions_run_id": 33844007460,
+        "contract_versions": {
+            "scientific_schema": "v0.3.0",
+            "benchmark_schema": "v0.1.0",
+            "critical_field_set": "m2-critical-fields-v1",
+            "partition": "m2-ten-report-split-v1",
+            "m3_draft_gate": "m3-acceptance-gates-v1",
+        },
+        "review_evidence": {
+            name: "b" * 64
+            for name in (
+                "owner_decision_matrix_v3_sha256",
+                "owner_review_packet_v3_sha256",
+                "pilot_264_v3_sha256",
+                "pilot_269_v3_sha256",
+                "owner_review_session_packet_sha256",
+                "owner_review_form_sha256",
+            )
+        },
+        "approved_decision_ids": ["SCI-Q1"],
+        "scientific_q5_rejections": ["closed_historical_taxonomies"],
+        "pilots": {
+            "pilot_264": "VERIFIED_FOR_PROTOCOL_COHERENCE",
+            "pilot_269": "VERIFIED_FOR_PROTOCOL_COHERENCE",
+            "machine_aids_remain_non_gold": True,
+            "human_submissions_created": False,
+            "human_gold_created": False,
+        },
+        "report_269_casualty": "ACCEPT_SOURCE_AMBIGUOUS_DISCREPANCY",
+        "object_threshold_policy": {
+            "option": "A",
+            "threshold_selection_after_milestone": "M2-03",
+            "final_m3_gate_approved": False,
+            "new_owner_approved_gate_required": True,
+        },
+        "m3_component_approvals": {
+            "case_precision": 0.99,
+            "case_recall": 0.99,
+            "exact_page_attribution": 0.99,
+            "strict_source_value_accuracy": 0.99,
+            "critical_evidence_completeness": 1.0,
+            "zero_unresolved_critical_parser_errors": True,
+            "arithmetic_discrepancies_classified": True,
+        },
+    }
+
+    for field, value in (("human_gold_created", True), ("machine_aids_remain_non_gold", False)):
+        invalid = json.loads(json.dumps(payload))
+        invalid["pilots"][field] = value
+        with pytest.raises(ValidationError, match="protocol coherence"):
+            benchmark.M201OwnerApproval.model_validate(invalid)
+
+    invalid = json.loads(json.dumps(payload))
+    invalid["object_threshold_policy"]["final_m3_gate_approved"] = True
+    with pytest.raises(ValidationError, match="final M3 gate"):
+        benchmark.M201OwnerApproval.model_validate(invalid)
