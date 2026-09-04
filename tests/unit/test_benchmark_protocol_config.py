@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import yaml
 
+import peru_conflicts.benchmark as benchmark
 from peru_conflicts.benchmark import (
     BenchmarkPartition,
     BenchmarkPartitionAssignment,
@@ -76,3 +78,25 @@ def test_critical_field_config_is_selective_and_grouped() -> None:
         "granularity_appropriate_locator",
     ]
     assert payload["excluded_later_stage_fields"]["fields"] == ["case.case_id"]
+
+
+def test_proposed_m3_gate_config_is_versioned_and_requires_owner_review() -> None:
+    repo_root = Path(__file__).parents[2]
+    payload = yaml.safe_load(
+        (repo_root / "config/benchmark/m3_acceptance_gates_v1.yaml").read_text(encoding="utf-8")
+    )
+    spec = benchmark.BenchmarkAcceptanceGateSpec.model_validate_json(json.dumps(payload))
+
+    assert spec.gate_id == "m3-acceptance-gates-v1"
+    assert spec.policy_status is benchmark.GatePolicyStatus.OWNER_REVIEW_DRAFT
+    assert spec.owner_approval_required is True
+    assert spec.owner_approved is False
+    assert spec.case_detection_precision_threshold == 0.99
+    assert spec.case_detection_recall_threshold == 0.99
+    assert spec.exact_page_attribution_threshold == 0.99
+    assert spec.strict_source_value_accuracy_threshold == 0.99
+    assert spec.evidence_completeness_threshold == 1.0
+    assert spec.evidence_policy_interpretation == "PROPOSED_OWNER_GATE_INTERPRETATION"
+    assert spec.object_metric_thresholds == ()
+    assert spec.require_critical_parser_errors_closed is True
+    assert spec.require_arithmetic_discrepancies_classified is True

@@ -1,0 +1,121 @@
+{
+  "$defs": {
+    "BenchmarkGateMetricResult": {
+      "additionalProperties": false,
+      "properties": {
+        "benchmark_schema_version": {
+          "const": "0.1.0",
+          "default": "0.1.0",
+          "title": "Benchmark Schema Version",
+          "type": "string"
+        },
+        "metric_name": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Metric Name",
+          "type": "string"
+        },
+        "missing": {
+          "title": "Missing",
+          "type": "boolean"
+        },
+        "observed": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Observed"
+        },
+        "passed": {
+          "title": "Passed",
+          "type": "boolean"
+        },
+        "threshold": {
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Threshold",
+          "type": "number"
+        }
+      },
+      "required": [
+        "metric_name",
+        "threshold",
+        "observed",
+        "missing",
+        "passed"
+      ],
+      "title": "BenchmarkGateMetricResult",
+      "type": "object"
+    },
+    "GateAcceptanceState": {
+      "enum": [
+        "accepted",
+        "missing_required_metrics",
+        "quantitative_thresholds_failed",
+        "review_closure_failed",
+        "owner_approval_required"
+      ],
+      "title": "GateAcceptanceState",
+      "type": "string"
+    }
+  },
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/benchmark/v0.1.0/benchmark_gate_result.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "benchmark_schema_version": {
+      "const": "0.1.0",
+      "default": "0.1.0",
+      "title": "Benchmark Schema Version",
+      "type": "string"
+    },
+    "final_acceptance": {
+      "$ref": "#/$defs/GateAcceptanceState"
+    },
+    "gate_id": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Gate Id",
+      "type": "string"
+    },
+    "metric_components": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkGateMetricResult"
+      },
+      "minItems": 1,
+      "title": "Metric Components",
+      "type": "array"
+    },
+    "missing_required_metrics": {
+      "title": "Missing Required Metrics",
+      "type": "boolean"
+    },
+    "overall_quantitative_pass": {
+      "title": "Overall Quantitative Pass",
+      "type": "boolean"
+    },
+    "owner_approval_pass": {
+      "title": "Owner Approval Pass",
+      "type": "boolean"
+    },
+    "review_closure_pass": {
+      "title": "Review Closure Pass",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "gate_id",
+    "metric_components",
+    "missing_required_metrics",
+    "overall_quantitative_pass",
+    "review_closure_pass",
+    "owner_approval_pass",
+    "final_acceptance"
+  ],
+  "title": "BenchmarkGateResult",
+  "type": "object"
+}

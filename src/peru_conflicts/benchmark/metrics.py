@@ -8,9 +8,15 @@ from dataclasses import dataclass
 
 from peru_conflicts.benchmark.models import (
     AnnotationState,
+    BenchmarkAcceptanceGateSpec,
+    BenchmarkGateMetricResult,
+    BenchmarkGateResult,
+    BenchmarkReviewClosureState,
     EvidenceAnchor,
     EvidenceGranularity,
     EvidenceRequirement,
+    GateAcceptanceState,
+    GatePolicyStatus,
 )
 from peru_conflicts.hashing import canonical_json_bytes
 
@@ -143,9 +149,10 @@ class EvidenceMetrics:
 @dataclass(frozen=True, slots=True)
 class BenchmarkEvaluation:
     strict_fields: StrictAnnotationMetric
+    case_detection: DetectionMetrics | None
+    exact_page_attribution: AccuracyMetric | None
     object_metrics: tuple[tuple[str, DetectionMetrics], ...]
     evidence: EvidenceMetrics
-    gate_passed: bool
 
 
 @dataclass(frozen=True, slots=True)
@@ -412,8 +419,10 @@ def evaluate_benchmark(
     predicted_objects: Mapping[str, Sequence[Mapping[str, object]]],
     evidence_requirements: Sequence[EvidenceRequirement],
     predicted_evidence: Mapping[tuple[str, str, str, int], Sequence[EvidenceAnchor]],
+    gold_pages: Mapping[str, tuple[int, ...]] | None = None,
+    predicted_pages: Mapping[str, tuple[int, ...]] | None = None,
 ) -> BenchmarkEvaluation:
-    """Run the mandatory versioned M3 gate over all field, object, and evidence paths."""
+    """Compute deterministic benchmark evidence without applying acceptance policy."""
 
     required_object_types = set(OBJECT_MATCH_FIELDS)
     if (
@@ -444,17 +453,128 @@ def evaluate_benchmark(
         for object_type in sorted(OBJECT_MATCH_FIELDS)
     )
     evidence = evaluate_evidence_requirements(evidence_requirements, predicted_evidence)
-    gate_passed = (
-        strict_fields.strict_exact_accuracy == 1.0
-        and all(
-            metric.false_positive == 0 and metric.false_negative == 0
-            for _, metric in object_metrics
+    if (gold_pages is None) != (predicted_pages is None):
+        raise ValueError(
+            "page-attribution gold and prediction populations must be supplied together"
         )
-        and evidence.complete == evidence.total
+    case_detection = dict(object_metrics)["case_observation"]
+    page_attribution = (
+        exact_page_accuracy(gold_pages, predicted_pages)
+        if gold_pages is not None and predicted_pages is not None
+        else None
     )
     return BenchmarkEvaluation(
         strict_fields=strict_fields,
+        case_detection=case_detection,
+        exact_page_attribution=page_attribution,
         object_metrics=object_metrics,
         evidence=evidence,
-        gate_passed=gate_passed,
+    )
+
+
+def _gate_metric_result(
+    metric_name: str, observed: float | None, threshold: float
+) -> BenchmarkGateMetricResult:
+    return BenchmarkGateMetricResult(
+        metric_name=metric_name,
+        threshold=threshold,
+        observed=observed,
+        missing=observed is None,
+        passed=observed is not None and observed >= threshold,
+    )
+
+
+def apply_acceptance_gate(
+    metrics: BenchmarkEvaluation,
+    gate_spec: BenchmarkAcceptanceGateSpec,
+    review_state: BenchmarkReviewClosureState,
+) -> BenchmarkGateResult:
+    """Apply explicit versioned thresholds and later-reviewed closure facts."""
+
+    object_metric_names = [object_type for object_type, _ in metrics.object_metrics]
+    if len(object_metric_names) != len(set(object_metric_names)) or set(object_metric_names) != set(
+        OBJECT_MATCH_FIELDS
+    ):
+        raise ValueError("acceptance gate requires the complete fixed object-metric population")
+
+    components = [
+        _gate_metric_result(
+            "case_detection_precision",
+            metrics.case_detection.precision if metrics.case_detection is not None else None,
+            gate_spec.case_detection_precision_threshold,
+        ),
+        _gate_metric_result(
+            "case_detection_recall",
+            metrics.case_detection.recall if metrics.case_detection is not None else None,
+            gate_spec.case_detection_recall_threshold,
+        ),
+        _gate_metric_result(
+            "exact_page_attribution",
+            (
+                metrics.exact_page_attribution.accuracy
+                if metrics.exact_page_attribution is not None
+                else None
+            ),
+            gate_spec.exact_page_attribution_threshold,
+        ),
+        _gate_metric_result(
+            "strict_source_value_accuracy",
+            metrics.strict_fields.strict_exact_accuracy,
+            gate_spec.strict_source_value_accuracy_threshold,
+        ),
+        _gate_metric_result(
+            "evidence_completeness",
+            metrics.evidence.completeness,
+            gate_spec.evidence_completeness_threshold,
+        ),
+    ]
+    object_metrics = dict(metrics.object_metrics)
+    for threshold in gate_spec.object_metric_thresholds:
+        observed = object_metrics.get(threshold.object_type)
+        components.extend(
+            (
+                _gate_metric_result(
+                    f"object.{threshold.object_type}.precision",
+                    observed.precision if observed is not None else None,
+                    threshold.precision_threshold,
+                ),
+                _gate_metric_result(
+                    f"object.{threshold.object_type}.recall",
+                    observed.recall if observed is not None else None,
+                    threshold.recall_threshold,
+                ),
+            )
+        )
+
+    missing_required_metrics = any(component.missing for component in components)
+    overall_quantitative_pass = all(component.passed for component in components)
+    review_closure_pass = (
+        not gate_spec.require_critical_parser_errors_closed
+        or review_state.critical_parser_errors_closed is True
+    ) and (
+        not gate_spec.require_arithmetic_discrepancies_classified
+        or review_state.arithmetic_discrepancies_classified is True
+    )
+    owner_approval_pass = (
+        gate_spec.policy_status is GatePolicyStatus.OWNER_APPROVED and gate_spec.owner_approved
+    )
+    if missing_required_metrics:
+        final_acceptance = GateAcceptanceState.MISSING_REQUIRED_METRICS
+    elif not overall_quantitative_pass:
+        final_acceptance = GateAcceptanceState.QUANTITATIVE_THRESHOLDS_FAILED
+    elif not review_closure_pass:
+        final_acceptance = GateAcceptanceState.REVIEW_CLOSURE_FAILED
+    elif not owner_approval_pass:
+        final_acceptance = GateAcceptanceState.OWNER_APPROVAL_REQUIRED
+    else:
+        final_acceptance = GateAcceptanceState.ACCEPTED
+
+    return BenchmarkGateResult(
+        gate_id=gate_spec.gate_id,
+        metric_components=tuple(components),
+        missing_required_metrics=missing_required_metrics,
+        overall_quantitative_pass=overall_quantitative_pass,
+        review_closure_pass=review_closure_pass,
+        owner_approval_pass=owner_approval_pass,
+        final_acceptance=final_acceptance,
     )

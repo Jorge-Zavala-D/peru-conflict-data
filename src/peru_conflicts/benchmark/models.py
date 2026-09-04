@@ -6,7 +6,7 @@ import hashlib
 import json
 from collections.abc import Sequence
 from enum import StrEnum
-from typing import Literal, Self
+from typing import Annotated, Literal, Self
 
 from pydantic import AwareDatetime, Field, model_validator
 
@@ -21,6 +21,26 @@ from peru_conflicts.models.common import (
 )
 
 BENCHMARK_SCHEMA_VERSION = "0.1.0"
+BenchmarkThreshold = Annotated[
+    float,
+    Field(strict=True, ge=0.0, le=1.0, allow_inf_nan=False),
+]
+
+BENCHMARK_OBJECT_TYPES = frozenset(
+    {
+        "actor",
+        "alert",
+        "agreement",
+        "case_observation",
+        "dp_action",
+        "demand",
+        "dialogue_event",
+        "location",
+        "mediation_observation",
+        "protest_event",
+        "violence_event",
+    }
+)
 
 
 class BenchmarkVersionedModel(StrictModel):
@@ -67,6 +87,19 @@ class SubmissionStatus(StrEnum):
     DRAFT = "draft"
     LOCKED = "locked"
     SUPERSEDED = "superseded"
+
+
+class GatePolicyStatus(StrEnum):
+    OWNER_REVIEW_DRAFT = "owner_review_draft"
+    OWNER_APPROVED = "owner_approved"
+
+
+class GateAcceptanceState(StrEnum):
+    ACCEPTED = "accepted"
+    MISSING_REQUIRED_METRICS = "missing_required_metrics"
+    QUANTITATIVE_THRESHOLDS_FAILED = "quantitative_thresholds_failed"
+    REVIEW_CLOSURE_FAILED = "review_closure_failed"
+    OWNER_APPROVAL_REQUIRED = "owner_approval_required"
 
 
 def derive_annotation_unit_id(
@@ -502,6 +535,112 @@ class BenchmarkPartition(BenchmarkVersionedModel):
         return self
 
 
+class ObjectMetricThreshold(BenchmarkVersionedModel):
+    object_type: Identifier
+    precision_threshold: BenchmarkThreshold
+    recall_threshold: BenchmarkThreshold
+
+    @model_validator(mode="after")
+    def require_registered_object_type(self) -> Self:
+        if self.object_type not in BENCHMARK_OBJECT_TYPES:
+            raise ValueError("object metric threshold type must be registered")
+        return self
+
+
+class BenchmarkAcceptanceGateSpec(BenchmarkVersionedModel):
+    """Versioned policy applied separately to deterministic benchmark metrics."""
+
+    gate_id: Identifier
+    policy_status: GatePolicyStatus
+    owner_approval_required: Literal[True] = True
+    owner_approved: bool
+    source_references: tuple[Identifier, ...] = Field(min_length=1)
+    case_detection_precision_threshold: BenchmarkThreshold
+    case_detection_recall_threshold: BenchmarkThreshold
+    exact_page_attribution_threshold: BenchmarkThreshold
+    strict_source_value_accuracy_threshold: BenchmarkThreshold
+    evidence_completeness_threshold: BenchmarkThreshold
+    evidence_policy_interpretation: Literal["PROPOSED_OWNER_GATE_INTERPRETATION"]
+    object_metric_policy: Literal["selected_thresholds_with_all_metrics_reported"]
+    object_metric_thresholds: tuple[ObjectMetricThreshold, ...] = ()
+    require_critical_parser_errors_closed: bool
+    require_arithmetic_discrepancies_classified: bool
+
+    @model_validator(mode="after")
+    def validate_policy_state(self) -> Self:
+        if len(self.source_references) != len(set(self.source_references)):
+            raise ValueError("gate source references must be unique")
+        object_types = [threshold.object_type for threshold in self.object_metric_thresholds]
+        if len(object_types) != len(set(object_types)):
+            raise ValueError("object metric threshold types must be unique")
+        if self.policy_status is GatePolicyStatus.OWNER_REVIEW_DRAFT and self.owner_approved:
+            raise ValueError("draft gate policy cannot be owner approved")
+        if self.policy_status is GatePolicyStatus.OWNER_APPROVED and not self.owner_approved:
+            raise ValueError("owner-approved gate policy must record owner approval")
+        return self
+
+
+class BenchmarkReviewClosureState(BenchmarkVersionedModel):
+    """Later reviewed M3-04 facts that numerical metrics cannot establish."""
+
+    critical_parser_errors_closed: bool | None = None
+    arithmetic_discrepancies_classified: bool | None = None
+
+
+class BenchmarkGateMetricResult(BenchmarkVersionedModel):
+    metric_name: Identifier
+    threshold: BenchmarkThreshold
+    observed: float | None
+    missing: bool
+    passed: bool
+
+    @model_validator(mode="after")
+    def validate_missing_state(self) -> Self:
+        if self.missing != (self.observed is None):
+            raise ValueError("gate metric missing state must match the observed value")
+        expected_pass = self.observed is not None and self.observed >= self.threshold
+        if self.passed != expected_pass:
+            raise ValueError(
+                "gate metric pass state must follow the unrounded threshold comparison"
+            )
+        return self
+
+
+class BenchmarkGateResult(BenchmarkVersionedModel):
+    gate_id: Identifier
+    metric_components: tuple[BenchmarkGateMetricResult, ...] = Field(min_length=1)
+    missing_required_metrics: bool
+    overall_quantitative_pass: bool
+    review_closure_pass: bool
+    owner_approval_pass: bool
+    final_acceptance: GateAcceptanceState
+
+    @model_validator(mode="after")
+    def validate_result_state(self) -> Self:
+        metric_names = [component.metric_name for component in self.metric_components]
+        if len(metric_names) != len(set(metric_names)):
+            raise ValueError("gate metric result names must be unique")
+        missing = any(component.missing for component in self.metric_components)
+        quantitative = all(component.passed for component in self.metric_components)
+        if self.missing_required_metrics != missing:
+            raise ValueError("missing-required-metrics result is inconsistent")
+        if self.overall_quantitative_pass != quantitative:
+            raise ValueError("quantitative gate result is inconsistent")
+        if missing:
+            expected = GateAcceptanceState.MISSING_REQUIRED_METRICS
+        elif not quantitative:
+            expected = GateAcceptanceState.QUANTITATIVE_THRESHOLDS_FAILED
+        elif not self.review_closure_pass:
+            expected = GateAcceptanceState.REVIEW_CLOSURE_FAILED
+        elif not self.owner_approval_pass:
+            expected = GateAcceptanceState.OWNER_APPROVAL_REQUIRED
+        else:
+            expected = GateAcceptanceState.ACCEPTED
+        if self.final_acceptance is not expected:
+            raise ValueError("final gate acceptance state is inconsistent")
+        return self
+
+
 BENCHMARK_MODEL_REGISTRY: dict[str, type[BenchmarkVersionedModel]] = {
     "annotation_object_instance": AnnotationObjectInstance,
     "annotation_disagreement": AnnotationDisagreement,
@@ -509,11 +648,16 @@ BENCHMARK_MODEL_REGISTRY: dict[str, type[BenchmarkVersionedModel]] = {
     "annotation_unit": AnnotationUnit,
     "annotator_submission": AnnotatorSubmission,
     "benchmark_coverage_receipt": BenchmarkCoverageReceipt,
+    "benchmark_acceptance_gate_spec": BenchmarkAcceptanceGateSpec,
+    "benchmark_gate_metric_result": BenchmarkGateMetricResult,
+    "benchmark_gate_result": BenchmarkGateResult,
     "benchmark_partition": BenchmarkPartition,
     "benchmark_partition_assignment": BenchmarkPartitionAssignment,
+    "benchmark_review_closure_state": BenchmarkReviewClosureState,
     "evidence_anchor": EvidenceAnchor,
     "evidence_requirement": EvidenceRequirement,
     "field_annotation": FieldAnnotation,
     "gold_adjudication": GoldAdjudication,
     "object_instance_count_mismatch": ObjectInstanceCountMismatch,
+    "object_metric_threshold": ObjectMetricThreshold,
 }

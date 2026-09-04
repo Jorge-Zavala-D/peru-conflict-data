@@ -1,0 +1,38 @@
+{
+  "$id": "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/benchmark/v0.1.0/object_metric_threshold.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "benchmark_schema_version": {
+      "const": "0.1.0",
+      "default": "0.1.0",
+      "title": "Benchmark Schema Version",
+      "type": "string"
+    },
+    "object_type": {
+      "minLength": 1,
+      "pattern": ".*\\S.*",
+      "title": "Object Type",
+      "type": "string"
+    },
+    "precision_threshold": {
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Precision Threshold",
+      "type": "number"
+    },
+    "recall_threshold": {
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Recall Threshold",
+      "type": "number"
+    }
+  },
+  "required": [
+    "object_type",
+    "precision_threshold",
+    "recall_threshold"
+  ],
+  "title": "ObjectMetricThreshold",
+  "type": "object"
+}

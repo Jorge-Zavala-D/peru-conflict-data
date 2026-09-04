@@ -67,6 +67,18 @@ def test_benchmark_schemas_export_cross_field_and_uniqueness_guards() -> None:
         "type": "string",
     }
 
+    gate = schemas["benchmark_acceptance_gate_spec.schema.json"]
+    for field in (
+        "case_detection_precision_threshold",
+        "case_detection_recall_threshold",
+        "exact_page_attribution_threshold",
+        "strict_source_value_accuracy_threshold",
+        "evidence_completeness_threshold",
+    ):
+        assert gate["properties"][field]["minimum"] == 0.0
+        assert gate["properties"][field]["maximum"] == 1.0
+    assert gate["properties"]["policy_status"] == {"$ref": "#/$defs/GatePolicyStatus"}
+
 
 def test_composite_submission_schema_preserves_nested_model_guards() -> None:
     schema = json.loads(rendered_benchmark_schemas()["annotator_submission.schema.json"])

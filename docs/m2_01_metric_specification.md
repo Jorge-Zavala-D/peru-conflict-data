@@ -8,8 +8,11 @@ Evaluation uses locked, adjudicated human gold from the fixed held-out reports i
 `config/benchmark/m2_partition_v1.yaml`. Protocol-pilot reports 264 and 269 are excluded from blind
 scores. Parser-development reports may support diagnostics but never substitute for held-out gates.
 Extra predicted objects count as false positives; missing predictions count as false negatives.
-`evaluate_benchmark()` is the only normative M3 gate. The individual metric functions remain
-diagnostics and cannot by themselves establish a final benchmark result.
+`evaluate_benchmark()` is the normative deterministic metric calculation. It reports strict field,
+case-detection, exact-page, complete registered-object, and typed-evidence metrics without deciding
+whether a future parser is acceptable. The separately versioned
+`BenchmarkAcceptanceGateSpec` applies approved thresholds and review-closure requirements. Low-level
+metric functions remain diagnostics and cannot by themselves establish a final benchmark result.
 
 ## Case detection
 
@@ -36,7 +39,7 @@ occurs inside the metric. Duplicate comparison keys in either gold or prediction
 rather than collapsed or resolved by input order. This diagnostic evaluates gold keys only and is
 not a final gate because unrelated extra prediction keys are outside its denominator.
 
-## Mandatory strict critical-field gate
+## Mandatory strict critical-field metric
 
 The normative evaluator compares every unique key in the complete gold and prediction populations.
 It reports `correct`, `incorrect`, `missing`, `extra`, `gold_total`, `prediction_total`,
@@ -116,8 +119,25 @@ Every complete anchor has the exact source SHA, page, and section plus the locat
 declared granularity: SPAN requires `source_span`; BOUNDING_BOX requires `source_bbox`; TABLE_CELL
 requires nonblank table, row, and column labels; PAGE_ONLY requires an allowed context and nonblank
 rationale. A valid
-span does not require a bbox, and a valid bbox does not require a span. Later M3 acceptance requires
-complete evidence for every critical prediction even when aggregate page accuracy passes.
+span does not require a bbox, and a valid bbox does not require a span. The draft gate proposes
+complete evidence for every critical prediction even when aggregate page accuracy passes. That 1.0
+evidence threshold is a `PROPOSED_OWNER_GATE_INTERPRETATION`, not a previously approved policy.
+
+## Versioned M3 acceptance policy
+
+`config/benchmark/m3_acceptance_gates_v1.yaml` is an `owner_review_draft`. It restates the execution
+plan's quantitative targets without rounding: case-detection precision and recall, exact source-page
+attribution, and strict source-value accuracy each pass when the observed metric is greater than or
+equal to 0.99. Missing required metrics fail closed. All registered repeated-object populations must
+still be supplied and reported, but the draft activates no object-specific threshold; deciding which
+object families receive additional thresholds remains an explicit owner decision.
+
+`apply_acceptance_gate()` returns each observed metric, its required threshold, missingness, and
+component result. Quantitative passage is separate from gate-policy approval and from the later
+reviewed M3-04 facts. In particular, zero unresolved critical parser errors and classified arithmetic
+discrepancies are explicit review-closure inputs; they are never inferred from numerical benchmark
+scores. An owner-review draft cannot yield final acceptance even if every metric and review flag
+passes. The execution-plan targets and any later written gate revision require Jorge's approval.
 
 ## Critical-field categories
 
@@ -128,9 +148,10 @@ keys enable observation matching but are not source values.
 
 ## Deterministic implementation
 
-`peru_conflicts.benchmark.metrics` implements the mandatory evaluator, strict field scoring,
-binary detection, exact page accuracy, conditional matched-field accuracy, duplicate-aware multiset
-matching, and typed evidence scoring. Unit tests use synthetic sets only: perfect output, all extra
-prediction pathways, false negatives, page mismatch, missing versus zero, not-applicable, duplicate
-objects, incomplete provenance, and object-inventory disagreement. No source annotation or parser
-output is embedded in these tests.
+`peru_conflicts.benchmark.metrics` implements the mandatory policy-neutral evaluator, strict field
+scoring, binary detection, exact page accuracy, conditional matched-field accuracy, duplicate-aware
+multiset matching, typed evidence scoring, and separate versioned gate application. Unit tests use
+synthetic sets only: perfect output, all extra prediction pathways, false negatives, page mismatch,
+missing versus zero, not-applicable, duplicate objects, incomplete provenance, object-inventory
+disagreement, exact 0.99 boundaries, missing gate metrics, and owner-review-draft behavior. No source
+annotation or parser output is embedded in these tests.

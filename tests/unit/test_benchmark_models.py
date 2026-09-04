@@ -483,3 +483,70 @@ def test_partition_freezes_unique_report_level_roles() -> None:
                 ),
             ),
         )
+
+
+def _acceptance_gate_payload() -> dict[str, object]:
+    return {
+        "gate_id": "m3-acceptance-gates-v1",
+        "policy_status": benchmark.GatePolicyStatus.OWNER_REVIEW_DRAFT,
+        "owner_approval_required": True,
+        "owner_approved": False,
+        "source_references": (
+            "docs/execution_plan.md#M3-02",
+            "docs/execution_plan.md#M3-03",
+            "docs/execution_plan.md#M3-04",
+        ),
+        "case_detection_precision_threshold": 0.99,
+        "case_detection_recall_threshold": 0.99,
+        "exact_page_attribution_threshold": 0.99,
+        "strict_source_value_accuracy_threshold": 0.99,
+        "evidence_completeness_threshold": 1.0,
+        "evidence_policy_interpretation": "PROPOSED_OWNER_GATE_INTERPRETATION",
+        "object_metric_policy": "selected_thresholds_with_all_metrics_reported",
+        "object_metric_thresholds": (),
+        "require_critical_parser_errors_closed": True,
+        "require_arithmetic_discrepancies_classified": True,
+    }
+
+
+@pytest.mark.parametrize("invalid", [float("nan"), float("inf"), -0.01, 1.01, "0.99"])
+def test_acceptance_gate_thresholds_are_strict_finite_unit_intervals(invalid: object) -> None:
+    payload = _acceptance_gate_payload()
+    payload["case_detection_precision_threshold"] = invalid
+
+    with pytest.raises(ValidationError):
+        benchmark.BenchmarkAcceptanceGateSpec.model_validate(payload)
+
+
+def test_draft_acceptance_gate_cannot_claim_owner_approval() -> None:
+    payload = _acceptance_gate_payload()
+    payload["owner_approved"] = True
+
+    with pytest.raises(ValidationError, match="draft gate policy cannot be owner approved"):
+        benchmark.BenchmarkAcceptanceGateSpec.model_validate(payload)
+
+
+def test_object_metric_thresholds_are_unique_and_registered() -> None:
+    payload = _acceptance_gate_payload()
+    payload["object_metric_thresholds"] = (
+        benchmark.ObjectMetricThreshold(
+            object_type="actor", precision_threshold=0.99, recall_threshold=0.99
+        ),
+        benchmark.ObjectMetricThreshold(
+            object_type="actor", precision_threshold=0.9, recall_threshold=0.9
+        ),
+    )
+
+    with pytest.raises(ValidationError, match="object metric threshold types must be unique"):
+        benchmark.BenchmarkAcceptanceGateSpec.model_validate(payload)
+
+
+def test_gate_metric_result_cannot_override_unrounded_comparison() -> None:
+    with pytest.raises(ValidationError, match="unrounded threshold comparison"):
+        benchmark.BenchmarkGateMetricResult(
+            metric_name="strict_source_value_accuracy",
+            threshold=0.99,
+            observed=0.989999,
+            missing=False,
+            passed=True,
+        )
