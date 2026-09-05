@@ -3,6 +3,11 @@
 Research-data infrastructure for a defensible historical reconstruction of Peru's Defensoría del Pueblo Social Conflicts Monitoring System, April 2004-present.
 
 Status: **Milestone 1 and M2-01 are complete; M2-02 has not started.**
+
+M2-02A implementation is paused pending owner approval of the
+[source-neutral discovery execution policy](docs/m2_02_discovery_execution_policy.md).
+This draft does not reopen M2-01 schema approval or authorize annotation; the final M3 gate remains
+unapproved.
 The write-once canonical M1 identity/coverage package exists at
 `06_validation/m1_corpus_manifest/v0.2.0/`. It establishes 247 numbered reports and
 247 months without mapping conflicts while preserving 287 factual gaps and 50 owner
