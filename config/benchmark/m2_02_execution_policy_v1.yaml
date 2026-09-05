@@ -1,0 +1,35 @@
+policy_id: m2-02-execution-policy-v1
+policy_version: "1"
+milestone: M2-02
+status: owner_review_draft
+owner_approved: false
+governing_m2_01_owner_approval_sha256: e338944f504c4bcce1c8312758121330b9487e4f996bf66fd8623c1eeae29ce5
+scientific_schema: v0.3.0
+benchmark_schema: v0.1.0
+discovery_window:
+  semantics: execution_only_whole_report_not_annotation_unit_not_scored
+  boundaries: whole_pdf_only
+  shared_fields: [execution_policy_version, report_number, source_sha256, partition_role, page_count]
+  ids: derived_from_neutral_context_only
+  prohibited_leakage: [case_names, official_codes, case_counts, case_boundaries, actor_inventory, demand_inventory, event_inventory, parser_results, machine_source_readings]
+post_discovery_unitization: human_declares_start_end_and_semantic_unit_type_before_existing_unit_is_constructed
+case_detection_anchor:
+  status: proposed_pending_owner_review
+  key_policy: case_detection_anchor_key_v1
+  coordinates: page_native_utf8_lf_codepoint_v1
+  reference: identical_frozen_full_page_native_text_bytes_for_both_humans
+  identity: [report_number, source_sha256, domain_object_type, coordinate_policy, start_page, reference_sha256, start_codepoint_offset]
+  excluded: [case_name, official_code, longitudinal_case_id, local_cardinality_index, block_end, full_page_extent]
+  unresolved_position: retain_for_m2_03_no_automatic_fallback_or_key_repair
+ab_discovery_disagreement: exact_start_correspondence_then_exact_unit_comparison_preserve_unmatched_and_boundary_disagreements
+cardinality_index: local_only_never_cross_annotator_identity
+metric_amendment:
+  required_for_start_key_scoring: true
+  owner_approval_required: true
+  normative_evaluator_changed: false
+  before: any_m3_evaluation_using_start_key
+  collect_metadata_only_after: discovery_policy_approval_and_separate_m2_02a_readiness
+human_gold_created: false
+annotation_started: false
+m2_02a_implementation_resumed: false
+final_m3_gate_approved: false

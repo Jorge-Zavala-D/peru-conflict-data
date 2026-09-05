@@ -133,6 +133,11 @@ across reports 260-269. The approved decisions and exclusions are recorded in
 
 ### M2-02 — double annotation of reports 260-269
 
+Execution readiness is paused: M2-02A requires owner approval of the source-neutral discovery
+policy in `docs/m2_02_discovery_execution_policy.md` before infrastructure preparation resumes.
+M2-01 remains complete; no annotation has started, no schema approval is reopened, and the final
+M3 gate remains unapproved. This draft introduces no evaluator amendment or annotation authority.
+
 | Field | Plan |
 |---|---|
 | Goal | Produce human gold objects and exact page/section/span evidence independently |
