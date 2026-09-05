@@ -9,10 +9,18 @@ benchmark_schema: v0.1.0
 discovery_window:
   semantics: execution_only_whole_report_not_annotation_unit_not_scored
   boundaries: whole_pdf_only
-  shared_fields: [execution_policy_version, report_number, source_sha256, partition_role, page_count]
+  annotator_visible_fields: [execution_policy_version, report_number, source_sha256, page_count]
+  coordinator_only_fields: [partition_role]
+  benchmark_role_blinding: Benchmark partition labels must never be exposed to Annotator A or Annotator B before their submissions are locked.
   ids: derived_from_neutral_context_only
   prohibited_leakage: [case_names, official_codes, case_counts, case_boundaries, actor_inventory, demand_inventory, event_inventory, parser_results, machine_source_readings]
 post_discovery_unitization: human_declares_start_end_and_semantic_unit_type_before_existing_unit_is_constructed
+future_human_eligibility:
+  distinct_humans_required: true
+  coordinator_attestation_required_before_launch: true
+  prohibited_prior_exposure: [machine_review_aids, parser_predictions, machine_prefilled_values, other_annotator_answers]
+  partition_labels_hidden_during_annotation: true
+  coordinator_knowledge_does_not_establish_blind_annotator_eligibility: true
 case_detection_anchor:
   status: proposed_pending_owner_review
   key_policy: case_detection_anchor_key_v1

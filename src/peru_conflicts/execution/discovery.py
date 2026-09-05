@@ -33,7 +33,6 @@ class DiscoveryWindow(StrictModel):
     execution_policy_version: Literal["m2-02-execution-policy-v1"] = "m2-02-execution-policy-v1"
     report_number: int = Field(ge=1)
     source_sha256: Sha256
-    partition_role: PartitionRole
     page_count: int = Field(ge=1)
 
     @property
@@ -43,6 +42,17 @@ class DiscoveryWindow(StrictModel):
     @property
     def window_id(self) -> str:
         return "discovery-window-" + _digest(self.model_dump(mode="json"))
+
+
+class DiscoveryAssignmentContext(StrictModel):
+    """Coordinator-only routing context; never serialize this wrapper to annotators.
+
+    Only ``window`` is annotator-facing. This is not a benchmark unit or gold record;
+    later execution must enforce access separation rather than relying on this label.
+    """
+
+    window: DiscoveryWindow
+    partition_role: PartitionRole
 
 
 class SourcePosition(StrictModel):

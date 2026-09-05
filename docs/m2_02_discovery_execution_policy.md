@@ -27,7 +27,7 @@ cannot honestly represent an entirely missing submission: discovery disagreement
 ## Recommended Option A: two layers, neither a new ontology nor a gold dataset
 
 1. Give each human the same **whole-report DiscoveryWindow**. Its only fields are policy version,
-   report number, exact PDF SHA, partition role, and PDF page count. All pages are included. Its
+   report number, exact PDF SHA, and PDF page count. All pages are included. Its
    generated ID identifies the assignment, never an object. This deliberately conservative first
    version has no editable label, section, page subset, object count, or substantive value.
 2. Each human independently inspects the complete source. No object list, machine reading, pilot
@@ -47,6 +47,34 @@ cannot authenticate human authorship, verify a claimed PDF page count, prove tha
 came from its claimed PDF, or certify locked discovery completeness. Later M2-02A must enforce
 reference custody, independent access, lock/history, and reviewed completeness before launch.
 Neither a well-formed sidecar nor a successful comparison is human gold or permission to annotate.
+
+### Benchmark-role blinding and coordinator-only routing
+
+Partition is operational routing metadata, not information needed to read a source. Revealing
+pilot/development/held-out labels can cause differential scrutiny even though it is not a
+source-value answer leak. The annotator-facing window therefore contains only the four fields
+above; its derived opaque `window_id` does not depend on partition. The separate execution-only
+`DiscoveryAssignmentContext` holds the window and `partition_role` for the coordinator. Only its
+`window` may be distributed to A/B, never the serialized coordinator wrapper. Later import can
+attach that private role to the existing `AnnotatorSubmission.partition_role`; the approved report
+partition itself is unchanged. The helper proves separation, not production access enforcement.
+
+Before later M2-02A launch, a coordinator must attest that A and B are **two distinct eligible
+humans**: neither has received the M2-01 machine review aids, parser predictions, machine-prefilled
+values, or another annotator's answers for the benchmark material. They must not view each other's
+annotations before lock and must not be informed which reports are pilot, development, or held out
+during annotation. A coordinator/owner may know the partition; that knowledge does not make the
+coordinator an eligible blind annotator. Attestation must assess prior exposure as well as future
+access. Do not put personnel/exposure histories in Git. No real people or role mappings are assigned
+here. This is a future launch requirement; the nine substantive policy decisions remain pending.
+
+This review document and repository configs contain partition information for governance. They
+are coordinator/owner material, not annotator instructions: later execution must distribute a
+role-blind instruction set and must not expose this document, partition configs, or review aids.
+
+`position_from_reference()` checks coordinate representability only; it does not identify an
+object's legitimate first source position. Later launch infrastructure must enforce/review the
+owner-approved human start-selection rule. No semantic start validator or selection UI is built here.
 
 ### Window boundaries and operational burden
 

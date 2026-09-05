@@ -10,6 +10,7 @@ import pytest
 import yaml
 from pydantic import ValidationError
 
+import peru_conflicts.execution.discovery as discovery_module
 from peru_conflicts.benchmark.metrics import multiset_object_metrics
 from peru_conflicts.benchmark.models import (
     AnnotationObjectInstance,
@@ -35,11 +36,59 @@ from peru_conflicts.models.common import SourceSpan
 REFERENCE = b"SYNTHETIC ONLY\nBlock same label\nBlock same label\nEnd\n"
 
 
+def test_annotator_window_rejects_partition_role() -> None:
+    payload = window().model_dump()
+    payload["partition_role"] = PartitionRole.HELD_OUT_EVALUATION
+    with pytest.raises(ValidationError):
+        DiscoveryWindow.model_validate(payload)
+
+
+def test_annotator_serialization_is_exactly_neutral() -> None:
+    assert set(window().model_dump(mode="json")) == {
+        "execution_policy_version",
+        "report_number",
+        "source_sha256",
+        "page_count",
+    }
+
+
+def test_coordinator_roles_do_not_change_neutral_window_identity() -> None:
+    assert hasattr(discovery_module, "DiscoveryAssignmentContext")
+    a = discovery_module.DiscoveryAssignmentContext(
+        window=window(), partition_role=PartitionRole.PROTOCOL_PILOT
+    )
+    b = discovery_module.DiscoveryAssignmentContext(
+        window=window(), partition_role=PartitionRole.HELD_OUT_EVALUATION
+    )
+    assert a.partition_role != b.partition_role
+    assert a.window.window_id == b.window.window_id
+    assert a.window.model_dump_json() == b.window.model_dump_json()
+
+
+def test_coordinator_context_preserves_partition_privately() -> None:
+    assert hasattr(discovery_module, "DiscoveryAssignmentContext")
+    context = discovery_module.DiscoveryAssignmentContext(
+        window=window(), partition_role=PartitionRole.PARSER_DEVELOPMENT
+    )
+    assert context.partition_role is PartitionRole.PARSER_DEVELOPMENT
+    assert "partition_role" not in context.window.model_dump()
+    assert "parser_development" not in context.window.model_dump_json()
+
+
+def test_coordinator_partition_routes_synthetic_submission() -> None:
+    assert hasattr(discovery_module, "DiscoveryAssignmentContext")
+    context = discovery_module.DiscoveryAssignmentContext(
+        window=window(), partition_role=PartitionRole.HELD_OUT_EVALUATION
+    )
+    submission = synthetic_submission(discovery("synthetic-a"), context=context)
+    assert submission.partition_role is PartitionRole.HELD_OUT_EVALUATION
+    assert "held_out_evaluation" not in context.window.model_dump_json()
+
+
 def window() -> DiscoveryWindow:
     return DiscoveryWindow(
         report_number=999,
         source_sha256="a" * 64,
-        partition_role=PartitionRole.PROTOCOL_PILOT,
         page_count=3,
     )
 
@@ -92,7 +141,6 @@ def test_shared_window_has_only_whole_report_context() -> None:
         "execution_policy_version",
         "report_number",
         "source_sha256",
-        "partition_role",
         "page_count",
     }
     assert "discovery_window" not in {member.value for member in AnnotationUnitType}
@@ -150,7 +198,16 @@ def test_same_page_different_end_still_preserves_boundary_disagreement() -> None
     ).boundary_disagreements
 
 
-def synthetic_submission(d: DiscoveredObject) -> AnnotatorSubmission:
+def synthetic_submission(
+    d: DiscoveredObject,
+    *,
+    context: discovery_module.DiscoveryAssignmentContext | None = None,
+) -> AnnotatorSubmission:
+    if context is None:
+        context = discovery_module.DiscoveryAssignmentContext(
+            window=d.window, partition_role=PartitionRole.PROTOCOL_PILOT
+        )
+    assert context.window == d.window
     unit = d.to_annotation_unit()
     anchor = EvidenceAnchor(
         report_id=unit.report_id,
@@ -165,7 +222,7 @@ def synthetic_submission(d: DiscoveredObject) -> AnnotatorSubmission:
         submission_id="synthetic-" + d.annotator_id,
         annotator_id=d.annotator_id,
         unit_id=unit.unit_id,
-        partition_role=d.window.partition_role,
+        partition_role=context.partition_role,
         status=SubmissionStatus.LOCKED,
         locked_at=datetime(2020, 1, 1, tzinfo=UTC),
         object_inventory=(
