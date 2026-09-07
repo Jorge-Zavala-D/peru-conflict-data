@@ -1,8 +1,9 @@
 policy_id: m2-02-execution-policy-v1
 policy_version: "1"
 milestone: M2-02
-status: owner_review_draft
-owner_approved: false
+status: owner_approved
+owner_approved: true
+owner_approval_record: config/benchmark/m2_02_owner_approval_v1.yaml
 governing_m2_01_owner_approval_sha256: e338944f504c4bcce1c8312758121330b9487e4f996bf66fd8623c1eeae29ce5
 scientific_schema: v0.3.0
 benchmark_schema: v0.1.0
@@ -22,7 +23,7 @@ future_human_eligibility:
   partition_labels_hidden_during_annotation: true
   coordinator_knowledge_does_not_establish_blind_annotator_eligibility: true
 case_detection_anchor:
-  status: proposed_pending_owner_review
+  status: owner_approved_correspondence_only
   key_policy: case_detection_anchor_key_v1
   coordinates: page_native_utf8_lf_codepoint_v1
   reference: identical_frozen_full_page_native_text_bytes_for_both_humans

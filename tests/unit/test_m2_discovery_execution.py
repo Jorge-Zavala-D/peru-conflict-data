@@ -339,6 +339,6 @@ def test_frozen_authority_and_policy_status() -> None:
     assert gate["policy_status"] == "owner_review_draft" and gate["owner_approved"] is False
     assert gate["object_metric_thresholds"] == []
     policy = yaml.safe_load((root / "config/benchmark/m2_02_execution_policy_v1.yaml").read_bytes())
-    assert policy["owner_approved"] is False and policy["annotation_started"] is False
+    assert policy["owner_approved"] is True and policy["annotation_started"] is False
     assert policy["human_gold_created"] is False
-    assert policy["status"] == "owner_review_draft"
+    assert policy["status"] == "owner_approved"

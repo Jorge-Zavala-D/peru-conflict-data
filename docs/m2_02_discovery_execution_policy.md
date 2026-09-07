@@ -1,12 +1,17 @@
 # M2-02 source-neutral discovery execution policy
 
-Status: **OWNER REVIEW DRAFT** — no annotation launch or final metric amendment is approved.
+Status: **OWNER-APPROVED DISCOVERY POLICY ONLY** — all nine decisions are approved by Jorge Zavala.
+The exact substantive review and evidence bindings are in
+[`m2_02_owner_approval_v1.yaml`](../config/benchmark/m2_02_owner_approval_v1.yaml).
+M2-02 annotation has **not started**; no human gold exists. M2-02A production execution
+infrastructure is **not yet readiness-approved**. No normative discovery-start scoring or M3 gate
+is approved. A separate M2-02A readiness/launch gate remains required.
 
 ## Compatibility finding, before implementation
 
-M2-01 remains complete. This proposal does not reopen its ontology, annotation states, independent
+M2-01 remains complete. This policy does not reopen its ontology, annotation states, independent
 A/B requirements, critical fields, partition, or schemas. M2-02 annotation has not started.
-M2-02A implementation is paused pending Jorge's discovery-policy decision and separate readiness.
+M2-02A production-readiness infrastructure is the next separately gated workflow, not launched here.
 The M3 gate remains unapproved under Object Threshold Policy A.
 
 The approved handbook defines a `case_observation` unit as **one published case block**. The frozen
@@ -24,7 +29,7 @@ human-discovered blocks. The existing constructors and A/B validator pass the sy
 applied at the proper stage. `AnnotationDisagreement` requires annotation IDs from both sides and
 cannot honestly represent an entirely missing submission: discovery disagreements need sidecars.
 
-## Recommended Option A: two layers, neither a new ontology nor a gold dataset
+## Approved Option A: two layers, neither a new ontology nor a gold dataset
 
 1. Give each human the same **whole-report DiscoveryWindow**. Its only fields are policy version,
    report number, exact PDF SHA, and PDF page count. All pages are included. Its
@@ -66,7 +71,7 @@ annotations before lock and must not be informed which reports are pilot, develo
 during annotation. A coordinator/owner may know the partition; that knowledge does not make the
 coordinator an eligible blind annotator. Attestation must assess prior exposure as well as future
 access. Do not put personnel/exposure histories in Git. No real people or role mappings are assigned
-here. This is a future launch requirement; the nine substantive policy decisions remain pending.
+here. This is a future launch requirement; policy approval does not attest any human's eligibility.
 
 This review document and repository configs contain partition information for governance. They
 are coordinator/owner material, not annotator instructions: later execution must distribute a
@@ -86,9 +91,9 @@ Never use “Case 1 pages 14–16”, case headings in IDs, a window per detecte
 boundaries, or machine counts. Even a source-authored heading must not encode a scored answer.
 Whole-report assignment avoids cross-window duplication and arbitrary page-cut ownership for now.
 
-## Proposed start position: what is keyed and what is not
+## Approved correspondence start position: what is keyed and what is not
 
-`case_detection_anchor_key_v1` is a proposed source-position key, **not a scoring implementation**.
+`case_detection_anchor_key_v1` is an approved correspondence key, **not a scoring implementation**.
 Its canonical payload contains report number, PDF SHA, object family, coordinate-policy version,
 start PDF page (one-based), full-page native-text reference SHA, and zero-based Unicode code-point
 offset. SHA-256 of canonical JSON gives the opaque key. No case name, code, semantic string,
@@ -102,7 +107,7 @@ selections to Unicode code-point offsets, not UTF-8 bytes or JavaScript UTF-16 c
 the selected location in the original PDF for confirmation. This task builds no such UI or snapshot
 distribution package. Hash mismatch is a custody failure, never permission to guess a replacement.
 
-**Human selection rule proposed for approval:** for a case, select the first non-whitespace source
+**Approved human selection rule:** for a case, select the first non-whitespace source
 character of the human-identified block's own heading/start, excluding repeated page headers and
 continuation headers. For a table row/event, select the first non-whitespace character of that
 human-identified row's first populated source cell. Record the exclusive end separately. A repeated
@@ -123,7 +128,7 @@ completeness certification until M2-03 review. No unresolved record is silently 
 
 | Representation | Assessment |
 |---|---|
-| Hash-pinned native-page code-point position (recommended draft) | Exact deterministic comparison on the **same reference**; preserves duplicate text locations; human selects in source. Needs reference custody and a usable PDF/text selection interface. Native ordering can be awkward in tables. |
+| Hash-pinned native-page code-point position (approved correspondence policy) | Exact deterministic comparison on the **same reference**; preserves duplicate text locations; human selects in source. Needs reference custody and a usable PDF/text selection interface. Native ordering can be awkward in tables. |
 | Viewer click/bounding box alone | Existing evidence supports boxes, but clicks, zoom, rotation, coordinate conventions, and rounding can differ. No arbitrary tolerance is approved; boxes remain corroborating evidence, not automatic identity here. |
 | Unpinned text offset/search string | Rejected: extractor settings/order, normalization, and duplicate strings can change identity. |
 | Case name/code/local index | Rejected as sole matching key: substantive, absent/nonunique, or shifts when earlier objects are missed. |
@@ -138,7 +143,7 @@ Changed official PDF bytes or layout are different source versions, not silently
 
 A start key intentionally excludes the end and full page tuple. Two humans may find the same block
 but disagree about its last page; preserve that separately. A different start **page** still changes
-identity: the proposal separates end/extent errors, not all conceivable page/start errors.
+identity: the policy separates end/extent errors, not all conceivable page/start errors.
 Existing AnnotationUnit IDs still bind pages and a locator that includes both start and end/section.
 Different ends on the *same page* also produce different units. Never manufacture a common ID to
 make A/B validation succeed. No final metric is calculated by the correspondence helper.
@@ -146,7 +151,7 @@ make A/B validation succeed. No final metric is calculated by the correspondence
 `cardinality_index` remains local technical bookkeeping. If A misses an earlier case, B's index 1
 may match A's index 0 by source position. Equal indexes can describe different physical objects.
 Within matched units, repeated subobject alignment disagreements likewise remain for reviewed
-adjudication; this proposal does not claim that ordinal-based field keys solve that problem.
+adjudication; this policy does not claim that ordinal-based field keys solve that problem.
 
 ## Repeated populations and empty discovery
 
@@ -187,37 +192,41 @@ Later M2-02A readiness must test human selection/visual correspondence on approv
 and verify unsegmented reference custody before distribution; unresolved source-position issues must
 remain visible. No full annotation package is produced here.
 
-## Options for Jorge
+## Reviewed alternatives (Option A approved; B/C not selected)
 
 | Option | Validity / independence / leakage | Schema impact | Metric impact / M3 implications | Human burden / recommendation |
 |---|---|---|---|---|
-| A: window + human units + separate start sidecar | Independent full-source discovery; no supplied case boundaries/counts; disputes retained. | No benchmark/scientific change; execution sidecars separate. | A later versioned, owner-approved metric amendment is required before start-key scoring. Raw discoveries can be collected after policy approval without choosing parser results. | Additional coordinate/reference custody and issue handling; recommended pending owner decision and readiness. |
+| A: window + human units + separate start sidecar | Independent full-source discovery; no supplied case boundaries/counts; disputes retained. | No benchmark/scientific change; execution sidecars separate. | A later versioned, owner-approved metric amendment is required before start-key scoring. Raw discoveries require a separate readiness/launch gate. | Approved policy; additional coordinate/reference custody and issue handling remain readiness requirements. |
 | B: human exact unit IDs as detection keys | Still independently discovered, but complete boundary disagreement becomes detection FP/FN as well as page error. | None. | Existing evaluator unchanged; disclose coupled metric interpretation for owner approval. | Simpler keys, stricter segmentation sensitivity; valid alternative, not silently selected. |
 | C: formal benchmark revision | Can formalize all discovery records but does not itself ensure neutral assignments or independence. | New owner-reviewed schema/version required; never mutate frozen v0.1.0. | Versioned metric alignment still needed. | Larger review/migration burden; not shown necessary for this proof. |
 
 Option A does **not** modify `OBJECT_MATCH_FIELDS`, `evaluate_benchmark()`, thresholds, or final gate
-approval. The draft config authorizes none of them. Future key scoring must amend the normative
+approval. Policy approval authorizes none of them. Future key scoring must amend the normative
 metric contract explicitly before use; never insert the start key into `unit_id` as a workaround.
 Human discovery metadata may precede that amendment because both original extents/units and start
 coordinates survive, leaving the reviewed scientific evidence intact. If later execution cannot
 preserve unresolved discoveries or reproducible coordinates, stop rather than launch with exclusions.
 
-## Pending owner decisions and verification
+## Recorded owner decisions and verification
 
-All nine are **PENDING**; allowed responses APPROVE / CORRECT / REJECT / DEFER:
+Jorge explicitly approved all nine at the corrected pre-approval head `d89c7a20636bee74f35dca28d9f5437e49106d8d`
+and tree `e6b25184fcf302d67076458751c84d31f50ca390`, reviewed by CI `33999762426`.
+These identify the substantive review, not the later commit recording approval.
 
-- `DISCOVERY-WINDOW`: whole-report neutral envelope, no pre-created case units.
-- `POST-DISCOVERY-UNITIZATION`: construct existing semantic units only after human discovery.
-- `CASE-DETECTION-ANCHOR`: proposed pinned-reference start rule and unresolved-position handling.
-- `DETECTION-VS-PAGE-ATTRIBUTION`: preserve start versus end/page errors separately, with start-page coupling disclosed.
-- `AB-DISCOVERY-DISAGREEMENT`: retain originals, unmatched and boundary disagreements until M2-03.
-- `CARDINALITY-NONIDENTITY`: never use local index as cross-annotator identity.
-- `REPEATED-OBJECT-DISCOVERY`: independently inventory rows/events and case subobjects; no automatic links.
-- `FUTURE-METRIC-AMENDMENT`: separate owner-approved amendment before start-key scoring.
-- `BENCHMARK-SCHEMA-NO-CHANGE`: use execution sidecars, preserve the frozen registries.
+- `DISCOVERY-WINDOW` — APPROVE: whole-report neutral envelope, no pre-created case units.
+- `POST-DISCOVERY-UNITIZATION` — APPROVE: construct existing semantic units only after human discovery.
+- `CASE-DETECTION-ANCHOR` — APPROVE: pinned-reference start rule and unresolved-position handling.
+- `DETECTION-VS-PAGE-ATTRIBUTION` — APPROVE: preserve start versus end/page errors separately, with start-page coupling disclosed.
+- `AB-DISCOVERY-DISAGREEMENT` — APPROVE: retain originals, unmatched and boundary disagreements until M2-03.
+- `CARDINALITY-NONIDENTITY` — APPROVE: never use local index as cross-annotator identity.
+- `REPEATED-OBJECT-DISCOVERY` — APPROVE: independently inventory rows/events and case subobjects; no automatic links.
+- `FUTURE-METRIC-AMENDMENT` — APPROVE: separate versioned owner-approved amendment before start-key scoring; no evaluator amendment is approved now.
+- `BENCHMARK-SCHEMA-NO-CHANGE` — APPROVE: use execution sidecars, preserve the frozen registries.
 
 `tests/unit/test_m2_discovery_execution.py` uses synthetic report 999 only. It exercises permitted and
 forbidden windows, positional matching, duplicate headings, cardinality shifts, unmatched records,
 same-page/multi-page end disagreements, frozen-unit construction, actual A/B validation, Unicode
-code points, reference drift, and immutable authority digests. No schema is registered for the draft
-execution helpers. The ignored owner packet binds exact draft bytes and commit tree; decisions null.
+code points, reference drift, and immutable authority digests. No benchmark schema is registered for
+the execution helpers. The historical ignored owner packets retain their original null decisions
+and pre-approval bytes unchanged. The tracked approval record binds their verified fingerprints;
+it does not turn a historical review packet into execution authority or human gold.

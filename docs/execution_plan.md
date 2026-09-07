@@ -133,10 +133,14 @@ across reports 260-269. The approved decisions and exclusions are recorded in
 
 ### M2-02 — double annotation of reports 260-269
 
-Execution readiness is paused: M2-02A requires owner approval of the source-neutral discovery
-policy in `docs/m2_02_discovery_execution_policy.md` before infrastructure preparation resumes.
-M2-01 remains complete; no annotation has started, no schema approval is reopened, and the final
-M3 gate remains unapproved. This draft introduces no evaluator amendment or annotation authority.
+The source-neutral discovery policy in `docs/m2_02_discovery_execution_policy.md` is owner-approved,
+with all nine decisions recorded in `config/benchmark/m2_02_owner_approval_v1.yaml`.
+M2-02A production-readiness infrastructure is next, but is not yet readiness-approved or resumed
+by this policy approval. A separate readiness/launch gate is required before human annotation.
+M1 and M2-01 remain complete; M2-02 annotation has not started and no human gold exists.
+No schema approval is reopened. A separate versioned owner-approved metric amendment is mandatory
+before discovery-start keys may enter normative parser scoring or M3 evaluation. The final M3 gate
+remains unapproved under Object Threshold Policy A.
 
 | Field | Plan |
 |---|---|
