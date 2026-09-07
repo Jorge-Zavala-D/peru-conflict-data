@@ -1,7 +1,9 @@
-"""Draft discovery compatibility helpers; no I/O, annotation launcher, or scoring.
+"""Owner-approved discovery-correspondence primitives; no I/O, annotation launcher, or scoring.
 
-These records demonstrate representability, not human authorship or approval.
-Only synthetic callers are authorized until the execution policy is approved.
+These helpers establish representability only. They do not establish human authorship,
+reference custody, production readiness, annotation-launch authority, human-gold authority,
+or metric authority. Real benchmark use remains prohibited until the separately required
+M2-02A readiness and launch gate is owner-approved.
 """
 
 from __future__ import annotations
