@@ -2,7 +2,14 @@
 
 Research-data infrastructure for a defensible historical reconstruction of Peru's Defensoría del Pueblo Social Conflicts Monitoring System, April 2004-present.
 
-Status: **Milestone 1 and M2-01 are complete; M2-02 has not started.**
+Status: **Milestone 1 and M2-01 are complete; M2-02 human annotation has not started.**
+
+Jorge has approved the
+[source-neutral discovery execution policy](docs/m2_02_discovery_execution_policy.md).
+The [approval record](config/benchmark/m2_02_owner_approval_v1.yaml) approves the policy contract
+only. M2-02A production-readiness infrastructure is the next gated workflow and is not yet
+readiness-approved; annotation has not started. No normative discovery-start scoring is approved,
+and the final M3 gate remains unapproved.
 The write-once canonical M1 identity/coverage package exists at
 `06_validation/m1_corpus_manifest/v0.2.0/`. It establishes 247 numbered reports and
 247 months without mapping conflicts while preserving 287 factual gaps and 50 owner
@@ -10,7 +17,7 @@ adjudications. This is corpus identity/coverage closure, not full PDF acquisitio
 authoritative byte completeness remains false and 237 report bytes remain deferred.
 Scientific schema v0.3.0 and the independently versioned benchmark v0.1.0 contract
 are owner-approved for M2-02 use. The two machine pilot aids were verified only for
-protocol coherence and remain non-gold. M2 human gold does not exist and M2-02 has
+protocol coherence and remain non-gold. M2 human gold does not exist and M2-02 human annotation has
 not started. Object-family thresholds remain deferred until the post-M2-03 gate
 revision; the current M3 gate v1 remains an unapproved owner-review draft.
 

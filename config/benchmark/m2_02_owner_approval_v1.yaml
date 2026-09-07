@@ -1,0 +1,69 @@
+approval_record_version: 1.0.0
+milestone: M2-02 discovery policy only
+policy_id: m2-02-execution-policy-v1
+owner: Jorge Zavala
+owner_decision_status: approved
+recorded_at: "2026-09-07T09:06:44.9240751+02:00"
+authority: explicit_owner_decision_in_m2_02a_0c_prompt
+reviewed_identity:
+  pr_number: 12
+  branch: codex/m2-02a0-discovery-window-policy
+  base_sha: a511b61229746bb5b59a58ad9212fa3bac79cc3c
+  base_tree: 36b3a462af2eae4982b6b9067083e5741966d3c6
+  original_head: e3680473392a7ef2d403e65dbd03a91f8c4f1de1
+  original_tree: 8b54fdd39c9bb6938807aa5ed11ef6ba2668db64
+  corrected_head: d89c7a20636bee74f35dca28d9f5437e49106d8d
+  corrected_tree: e6b25184fcf302d67076458751c84d31f50ca390
+  merge_test_sha: caa407859a055ed810c9324dc418e41b4c4fed90
+  actions_run_id: 33999762426
+provenance: Reviewed identities bind pre-approval content; the later approval-record commit is reported by Git and CI, not embedded in itself.
+frozen_authority:
+  benchmark_schema: v0.1.0
+  benchmark_digest: 23a5ee953541c93b9e51898872901f8b9432588f8c9ea03758ea85a5a1ff28fa
+  scientific_schema: v0.3.0
+  scientific_digest: cd5bdea78e6314242685ea89d43850f8ff42e639ba74606aba3d929b2e81444d
+  m2_01_owner_approval_sha256: e338944f504c4bcce1c8312758121330b9487e4f996bf66fd8623c1eeae29ce5
+reviewed_policy_bytes:
+  config_path: config/benchmark/m2_02_execution_policy_v1.yaml
+  config_sha256: 1da5db2b35c2a6548b2fa1f1b81ec58b5f64124e8fb0792949579130191aa4dd
+  document_path: docs/m2_02_discovery_execution_policy.md
+  document_sha256: edd6d272f86ec38b056055d18fe9b8ebb605535e8ead080bf30aff3cfbd6ca75
+review_evidence:
+  packet_v1_sha256: 550411065c23cf82c130beb4dd55a43e5fba96a4a8d1afad1fe6bfbcae89cda9
+  proof_v1_sha256: 177505674e6bfd1727f7da1306dc93021ecbe4ea85d463fe563e0981074efe0c
+  packet_v2_bytes: 7105
+  packet_v2_sha256: 78a5339be2fc14c870d1ddc0554f9b95e00043f42edd94d5cc051544537b73ad
+  proof_v2_bytes: 4344
+  proof_v2_sha256: 794eecec7b3b9d5954ed5a37461185b9720eb7eb8d3a81c84ba581aecd723b72
+decisions:
+  DISCOVERY-WINDOW: APPROVE
+  POST-DISCOVERY-UNITIZATION: APPROVE
+  CASE-DETECTION-ANCHOR: APPROVE
+  DETECTION-VS-PAGE-ATTRIBUTION: APPROVE
+  AB-DISCOVERY-DISAGREEMENT: APPROVE
+  CARDINALITY-NONIDENTITY: APPROVE
+  REPEATED-OBJECT-DISCOVERY: APPROVE
+  FUTURE-METRIC-AMENDMENT: APPROVE
+  BENCHMARK-SCHEMA-NO-CHANGE: APPROVE
+authorization_limits:
+  annotation_launch_authorized: false
+  human_gold_creation_authorized: false
+  normative_evaluator_amendment_approved: false
+  final_m3_gate_approved: false
+  production_readiness_approved: false
+  parser_development_authorized: false
+  parser_evaluation_authorized: false
+  dropbox_writes_authorized: false
+  ocr_authorized: false
+  source_acquisition_authorized: false
+safeguards:
+  separate_readiness_and_launch_gate_required: true
+  versioned_owner_approved_metric_amendment_required_before_start_key_scoring: true
+  benchmark_role_blinding_required: true
+  coordinator_wrapper_never_distributed: true
+  private_human_eligibility_attestation_required: true
+  two_distinct_blind_humans_required: true
+  post_discovery_unitization_required: true
+  unresolved_discoveries_preserved_for_m2_03: true
+  no_automatic_correspondence_repair: true
+  cardinality_local_only: true
