@@ -7,8 +7,10 @@ Status: **Milestone 1 and M2-01 are complete; M2-02 human annotation has not sta
 Jorge has approved the
 [source-neutral discovery execution policy](docs/m2_02_discovery_execution_policy.md).
 The [approval record](config/benchmark/m2_02_owner_approval_v1.yaml) approves the policy contract
-only. M2-02A production-readiness infrastructure is the next gated workflow and is not yet
-readiness-approved; annotation has not started. No normative discovery-start scoring is approved,
+only. M2-02A.1 production-readiness infrastructure is implemented as an owner-review
+candidate; it is not readiness-approved and human annotation has not started.
+See the [execution candidate](docs/m2_02_annotation_execution_protocol.md) and
+[coordinator checklist](docs/m2_02_coordinator_checklist.md). No normative discovery-start scoring is approved,
 and the final M3 gate remains unapproved.
 The write-once canonical M1 identity/coverage package exists at
 `06_validation/m1_corpus_manifest/v0.2.0/`. It establishes 247 numbered reports and
