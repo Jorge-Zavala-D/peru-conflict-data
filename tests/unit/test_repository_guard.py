@@ -4,12 +4,35 @@ import json
 import subprocess
 from pathlib import Path
 
+import pytest
+import yaml
+
 from peru_conflicts.repository_guard import (
     find_policy_violations,
     git_candidate_contents,
     git_candidate_paths,
     git_candidate_sizes,
 )
+
+
+@pytest.mark.parametrize("mutation", ["none", "source_text", "nested_text", "hash_text", "comment"])
+def test_readiness_index_accepts_only_canonical_metadata(tmp_path: Path, mutation: str) -> None:
+    raw = Path("docs/m2_02a_readiness_evidence_index.yaml").read_bytes()
+    data = yaml.safe_load(raw)
+    if mutation == "source_text":
+        data["source_text"] = "synthetic forbidden reading"
+    elif mutation == "nested_text":
+        data["source_custody"][0]["source_text"] = "synthetic forbidden reading"
+    elif mutation == "hash_text":
+        data["source_custody"][0]["observed_sha256"] = "synthetic forbidden reading"
+    if mutation not in {"none", "comment"}:
+        raw = yaml.safe_dump(data, sort_keys=False, allow_unicode=False).encode("utf-8")
+    if mutation == "comment":
+        raw += b"# synthetic forbidden reading\n"
+    path = tmp_path / "m2_02a_readiness_evidence_index.yaml"
+    path.write_bytes(raw)
+    violations = find_policy_violations([path], repo_root=tmp_path)
+    assert bool(violations) is (mutation != "none")
 
 
 def test_guard_rejects_raw_and_canonical_data_extensions(tmp_path: Path) -> None:
@@ -47,6 +70,13 @@ def test_guard_rejects_annotation_payload_and_reference_package(tmp_path: Path) 
     text.write_text("invented test source", encoding="utf-8")
     violations = find_policy_violations([payload, package, text], repo_root=tmp_path)
     assert {v.path for v in violations} == {payload, package, text}
+
+
+def test_readiness_evidence_index_rejects_source_payload(tmp_path: Path) -> None:
+    path = tmp_path / "docs/m2_02a_readiness_evidence_index.yaml"
+    path.parent.mkdir()
+    path.write_text("source_text: Invented source transcription\n", encoding="utf-8")
+    assert find_policy_violations([path], repo_root=tmp_path)
 
 
 def test_guard_rejects_credential_like_files(tmp_path: Path) -> None:

@@ -14,11 +14,16 @@ from peru_conflicts.benchmark.models import BENCHMARK_OBJECT_TYPES, PartitionRol
 from peru_conflicts.hashing import canonical_json_bytes
 
 from .annotation import empty_slots, validate_forms
+from .coordination import PackageIssuanceReceipt, verify_trusted_package
 from .packages import FORM_HEADERS, require_readiness_root, verify_package
 from .references import reference_text, select_position, sha256
 
 
-def load_package(root: Path) -> dict[str, bytes]:
+def load_package(
+    root: Path, expected_issuance: PackageIssuanceReceipt | None = None
+) -> dict[str, bytes]:
+    if expected_issuance is None:
+        raise ValueError("trusted coordinator issuance identity is required")
     require_readiness_root(root)
     files: dict[str, bytes] = {}
     with DirectoryLease.acquire(root) as lease:
@@ -35,7 +40,7 @@ def load_package(root: Path) -> dict[str, bytes]:
                 with parent.open_child_read(relative.name) as stream:
                     files[relative.as_posix()] = stream.read()
         lease.require_bound()
-    verify_package(files, allow_drafts=True)
+    verify_trusted_package(files, expected_issuance, allow_drafts=True)
     return files
 
 
@@ -53,6 +58,8 @@ def main(argv: list[str] | None = None) -> int:
     for name in ("page", "position", "slots", "inspection-template", "validate"):
         command = commands.add_parser(name)
         command.add_argument("package", type=Path)
+        command.add_argument("--issuance", type=Path, required=True)
+        command.add_argument("--issuance-sha256", required=True)
         if name in {"page", "position"}:
             command.add_argument("--report", required=True, type=int)
             command.add_argument("--page", required=True, type=int)
@@ -61,7 +68,11 @@ def main(argv: list[str] | None = None) -> int:
             command.add_argument("--column", required=True, type=int)
     args = parser.parse_args(argv)
     try:
-        files = load_package(args.package)
+        receipt_bytes = args.issuance.read_bytes()
+        if sha256(receipt_bytes) != args.issuance_sha256:
+            raise ValueError("issuance receipt differs from trusted coordinator pin")
+        receipt = PackageIssuanceReceipt.model_validate_json(receipt_bytes)
+        files = load_package(args.package, receipt)
         manifest = verify_package(files, allow_drafts=True)
         if args.command in {"page", "position"}:
             key = f"references/{args.report}/{args.page:04d}.txt"

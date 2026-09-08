@@ -33,6 +33,7 @@ from peru_conflicts.hashing import canonical_json_bytes
 from peru_conflicts.models import MODEL_REGISTRY
 from peru_conflicts.models.common import Identifier, Sha256, StrictModel
 
+from .compatibility import CASE_SUBORDINATES, require_compatible
 from .discovery import (
     DiscoveredObject,
     DiscoveryComparison,
@@ -96,6 +97,7 @@ def declarations(
             cardinality_index=int(row["cardinality_index"]),
             section=row["section"],
         )
+        require_compatible(row["object_family"], AnnotationUnitType(row["unit_type"]))
         if report not in references or row["object_family"] not in BENCHMARK_OBJECT_TYPES:
             raise ValueError("discovery report/object family outside assignment")
         if row["unresolved"] not in {"true", "false"}:
@@ -166,7 +168,7 @@ def required_fields(family: str) -> tuple[str, ...]:
     # Source-level subobjects such as case-reported indicators are permitted by
     # the frozen scientific/annotation contracts. This does not register a new
     # detection/scoring family or infer that such an object exists.
-    allowed = BENCHMARK_OBJECT_TYPES | {field.split(".")[0] for field in critical}
+    allowed = BENCHMARK_OBJECT_TYPES | CASE_SUBORDINATES
     if family not in allowed or family not in MODEL_REGISTRY:
         raise ValueError("unregistered source object family")
     model = MODEL_REGISTRY[family]
@@ -185,6 +187,10 @@ def empty_slots(files: Mapping[str, bytes]) -> list[dict[str, str]]:
     for row in rows(files, "objects.csv"):
         if row["discovery_id"] not in discoveries:
             raise ValueError("object refers to an undeclared discovery")
+        parent = discoveries[row["discovery_id"]]
+        require_compatible(
+            parent.domain_object_type, parent.unit_type, subordinate=row["object_family"]
+        )
         inventory.append((row["discovery_id"], row["object_family"], int(row["cardinality_index"])))
     if len(set(inventory)) != len(inventory) or any(index < 0 for _, _, index in inventory):
         raise ValueError("duplicate/invalid object cardinality")

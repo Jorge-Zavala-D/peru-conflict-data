@@ -11,6 +11,8 @@ from re import Pattern
 from re import compile as compile_pattern
 from typing import cast
 
+from peru_conflicts.execution.evidence_index import validate_evidence_index
+
 PROHIBITED_EXTENSIONS = frozenset(
     {
         ".arrow",
@@ -113,6 +115,14 @@ def find_policy_violations(
         content = contents.get(supplied) if contents is not None else None
         if content is None and path.is_file():
             content = path.read_bytes()
+        if lower_name == "m2_02a_readiness_evidence_index.yaml":
+            try:
+                validate_evidence_index(content or b"")
+            except (ValueError, TypeError):
+                violations.append(
+                    Violation(path, "readiness index must contain closed metadata only")
+                )
+            continue
         if content is not None and path.suffix.lower() == ".json":
             try:
                 payload = json.loads(content)

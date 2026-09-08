@@ -34,6 +34,29 @@ not treated as a self-authenticating file supplied by an annotator.
 
 ## Human eligibility and separation
 
+### Eligibility and issuance chain (M2-02A.1B)
+
+The coordinator-only `EligibilityBinding` binds both independently eligible humans
+as a pair to run/role, exact package ID, exact manifest SHA, complete reference aggregate,
+file-set identity, policy versions, attestation SHA and private person-token digest.
+Raw tokens and personnel/exposure details stay private; no real attestation is created
+in readiness. Digests of private tokens remain coordinator-only, not human package fields.
+Opaque tokens must be stable per person and privately protected: software cannot detect
+a coordinator falsely assigning two different tokens to the same human.
+
+`PackageIssuanceReceipt` projects only neutral identity and opaque binding hashes.
+It contains no person token/digest, partition, source reading or annotation. The receipt
+and its independently trusted SHA pin are supplied out-of-band by the coordinator;
+neither a package-carried receipt nor a hash computed from untrusted incoming bytes
+establishes trust. This is not PKI and does not resist compromise of coordinator custody.
+The reader requires both self-consistency and exact equality to this trusted receipt.
+The complete private pair is reverified before future production preflight; current
+`production_lock_preflight` always rejects launch after verification. Real locking
+remains disabled. A verified attestation alone is not issuance or lock authority.
+
+Existing real-source blank previews remain unissued and byte-identical. No eligibility
+binding is created for them. Synthetic tokens exercise the chain in tests only.
+
 Future launch requires a private coordinator attestation of two distinct humans,
 unexposed to machine review aids, predictions/prefill, one another's answers, and
 benchmark partition labels. `EligibilityAttestation` is an assertion contract, not
@@ -65,6 +88,13 @@ not be exposed to blind annotators. Future launch requires an isolated neutral r
 without coordinator config, machine aids or other annotators' data. `PACKAGE` below
 denotes an unissued local readiness preview.
 
+All commands now additionally require `--issuance COORDINATOR_RECEIPT` and
+`--issuance-sha256 TRUSTED_COORDINATOR_PIN`. These are neutral out-of-band inputs, not
+files added to the frozen package. The historical preview's command examples omit these
+new required arguments; they fail closed without them. This supplement changes the
+reader trust contract, not the preserved reference/package bytes. No real issuance
+receipt or person assignment is created in this task.
+
 ```text
 uv run python scripts/prepare_m2_annotation.py page PACKAGE --report 260 --page 1
 uv run python scripts/prepare_m2_annotation.py position PACKAGE --report 260 --page 1 --line 3 --column 7
@@ -80,7 +110,12 @@ recording the selection. A valid coordinate is **not** proof of the correct scie
 start. The helper never suggests starts, searches for cases, or repairs correspondence.
 
 Use a text-preserving CSV editor. Do not execute formulas, auto-convert identifiers,
-dates or leading zeros, or silently alter Spanish strings. Quote commas/newlines.
+dates or leading zeros. The eventual isolated runtime must render/edit every source
+string literally, including strings beginning `=`, `+`, `-` or `@`. It must not rely
+on uncontrolled spreadsheet type inference. Import preserves exact strings; it does
+not prepend apostrophes or alter source values to neutralize formulas.
+Do not silently alter
+Spanish strings. Quote commas/newlines.
 Save UTF-8. The validator checks the exact header and rejects unknown columns/files.
 The local CLI prints output; it does not overwrite any form or lock a submission.
 Copy a blank generated slot/inspection template only after checking its destination;
@@ -100,6 +135,29 @@ It counts as a discovery for inspection certification, never as zero. M2-03 revi
 these unresolved declarations alongside matched/boundary/unmatched evidence.
 
 ## Phase 2: object inventory and annotation
+
+`execution.compatibility.require_compatible` is the single structural policy for
+resolved declarations, unresolved declarations and subordinate inventories. Unresolved
+coordinates do not waive object-family/unit compatibility. Case observations require
+case-observation units. The existing annex-event allowlist and source-only contract
+remain unchanged. Other unit types are not introduced by this correction.
+
+The base discovered object is implicit and cannot be repeated through `objects.csv`.
+For case observations, allowed report-local original-field inventories are case_name,
+case_month, location, case_location, actor, case_actor, demand, case_reported_indicator,
+protest_event, violence_event, dialogue_event, mediation_observation, agreement,
+dp_action and alert. This is a conservative reading of frozen `models/domain.py`
+and `m2_critical_fields_v1.yaml`: these families have source-original fields and
+report-local case descriptions/roles or event evidence. Their occurrence must still be
+independently declared and evidenced inside the source unit. No case ID, foreign-key
+relationship, annex-to-case link or mediation continuity is inferred or materialized.
+
+CaseDemand has no source-value fields, so it is not an annotation inventory family.
+MediationProcess, CaseProtestLink, CaseRelationship and longitudinal ConflictCase
+identity are excluded. A case-local protest mention does not create CaseProtestLink.
+Non-case discoveries admit no additional subordinate families under this conservative
+contract; repeated standalone objects require separate discoveries. An unsupported
+structure needs explicit protocol review, not arbitrary registry membership.
 
 Only human declarations produce empty slots. A case observation receives its
 approved report/case/name/month fields, not an invented violence, location or mediation
@@ -174,6 +232,17 @@ future approved development work may separately expose only the permitted partit
 M3 and discovery-start scoring still require their separate owner approvals.
 
 ## Readiness evidence and remaining owner boundary
+
+The tracked `docs/m2_02a_readiness_evidence_index.yaml` contains closed, source-neutral
+metadata only. It binds preserved reference/package summaries, immutable historical
+review evidence and the new hardening packet. The data guard rejects free-text payloads,
+unknown fields and noncanonical comments in that index. It is not benchmark data.
+The reviewed implementation head identifies the pre-hardening parent; precommit content
+pins bind the hardening files without attempting to insert the containing commit's own
+SHA. The eventual hardening head/tree, final review and CI are external release evidence.
+The index binds the precommit hardening review separately from the historical principal
+receipt. A final exact-commit review/CI receipt supplements it after commit; embedding
+that future commit identity or its review hash inside the same commit would be circular.
 
 Real native references and blank packages stay in ignored `.cache/m2-02a1/`; no real
 forms are completed. Synthetic references and responses are explicitly invented.

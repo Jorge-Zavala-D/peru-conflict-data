@@ -65,3 +65,9 @@ def test_context_rejects_changed_package_binding() -> None:
     context = coordination.build_context(manifest, {260: PartitionRole.PARSER_DEVELOPMENT})
     with pytest.raises(ValueError):
         coordination.verify_context(context.model_copy(update={"package_id": "f" * 64}), manifest)
+
+
+def test_unbound_context_is_not_production_preflight_authority() -> None:
+    # The old context has only role/package routing, no eligibility issuance chain.
+    with pytest.raises(ValueError, match="both"):
+        coordination.production_lock_preflight((), (), (), ())

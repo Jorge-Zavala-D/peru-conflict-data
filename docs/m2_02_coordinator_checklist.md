@@ -6,6 +6,12 @@ All items below are requirements, not completed owner approvals.
 - [ ] Obtain Jorge's separate readiness decisions; retain all unapproved launch flags.
 - [ ] Review native extraction mode/binary/options and repeated 1,128-page equality evidence.
 - [ ] Bind expected source/reference/package hashes in private coordinator custody.
+- [ ] Bind both private eligible-human attestations to exact package/manifest/reference identities; no real bindings during readiness.
+- [ ] Supply neutral issuance receipt and independent SHA pin out-of-band; reject self-consistent replacements before helper use.
+- [ ] Preserve private token digests coordinator-only and reverify the complete A/B binding pair before any future lock preflight.
+- [ ] Verify resolved/unresolved/subordinate compatibility; do not create identity/link models from registry membership.
+- [ ] Review the tracked metadata-only evidence index and its linked historical/new packet fingerprints.
+- [ ] Require literal-text editing/display; never execute formula-looking strings or infer dates/leading-zero identifiers.
 - [ ] Verify A/B package equivalence and neutral metadata; issue neither during readiness.
 - [ ] Review human usability of page/position/slots/inspection/validation commands.
 - [ ] Review explicit unresolved declarations: preserve them, never count them as zero.

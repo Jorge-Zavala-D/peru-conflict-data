@@ -149,6 +149,131 @@ def populated(
     return package
 
 
+@pytest.mark.parametrize(
+    "family,unit",
+    [
+        ("case_observation", "report_annex_event"),
+        ("protest_event", "case_observation"),
+        ("actor", "report_annex_event"),
+    ],
+)
+def test_unresolved_discovery_still_requires_compatible_semantics(family: str, unit: str) -> None:
+    package = discovered()
+    row = annotation.rows(package, "discoveries.csv")[0]
+    row.update(object_family=family, unit_type=unit, unresolved="true")
+    package["discoveries.csv"] = form("discoveries.csv", [row])
+    with pytest.raises(ValueError):
+        annotation.declarations(package)
+
+
+@pytest.mark.parametrize("child", ["case_observation", "mediation_observation"])
+def test_unrelated_or_duplicate_base_inventory_is_rejected(child: str) -> None:
+    package = discovered()
+    if child == "mediation_observation":
+        row = annotation.rows(package, "discoveries.csv")[0]
+        row.update(object_family="actor", unit_type="source_only_object")
+        package["discoveries.csv"] = form("discoveries.csv", [row])
+    package["objects.csv"] = form(
+        "objects.csv",
+        [{"discovery_id": "local-1", "object_family": child, "cardinality_index": "1"}],
+    )
+    with pytest.raises(ValueError):
+        annotation.empty_slots(package)
+
+
+@pytest.mark.parametrize("value", ["=1+1", "+0012", "-0012", "@invented", "0012", "01/02/03"])
+def test_formula_looking_source_strings_remain_literal(value: str) -> None:
+    import json
+
+    package = populated()
+    values = annotation.rows(package, "annotations.csv")
+    values[0].update(state="observed", value_type="string", original_value=value)
+    package["annotations.csv"] = form("annotations.csv", values)
+    draft = validate(package, {260: PartitionRole.PROTOCOL_PILOT}, require_complete=True)
+    found = [a for a in draft.submissions[0].annotations if a.field_name == values[0]["field_name"]]
+    assert json.loads(found[0].raw_value_json or "null") == value
+
+
+@pytest.mark.parametrize("unresolved", [False, True])
+def test_all_discovery_family_unit_combinations_share_one_contract(unresolved: bool) -> None:
+    from peru_conflicts.benchmark.models import AnnotationUnitType
+
+    for family in BENCHMARK_OBJECT_TYPES:
+        for unit in AnnotationUnitType:
+            package = discovered()
+            row = annotation.rows(package, "discoveries.csv")[0]
+            row.update(
+                object_family=family, unit_type=unit.value, unresolved=str(unresolved).lower()
+            )
+            package["discoveries.csv"] = form("discoveries.csv", [row])
+            allowed = (family == "case_observation" and unit.value == "case_observation") or (
+                family != "case_observation"
+                and (
+                    unit.value == "source_only_object"
+                    or (
+                        unit.value == "report_annex_event"
+                        and family
+                        in {
+                            "protest_event",
+                            "violence_event",
+                            "dialogue_event",
+                            "dp_action",
+                            "alert",
+                            "agreement",
+                        }
+                    )
+                )
+            )
+            if allowed:
+                annotation.declarations(package)
+            else:
+                with pytest.raises(ValueError):
+                    annotation.declarations(package)
+
+
+def test_all_registered_subordinates_require_compatible_parent() -> None:
+    from peru_conflicts.models import MODEL_REGISTRY
+
+    expected_case_children = {
+        "case_name",
+        "case_month",
+        "location",
+        "case_location",
+        "actor",
+        "case_actor",
+        "demand",
+        "case_reported_indicator",
+        "protest_event",
+        "violence_event",
+        "dialogue_event",
+        "mediation_observation",
+        "agreement",
+        "dp_action",
+        "alert",
+    }
+    for parent in BENCHMARK_OBJECT_TYPES:
+        for child in set(MODEL_REGISTRY) | {"case_observation"}:
+            package = discovered()
+            row = annotation.rows(package, "discoveries.csv")[0]
+            row.update(
+                object_family=parent,
+                unit_type="case_observation"
+                if parent == "case_observation"
+                else "source_only_object",
+            )
+            package["discoveries.csv"] = form("discoveries.csv", [row])
+            package["objects.csv"] = form(
+                "objects.csv",
+                [{"discovery_id": "local-1", "object_family": child, "cardinality_index": "1"}],
+            )
+            if parent == "case_observation" and child in expected_case_children:
+                slots = annotation.empty_slots(package)
+                assert any(s["object_family"] == child for s in slots)
+            else:
+                with pytest.raises(ValueError):
+                    annotation.empty_slots(package)
+
+
 def test_empty_is_not_completed_zero_and_draft_never_locks() -> None:
     package = blank()
     with pytest.raises(ValueError, match="inspection"):
