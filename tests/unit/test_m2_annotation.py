@@ -126,6 +126,10 @@ def populated(
     role: str = "annotator-a", start_line: str = "1", end_page: str = "1"
 ) -> dict[str, bytes]:
     package = discovered(role, start_line, end_page)
+    package["objects.csv"] = form(
+        "objects.csv",
+        [{"discovery_id": "local-1", "object_family": "case_name", "cardinality_index": "0"}],
+    )
     slots = annotation.empty_slots(package)
     assert slots
     for slot in slots:
@@ -236,11 +240,8 @@ def test_all_registered_subordinates_require_compatible_parent() -> None:
 
     expected_case_children = {
         "case_name",
-        "case_month",
         "location",
-        "case_location",
         "actor",
-        "case_actor",
         "demand",
         "case_reported_indicator",
         "protest_event",
@@ -480,6 +481,17 @@ def test_independent_multiscenario_rehearsal_in_separate_roots(tmp_path: Path) -
                 }
             )
         package["discoveries.csv"] = form("discoveries.csv", discoveries)
+        package["objects.csv"] = form(
+            "objects.csv",
+            [
+                {
+                    "discovery_id": d["discovery_id"],
+                    "object_family": "case_name",
+                    "cardinality_index": "0",
+                }
+                for d in discoveries
+            ],
+        )
         slots = annotation.empty_slots(package)
         for index, slot in enumerate(slots):
             state = ["explicit_zero", "not_reported", "source_ambiguous", "annotation_uncertain"][

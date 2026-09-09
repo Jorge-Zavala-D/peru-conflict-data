@@ -12,11 +12,8 @@ ANNEX_FAMILIES = frozenset(
 CASE_SUBORDINATES = frozenset(
     {
         "case_name",
-        "case_month",
         "location",
-        "case_location",
         "actor",
-        "case_actor",
         "demand",
         "case_reported_indicator",
         "protest_event",

@@ -115,7 +115,10 @@ def find_policy_violations(
         content = contents.get(supplied) if contents is not None else None
         if content is None and path.is_file():
             content = path.read_bytes()
-        if lower_name == "m2_02a_readiness_evidence_index.yaml":
+        if lower_name in {
+            "m2_02a_readiness_evidence_index.yaml",
+            "m2_02a_readiness_evidence_index_v2.yaml",
+        }:
             try:
                 validate_evidence_index(content or b"")
             except (ValueError, TypeError):

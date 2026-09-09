@@ -50,6 +50,7 @@ from .packages import (
     verify_package,
 )
 from .references import select_position, sha256
+from .source_dates import validate_date_pair
 
 
 def rows(files: Mapping[str, bytes], name: str) -> list[dict[str, str]]:
@@ -162,7 +163,7 @@ def required_fields(family: str) -> tuple[str, ...]:
             sorted(
                 field
                 for field in critical
-                if field.split(".")[0] in {"report", "case", "case_name", "case_month"}
+                if field.split(".")[0] in {"report", "case", "case_month"}
             )
         )
     # Source-level subobjects such as case-reported indicators are permitted by
@@ -174,6 +175,11 @@ def required_fields(family: str) -> tuple[str, ...]:
     model = MODEL_REGISTRY[family]
     names = {f"{family}.{name}" for name in model.model_fields if name.endswith("_original")}
     names.update(field for field in critical if field.startswith(family + "."))
+    # Relational values are fields of THIS human instance, not a second index space.
+    if family == "actor":
+        names.add("case_actor.role_original")
+    if family == "location":
+        names.add("case_location.relationship_original")
     if not names:
         raise ValueError("object family has no approved source fields")
     return tuple(sorted(names))
@@ -335,6 +341,20 @@ def validate_forms(
                 cardinality_index=int(row["cardinality_index"]),
             )
         )
+        if (
+            row["field_name"] in {"case_actor.role_original", "case_location.relationship_original"}
+            and discoveries[key].domain_object_type != "case_observation"
+            and row["state"] != "not_applicable"
+        ):
+            raise ValueError("relational component without case scope must be not_applicable")
+    for values in annotations.values():
+        groups: dict[tuple[str, int], dict[str, FieldAnnotation]] = {}
+        for value in values:
+            groups.setdefault((value.domain_object_type, value.cardinality_index), {})[
+                value.field_name
+            ] = value
+        for (family, _), fields in groups.items():
+            validate_date_pair(fields, family)
     inspections = rows(files, "inspection.csv")
     expected_inspections = {
         (m.report_number, family) for m in manifest.references for family in BENCHMARK_OBJECT_TYPES
@@ -346,14 +366,22 @@ def validate_forms(
         raise ValueError("duplicate or unassigned inspection")
     inspection_complete = set(inspection_keys) == expected_inspections
     for row in inspections:
-        found = any(
-            d.window.report_number == int(row["report_number"])
-            and d.domain_object_type == row["object_family"]
-            for d in discoveries.values()
-        ) or any(
-            u["report_number"] == row["report_number"]
-            and u["object_family"] == row["object_family"]
-            for u in unresolved
+        found = (
+            any(
+                d.window.report_number == int(row["report_number"])
+                and d.domain_object_type == row["object_family"]
+                for d in discoveries.values()
+            )
+            or any(
+                u["report_number"] == row["report_number"]
+                and u["object_family"] == row["object_family"]
+                for u in unresolved
+            )
+            or any(
+                discoveries[s["discovery_id"]].window.report_number == int(row["report_number"])
+                and s["object_family"] == row["object_family"]
+                for s in slots
+            )
         )
         expected_zero = "false" if found else "true"
         if (
@@ -369,6 +397,14 @@ def validate_forms(
             if not inspection_complete
             else "required annotation slot incomplete"
         )
+    names_complete = not any(
+        discovery.domain_object_type == "case_observation"
+        and not any(s["discovery_id"] == key and s["object_family"] == "case_name" for s in slots)
+        for key, discovery in discoveries.items()
+    )
+    complete = complete and names_complete
+    if require_complete and not names_complete:
+        raise ValueError("complete case requires at least one declared case name instance")
     submissions: list[AnnotatorSubmission] = []
     for key, discovery in discoveries.items():
         unit = discovery.to_annotation_unit()

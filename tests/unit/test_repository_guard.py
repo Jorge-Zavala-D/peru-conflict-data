@@ -35,6 +35,12 @@ def test_readiness_index_accepts_only_canonical_metadata(tmp_path: Path, mutatio
     assert bool(violations) is (mutation != "none")
 
 
+def test_successor_readiness_index_rejects_payload(tmp_path: Path) -> None:
+    path = tmp_path / "m2_02a_readiness_evidence_index_v2.yaml"
+    path.write_bytes(b"source_text: forbidden invented payload\n")
+    assert find_policy_violations([path], repo_root=tmp_path)
+
+
 def test_guard_rejects_raw_and_canonical_data_extensions(tmp_path: Path) -> None:
     names = ["report.pdf", "bundle.zip", "benchmark.xlsx", "table.parquet", "database.duckdb"]
     paths: list[Path] = []

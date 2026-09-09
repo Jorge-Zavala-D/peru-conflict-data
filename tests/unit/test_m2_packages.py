@@ -21,6 +21,10 @@ def test_blank_package_is_equivalent_and_has_no_answer_or_partition_fields() -> 
     assert metadata["role"] == "annotator-a"
     assert "partition_role" not in metadata
     assert all(len(a[name].splitlines()) == 1 for name in packages.FORM_HEADERS)
+    assert (
+        a["DATE_SEMANTICS_ADDENDUM.md"]
+        == Path("docs/m2_01_date_semantics_correction_v1.md").read_bytes()
+    )
     for value in [
         b"partition_role",
         b"held_out_evaluation",

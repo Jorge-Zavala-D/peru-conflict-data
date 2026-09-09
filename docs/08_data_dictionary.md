@@ -1,4 +1,4 @@
-# Canonical field-level data dictionary (schema v0.3.0)
+# Canonical field-level data dictionary (schema v0.3.1)
 
 This dictionary is synchronized with the 26 models in
 `peru_conflicts.models.MODEL_REGISTRY` and the generated files in `schemas/v0.3.0/`.
@@ -359,6 +359,8 @@ taxonomy.
 | `report_id` | Report key | id | — | 1 | FK to `report` | T |
 | `case_id` | Linked case when evidenced | id | N | 0..1 | Explicit link evidence | S/D |
 | `action_date` | Parsed action date | date | N | 0..1 | P | S/D |
+| `action_date_original` | Exact source-visible action date; never human-normalized | string | N | 0..1 | P | S |
+| `action_date_precision_original` | Source-supported action date precision | string | N | 0..1 | P | S |
 | `action_type_original` | Broad source action type | orig str | N | 0..1 | P | S |
 | `intervention_category_original` | Broad intervention category | orig str | N | 0..1 | P | S |
 | `intervention_category_normalized` | Optional category derivative | norm str | N | 0..1 | Taxonomy/version evidence | D |
@@ -376,6 +378,8 @@ taxonomy.
 | `report_id` | Report key | id | — | 1 | FK to `report` | T |
 | `case_id` | Linked case when evidenced | id | N | 0..1 | Explicit link evidence | S/D |
 | `alert_date` | Parsed alert date | date | N | 0..1 | P | S/D |
+| `alert_date_original` | Exact source-visible alert date; never human-normalized | string | N | 0..1 | P | S |
+| `alert_date_precision_original` | Source-supported alert date precision | string | N | 0..1 | P | S |
 | `text_original` | Full alert text | orig str | N | 0..1 | P | S |
 | `alert_type_original` | Source alert type | orig str | N | 0..1 | P | S |
 | `risk_original` | Source risk label/description | orig str | N | 0..1 | P | S |

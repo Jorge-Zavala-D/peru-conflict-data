@@ -30,9 +30,15 @@ def test_frozen_contracts_and_approvals_are_exact() -> None:
     for path, key in (
         ("config/benchmark/m2_01_owner_approval_v1.yaml", "m2_01_approval_sha256"),
         ("config/benchmark/m2_02_owner_approval_v1.yaml", "m2_02_approval_sha256"),
-        ("src/peru_conflicts/benchmark/metrics.py", "normative_evaluator_sha256"),
     ):
         assert hashlib.sha256((ROOT / path).read_bytes()).hexdigest() == readiness[key]
+    from test_m2_contract_versions import assert_metric_correction_scope
+
+    assert (
+        readiness["normative_evaluator_sha256"]
+        == "a6264b995f05d4ac80f08e1f545b93813d88452eafa7857c52343703c6f8261f"
+    )
+    assert_metric_correction_scope()
 
 
 def test_readiness_and_run_cannot_authorize_annotation_or_m3() -> None:

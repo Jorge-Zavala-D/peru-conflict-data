@@ -129,6 +129,31 @@ class ReadinessEvidenceIndex(StrictModel):
     dropbox_writes: Literal[0]
 
 
+class DateAlignmentCorrection(StrictModel):
+    prior_blocker: Literal["BLOCKED_FROZEN_CONTRACT_INCONSISTENCY"]
+    owner_decision: Literal["M2-DATE-SOURCE-PRESERVATION-CORRECTION-V1"]
+    owner_correction_sha256: Sha256
+    historical_scientific_digest: Sha256
+    historical_benchmark_digest: Sha256
+    historical_evaluator_sha256: Sha256
+    scientific_version: Literal["0.3.1"]
+    benchmark_version: Literal["0.1.1"]
+    semantic_difference: Literal["dp_action_and_alert_original_date_plus_precision_only"]
+    arithmetic_unchanged: Literal[True]
+    critical_fields: Literal[40]
+    reference_unchanged: Literal[True]
+    unresolved_crosswalk_fields: Literal[0]
+    roundtrip_all_families_exact: Literal[True]
+    crosswalk: AuditArtifact
+    roundtrip: AuditArtifact
+    annotation_launch_approved: Literal[False]
+    pending_readiness_decisions: Literal[15]
+
+
+class AlignmentEvidenceIndex(ReadinessEvidenceIndex):
+    correction: DateAlignmentCorrection
+
+
 def evidence_index_bytes(index: ReadinessEvidenceIndex) -> bytes:
     return yaml.safe_dump(
         index.model_dump(mode="json"), sort_keys=False, allow_unicode=False
@@ -137,7 +162,13 @@ def evidence_index_bytes(index: ReadinessEvidenceIndex) -> bytes:
 
 def validate_evidence_index(data: bytes) -> ReadinessEvidenceIndex:
     try:
-        index = ReadinessEvidenceIndex.model_validate(yaml.safe_load(data))
+        payload = yaml.safe_load(data)
+        model = (
+            AlignmentEvidenceIndex
+            if isinstance(payload, dict) and "correction" in payload
+            else ReadinessEvidenceIndex
+        )
+        index = model.model_validate(payload)
     except yaml.YAMLError as error:
         raise ValueError("invalid evidence metadata encoding") from error
     if evidence_index_bytes(index) != data:

@@ -17,8 +17,11 @@ The write-once canonical M1 identity/coverage package exists at
 247 months without mapping conflicts while preserving 287 factual gaps and 50 owner
 adjudications. This is corpus identity/coverage closure, not full PDF acquisition:
 authoritative byte completeness remains false and 237 report bytes remain deferred.
-Scientific schema v0.3.0 and the independently versioned benchmark v0.1.0 contract
-are owner-approved for M2-02 use. The two machine pilot aids were verified only for
+Scientific v0.3.0 and benchmark v0.1.0 remain immutable historical approvals.
+The [owner-authorized date correction](docs/scientific_schema_v0_3_0_to_v0_3_1_date_correction.md)
+advances the active readiness contracts to scientific v0.3.1 and benchmark v0.1.1;
+only action/alert source dates and precision replace parsed dates in object matching.
+This does not approve readiness or annotation launch. The two machine pilot aids were verified only for
 protocol coherence and remain non-gold. M2 human gold does not exist and M2-02 human annotation has
 not started. Object-family thresholds remain deferred until the post-M2-03 gate
 revision; the current M3 gate v1 remains an unapproved owner-review draft.

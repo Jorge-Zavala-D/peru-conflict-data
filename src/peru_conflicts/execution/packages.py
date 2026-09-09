@@ -124,8 +124,14 @@ object_family and a nonnegative local cardinality_index. Do not duplicate the
 base instance already declared in discoveries.csv. Local indexes need not match
 any other person's indexes. Independently inventory repeated rows/events; never
 infer a case link, mediation continuity or longitudinal identity from proximity.
-Scientific subobjects such as case_reported_indicator and case_location can be
-declared where the source supports them. No software infers their existence.
+Scientific subobjects such as case_reported_indicator can be declared where the
+source supports them. No software infers their existence. Declare one or more
+case_name instances per complete case; do not select an artificial primary name.
+The base case observation owns its single CaseMonth field set, never a repeated row.
+Each actor instance owns its case_actor.role_original slot. Each location instance
+owns its case_location.relationship_original slot; no separate relational indexes.
+Outside a case scope these relation slots are explicitly not_applicable. Within a
+case preserve the source-supported relationship or explicitly not_reported.
 The slots command outputs field names only for YOUR declared instances, no values.
 Repeated objects must have separate slots. Preserve source contradictions.
 
@@ -187,6 +193,9 @@ def build_package(
     files = {name: (header + "\n").encode() for name, header in FORM_HEADERS.items()}
     files["INSTRUCTIONS.md"] = INSTRUCTIONS
     files["FORM_GUIDE.md"] = FORM_GUIDE
+    files["DATE_SEMANTICS_ADDENDUM.md"] = (
+        Path(__file__).resolve().parents[3] / "docs/m2_01_date_semantics_correction_v1.md"
+    ).read_bytes()
     manifests: list[ReferenceSnapshotManifest] = []
     for manifest, pages in sorted(snapshots, key=lambda item: item[0].report_number):
         verify_pages(manifest, pages)

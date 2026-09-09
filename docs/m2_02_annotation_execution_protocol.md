@@ -6,6 +6,21 @@ The owner-approved discovery policy remains unchanged. This execution candidate 
 not implement parser scoring or approve M3. Fifteen separate readiness decisions
 remain for Jorge; readiness approval would still not authorize annotation launch.
 
+## Current alignment contract
+
+The active readiness reference is `config/benchmark/m2_02a_readiness_v2.yaml`.
+Scientific v0.3.1 and benchmark v0.1.1 implement only the owner-authorized
+[action/alert source-date correction](m2_01_date_semantics_correction_v1.md).
+Earlier readiness config/index files are historical evidence, not current version pins.
+The current metadata-only index is `m2_02a_readiness_evidence_index_v2.yaml`.
+An actor's case role and a location's case relationship belong to that same declared
+instance, never to independently joined ordinals. Source-only actors/locations mark
+the case relationship not applicable. Each case observation has one CaseMonth field
+set and one or more independently declared CaseNames, with no invented primary name.
+Inspection counts include subordinate instances. The closed synthetic projection
+reports all eleven object families, including explicitly inspected empty populations.
+Unresolved readings remain evidence for later adjudication, not confident projections.
+
 ## Custody and central references
 
 The coordinator run config pins reports 260–269, their exact PDF SHA-256 values and
