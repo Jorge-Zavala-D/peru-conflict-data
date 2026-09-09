@@ -2,6 +2,7 @@
 
 import ast
 import hashlib
+import inspect
 import json
 from datetime import date, datetime
 from pathlib import Path
@@ -32,7 +33,12 @@ def assert_metric_correction_scope() -> None:
         body=[n for n in tree.body if isinstance(n, (ast.FunctionDef, ast.ClassDef))],
         type_ignores=[],
     )
-    assert hashlib.sha256(ast.dump(algorithms, include_attributes=False).encode()).hexdigest() == (
+    # Python 3.13 omits empty AST fields by default; preserve the reviewed
+    # representation rather than changing the historical algorithm fingerprint.
+    dump_options = {"include_attributes": False}
+    if "show_empty" in inspect.signature(ast.dump).parameters:
+        dump_options["show_empty"] = True
+    assert hashlib.sha256(ast.dump(algorithms, **dump_options).encode()).hexdigest() == (
         "d0e51dca0bf146a3cd6e9d4e905d7604a092852866b426474fab70725756846c"
     )
     old, new = metrics.OBJECT_MATCH_FIELDS_V010, metrics.OBJECT_MATCH_FIELDS_V011
