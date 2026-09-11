@@ -12,7 +12,16 @@ The active readiness reference is `config/benchmark/m2_02a_readiness_v2.yaml`.
 Scientific v0.3.1 and benchmark v0.1.1 implement only the owner-authorized
 [action/alert source-date correction](m2_01_date_semantics_correction_v1.md).
 Earlier readiness config/index files are historical evidence, not current version pins.
-The current metadata-only index is `m2_02a_readiness_evidence_index_v2.yaml`.
+The current metadata-only index is `m2_02a_readiness_evidence_index_v3.yaml`;
+v2 remains immutable pre-binding evidence. The unlaunched `m2-02-v1` run candidate
+is corrected in place, not replaced by a second active run. One strict
+`AnnotationContractIdentity` binds run/readiness versions, schema digests,
+evaluator, critical set, historical approvals and the owner-confirmed date-pair rule.
+Package IDs incorporate that identity; manifest, eligibility binding and issuance
+receipt carry the same identity. Verification re-reads tracked authority and rejects
+stale or altered contracts before slot validation/projection. A/B contracts must match.
+See [date-pair interpretation](m2_02_date_pair_interpretation_v1.md): resolved pairs
+require both observed, while unresolved evidence remains outside final projection.
 An actor's case role and a location's case relationship belong to that same declared
 instance, never to independently joined ordinals. Source-only actors/locations mark
 the case relationship not applicable. Each case observation has one CaseMonth field

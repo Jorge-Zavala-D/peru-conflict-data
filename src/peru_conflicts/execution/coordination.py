@@ -9,6 +9,7 @@ from peru_conflicts.benchmark.models import PartitionRole
 from peru_conflicts.hashing import canonical_json_bytes
 from peru_conflicts.models.common import Sha256, StrictModel
 
+from .contracts import AnnotationContractIdentity, validate_annotation_contract_alignment
 from .packages import PackageManifest, verify_package
 from .references import sha256
 
@@ -101,6 +102,7 @@ class IssuedPackageIdentity(StrictModel):
     run_id: Literal["m2-02-v1", "synthetic-run"]
     role: Literal["annotator-a", "annotator-b"]
     package_id: Sha256
+    contract_identity: AnnotationContractIdentity
     manifest_sha256: Sha256
     reference_aggregate_sha256: Sha256
     file_set_sha256: Sha256
@@ -146,6 +148,7 @@ def package_identity(
         run_id=manifest.run_id,
         role=manifest.role,
         package_id=manifest.package_id,
+        contract_identity=manifest.contract_identity,
         manifest_sha256=sha256(files["PACKAGE_MANIFEST.json"]),
         reference_aggregate_sha256=sha256(
             canonical_json_bytes([m.snapshot_sha256 for m in manifest.references])
@@ -185,9 +188,13 @@ def bind_eligibility_pair(
                 private_person_token_sha256=person_sha,
             )
         )
-    if bindings[0].identity.run_id != bindings[1].identity.run_id or (
-        bindings[0].identity.reference_aggregate_sha256
-        != bindings[1].identity.reference_aggregate_sha256
+    if (
+        bindings[0].identity.contract_identity != bindings[1].identity.contract_identity
+        or (bindings[0].identity.run_id != bindings[1].identity.run_id)
+        or (
+            bindings[0].identity.reference_aggregate_sha256
+            != bindings[1].identity.reference_aggregate_sha256
+        )
     ):
         raise ValueError("A/B issuance references/run differ")
     return tuple(bindings)
@@ -195,6 +202,7 @@ def bind_eligibility_pair(
 
 def issuance_receipt(binding: EligibilityBinding) -> PackageIssuanceReceipt:
     binding = EligibilityBinding.model_validate(binding.model_dump())
+    validate_annotation_contract_alignment(binding.identity.contract_identity)
     return PackageIssuanceReceipt(
         identity=binding.identity,
         eligibility_binding_id=binding.binding_id,
@@ -206,6 +214,7 @@ def verify_trusted_package(
     files: Mapping[str, bytes], expected: PackageIssuanceReceipt, *, allow_drafts: bool = False
 ) -> PackageManifest:
     expected = PackageIssuanceReceipt.model_validate(expected.model_dump())
+    validate_annotation_contract_alignment(expected.identity.contract_identity)
     if package_identity(files, allow_drafts=allow_drafts) != expected.identity:
         raise ValueError("package differs from trusted coordinator issuance identity")
     return verify_package(files, allow_drafts=allow_drafts)

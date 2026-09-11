@@ -118,6 +118,7 @@ def find_policy_violations(
         if lower_name in {
             "m2_02a_readiness_evidence_index.yaml",
             "m2_02a_readiness_evidence_index_v2.yaml",
+            "m2_02a_readiness_evidence_index_v3.yaml",
         }:
             try:
                 validate_evidence_index(content or b"")

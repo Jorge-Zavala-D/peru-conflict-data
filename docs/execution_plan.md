@@ -1,5 +1,11 @@
 # Execution plan: Milestones 1-12
 
+Current M2 readiness custody targets scientific v0.3.1 and benchmark/metric v0.1.1;
+historical v0.3.0/v0.1.0 remain immutable. The unlaunched m2-02-v1 run candidate,
+neutral package manifests and coordinator issuance identities bind the same active
+contract. Readiness v2 remains unapproved; source-neutral evidence index v3 supersedes
+v2 as the current prereview index. Production locking and launch remain prohibited.
+
 Version: 0.3.0 (M2-01 scientific schema and benchmark protocol approved)
 
 ## Plan contract

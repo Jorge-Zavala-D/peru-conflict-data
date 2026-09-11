@@ -19,6 +19,7 @@ from peru_conflicts.benchmark.metrics import (
     ComparableAnnotation,
 )
 from peru_conflicts.benchmark.models import (
+    BENCHMARK_SCHEMA_VERSION,
     AnnotationSlot,
     AnnotationState,
     EvidenceAnchor,
@@ -26,12 +27,13 @@ from peru_conflicts.benchmark.models import (
     FieldAnnotation,
 )
 from peru_conflicts.models import MODEL_REGISTRY
+from peru_conflicts.models.common import SCHEMA_VERSION
 
 from .annotation import ValidatedDraft, validate_forms
 from .source_dates import validate_date_pair
 
-SCIENTIFIC_CONTRACT_VERSION = "0.3.1"
-BENCHMARK_CONTRACT_VERSION = "0.1.1"
+SCIENTIFIC_CONTRACT_VERSION = SCHEMA_VERSION
+BENCHMARK_CONTRACT_VERSION = BENCHMARK_SCHEMA_VERSION
 
 # Independent closed execution contract. A metric-field addition must not silently
 # gain a supplier: it requires a reviewed crosswalk update too.

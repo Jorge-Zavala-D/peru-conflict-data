@@ -15,6 +15,11 @@ from peru_conflicts.acquisition.fs_safety import DirectoryLease
 from peru_conflicts.hashing import canonical_json_bytes
 from peru_conflicts.models.common import Sha256, StrictModel
 
+from .contracts import (
+    AnnotationContractIdentity,
+    active_annotation_contract,
+    validate_annotation_contract_alignment,
+)
 from .references import ReferenceSnapshotManifest, sha256, verify_pages
 
 FORM_HEADERS = {
@@ -181,6 +186,7 @@ class PackageManifest(StrictModel):
     run_id: Literal["m2-02-v1", "synthetic-run"]
     role: Literal["annotator-a", "annotator-b"]
     package_id: Sha256
+    contract_identity: AnnotationContractIdentity
     references: tuple[ReferenceSnapshotManifest, ...] = Field(min_length=1)
     file_hashes: dict[str, Sha256]
 
@@ -190,11 +196,15 @@ def build_package(
     role: Literal["annotator-a", "annotator-b"],
     snapshots: Sequence[tuple[ReferenceSnapshotManifest, Mapping[int, bytes]]],
 ) -> dict[str, bytes]:
+    contract = active_annotation_contract()
     files = {name: (header + "\n").encode() for name, header in FORM_HEADERS.items()}
     files["INSTRUCTIONS.md"] = INSTRUCTIONS
     files["FORM_GUIDE.md"] = FORM_GUIDE
     files["DATE_SEMANTICS_ADDENDUM.md"] = (
         Path(__file__).resolve().parents[3] / "docs/m2_01_date_semantics_correction_v1.md"
+    ).read_bytes()
+    files["DATE_PAIR_INTERPRETATION.md"] = (
+        Path(__file__).resolve().parents[3] / "docs/m2_02_date_pair_interpretation_v1.md"
     ).read_bytes()
     manifests: list[ReferenceSnapshotManifest] = []
     for manifest, pages in sorted(snapshots, key=lambda item: item[0].report_number):
@@ -204,11 +214,16 @@ def build_package(
         manifests.append(manifest)
         for page, data in pages.items():
             files[f"references/{manifest.report_number}/{page:04d}.txt"] = data
-    identity = sha256(canonical_json_bytes([run_id, role, [m.snapshot_sha256 for m in manifests]]))
+    identity = sha256(
+        canonical_json_bytes(
+            [run_id, role, [m.snapshot_sha256 for m in manifests], contract.model_dump(mode="json")]
+        )
+    )
     metadata = PackageManifest(
         run_id=run_id,
         role=role,
         package_id=identity,
+        contract_identity=contract,
         references=tuple(manifests),
         file_hashes={name: sha256(data) for name, data in sorted(files.items())},
     )
@@ -220,6 +235,7 @@ def verify_package(files: Mapping[str, bytes], *, allow_drafts: bool = False) ->
     if "PACKAGE_MANIFEST.json" not in files:
         raise ValueError("package manifest is missing")
     manifest = PackageManifest.model_validate_json(files["PACKAGE_MANIFEST.json"])
+    validate_annotation_contract_alignment(manifest.contract_identity)
     if any(
         f"references/{m.report_number}/{p.page:04d}.txt" not in files
         for m in manifest.references

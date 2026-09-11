@@ -7,6 +7,8 @@ from pydantic import Field, StringConstraints
 
 from peru_conflicts.models.common import Sha256, StrictModel
 
+from .contracts import AnnotationContractIdentity
+
 GitSha = Annotated[str, StringConstraints(pattern=r"^[a-f0-9]{40}$")]
 Count = Annotated[int, Field(ge=0)]
 
@@ -154,17 +156,44 @@ class AlignmentEvidenceIndex(ReadinessEvidenceIndex):
     correction: DateAlignmentCorrection
 
 
-def evidence_index_bytes(index: ReadinessEvidenceIndex) -> bytes:
+class ContractBindingEvidenceIndex(StrictModel):
+    kind: Literal["CONTRACT_BINDING_READINESS_EVIDENCE_NOT_AUTHORITY"]
+    provenance_scope: Literal["reviewed_parent_plus_precommit_content_pins_no_circular_head"]
+    base_sha: GitSha
+    reviewed_implementation_sha: GitSha
+    reviewed_implementation_tree: GitSha
+    prior_index_sha256: Sha256
+    contract_identity: AnnotationContractIdentity
+    packages: list[AuditPackage]
+    reference_manifest_sha256: Sha256
+    reference_bytes: Literal[3853200]
+    pages: Literal[1128]
+    repeat_identical: Literal[True]
+    owner_readiness_approved: Literal[False]
+    annotation_launch_approved: Literal[False]
+    human_gold_created: Literal[False]
+    pending_readiness_decisions: Literal[15]
+    roundtrip: AuditArtifact
+    crosswalk: AuditArtifact
+    date_pair_semantics: AuditArtifact
+    dropbox_writes: Literal[0]
+
+
+def evidence_index_bytes(index: ReadinessEvidenceIndex | ContractBindingEvidenceIndex) -> bytes:
     return yaml.safe_dump(
         index.model_dump(mode="json"), sort_keys=False, allow_unicode=False
     ).encode("utf-8")
 
 
-def validate_evidence_index(data: bytes) -> ReadinessEvidenceIndex:
+def validate_evidence_index(data: bytes) -> ReadinessEvidenceIndex | ContractBindingEvidenceIndex:
     try:
         payload = yaml.safe_load(data)
         model = (
-            AlignmentEvidenceIndex
+            ContractBindingEvidenceIndex
+            if isinstance(payload, dict)
+            and "kind" in payload
+            and payload["kind"] == "CONTRACT_BINDING_READINESS_EVIDENCE_NOT_AUTHORITY"
+            else AlignmentEvidenceIndex
             if isinstance(payload, dict) and "correction" in payload
             else ReadinessEvidenceIndex
         )

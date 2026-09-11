@@ -1,5 +1,11 @@
 # M2-02 coordinator readiness / future launch checklist
 
+Before any future use, validate the active `m2-02-v1` run against readiness v2:
+scientific v0.3.1 / benchmark and metric v0.1.1. Verify the same strict contract
+identity in both package manifests and all trusted eligibility/issuance identities.
+Never reuse a pre-binding package or receipt. Current evidence index: v3; earlier
+indexes are historical. Aligned custody does not authorize production locking or launch.
+
 All items below are requirements, not completed owner approvals.
 
 - [ ] Verify exact protected-main implementation, frozen schemas and both historical approvals.

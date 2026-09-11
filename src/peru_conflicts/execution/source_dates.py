@@ -25,3 +25,16 @@ def validate_date_pair(values: dict[str, FieldAnnotation], family: str) -> None:
         and date_slot.state is not AnnotationState.OBSERVED
     ):
         raise ValueError("observed precision requires an observed source date")
+    unresolved = {
+        AnnotationState.SOURCE_AMBIGUOUS,
+        AnnotationState.ANNOTATION_UNCERTAIN,
+        AnnotationState.ILLEGIBLE_UNINSPECTABLE,
+    }
+    if (
+        date_slot is not None
+        and precision_slot is not None
+        and date_slot.state is AnnotationState.OBSERVED
+        and precision_slot.state is not AnnotationState.OBSERVED
+        and precision_slot.state not in unresolved
+    ):
+        raise ValueError("resolved observed source date requires observed precision")
