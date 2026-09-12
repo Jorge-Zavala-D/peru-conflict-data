@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
+import json
 import subprocess
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from re import Pattern
 from re import compile as compile_pattern
+from typing import cast
+
+from peru_conflicts.execution.evidence_index import validate_evidence_index
 
 PROHIBITED_EXTENSIONS = frozenset(
     {
@@ -85,6 +89,13 @@ def find_policy_violations(
             continue
 
         lower_name = path.name.lower()
+        if (
+            ".cache" in path.relative_to(root).parts
+            or "annotation_runs" in path.relative_to(root).parts
+            or lower_name == "package_manifest.json"
+        ):
+            violations.append(Violation(path, "execution package/cache data must not enter Git"))
+            continue
         if path.suffix.lower() in PROHIBITED_EXTENSIONS:
             violations.append(Violation(path, f"prohibited data/source extension: {path.suffix}"))
             continue
@@ -104,6 +115,35 @@ def find_policy_violations(
         content = contents.get(supplied) if contents is not None else None
         if content is None and path.is_file():
             content = path.read_bytes()
+        if lower_name in {
+            "m2_02a_readiness_evidence_index.yaml",
+            "m2_02a_readiness_evidence_index_v2.yaml",
+            "m2_02a_readiness_evidence_index_v3.yaml",
+            "m2_02a_readiness_evidence_index_v4.yaml",
+            "m2_02a_readiness_evidence_index_v5.yaml",
+        }:
+            try:
+                validate_evidence_index(content or b"")
+            except (ValueError, TypeError):
+                violations.append(
+                    Violation(path, "readiness index must contain closed metadata only")
+                )
+            continue
+        if content is not None and path.suffix.lower() == ".json":
+            try:
+                payload = json.loads(content)
+            except (ValueError, UnicodeError):
+                payload = None
+            if isinstance(payload, dict) and {
+                "benchmark_schema_version",
+                "annotator_id",
+                "annotations",
+                "status",
+            }.issubset(cast(dict[object, object], payload)):
+                violations.append(
+                    Violation(path, "annotation submission payload must not enter Git")
+                )
+                continue
         if content is not None and any(
             pattern.search(content) for pattern in SECRET_CONTENT_PATTERNS
         ):
