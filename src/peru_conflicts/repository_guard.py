@@ -120,6 +120,7 @@ def find_policy_violations(
             "m2_02a_readiness_evidence_index_v2.yaml",
             "m2_02a_readiness_evidence_index_v3.yaml",
             "m2_02a_readiness_evidence_index_v4.yaml",
+            "m2_02a_readiness_evidence_index_v5.yaml",
         }:
             try:
                 validate_evidence_index(content or b"")

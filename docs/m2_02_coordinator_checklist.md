@@ -1,17 +1,19 @@
 # M2-02 coordinator readiness / future launch checklist
 
-Before any future use, validate the active `m2-02-v1` run against readiness v2:
+Before any future use, validate the active `m2-02-v1` run against owner-approved readiness v3:
 scientific v0.3.1 / benchmark and metric v0.1.1. Verify the same strict contract
 identity in both package manifests and all trusted eligibility/issuance identities.
 Verify the run-pinned critical-field and date-pair approval hashes, and the approval's
 interpretation-document hash. Never reuse a pre-ratification package or receipt.
-Current evidence index: v4; earlier
+Current evidence index: v5; earlier
 indexes are historical. Aligned custody does not authorize production locking or launch.
 
-All items below are requirements, not completed owner approvals.
+The 15 readiness decisions are approved; this does not satisfy future launch requirements.
+All unchecked items remain future verification/execution requirements.
 
 - [ ] Verify exact protected-main implementation, frozen schemas and both historical approvals.
-- [ ] Obtain Jorge's separate readiness decisions; retain all unapproved launch flags.
+- [x] Record Jorge's 15 readiness decisions and exact prereview evidence bindings.
+- [ ] Obtain separate launch approval; retain all unapproved launch flags until then.
 - [ ] Review native extraction mode/binary/options and repeated 1,128-page equality evidence.
 - [ ] Bind expected source/reference/package hashes in private coordinator custody.
 - [ ] Bind both private eligible-human attestations to exact package/manifest/reference identities; no real bindings during readiness.

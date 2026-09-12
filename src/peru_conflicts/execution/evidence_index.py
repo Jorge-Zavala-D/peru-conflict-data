@@ -3,11 +3,15 @@
 from typing import Annotated, Literal
 
 import yaml
-from pydantic import Field, StringConstraints
+from pydantic import Field, StringConstraints, model_validator
 
 from peru_conflicts.models.common import Sha256, StrictModel
 
-from .contracts import AnnotationContractIdentity, HistoricalAnnotationContractIdentityV3
+from .contracts import (
+    AnnotationContractIdentity,
+    HistoricalAnnotationContractIdentityV3,
+    HistoricalAnnotationContractIdentityV4,
+)
 
 GitSha = Annotated[str, StringConstraints(pattern=r"^[a-f0-9]{40}$")]
 Count = Annotated[int, Field(ge=0)]
@@ -185,12 +189,50 @@ class ContractBindingEvidenceIndex(
     pass
 
 
-class AuthorityClosureEvidenceIndex(ContractBindingEvidenceFields[AnnotationContractIdentity]):
+class AuthorityClosureEvidenceIndex(
+    ContractBindingEvidenceFields[HistoricalAnnotationContractIdentityV4]
+):
     authority_closure_version: Literal["4"]
 
 
+class OwnerReadinessEvidenceIndex(StrictModel):
+    kind: Literal["OWNER_READINESS_APPROVAL_EVIDENCE_NOT_LAUNCH_AUTHORITY"]
+    evidence_version: Literal["5"]
+    base_sha: GitSha
+    reviewed_implementation_sha: GitSha
+    reviewed_implementation_tree: GitSha
+    prior_index_sha256: Sha256
+    owner_readiness_approval_sha256: Sha256
+    contract_identity: AnnotationContractIdentity
+    packages: list[AuditPackage]
+    reference_manifest_sha256: Sha256
+    reference_bytes: Literal[3853200]
+    pages: Literal[1128]
+    repeat_identical: Literal[True]
+    owner_readiness_approved: Literal[True]
+    pending_readiness_decisions: Literal[0]
+    annotation_launch_approved: Literal[False]
+    annotation_started: Literal[False]
+    human_gold_created: Literal[False]
+    dropbox_writes: Literal[0]
+    parser_work_approved: Literal[False]
+    m3_owner_approved: Literal[False]
+
+    @model_validator(mode="after")
+    def matching_approval(self) -> "OwnerReadinessEvidenceIndex":
+        if (
+            self.owner_readiness_approval_sha256
+            != self.contract_identity.owner_readiness_approval_sha256
+        ):
+            raise ValueError("evidence index approval differs from package contract")
+        return self
+
+
 def evidence_index_bytes(
-    index: ReadinessEvidenceIndex | ContractBindingEvidenceIndex | AuthorityClosureEvidenceIndex,
+    index: ReadinessEvidenceIndex
+    | ContractBindingEvidenceIndex
+    | AuthorityClosureEvidenceIndex
+    | OwnerReadinessEvidenceIndex,
 ) -> bytes:
     return yaml.safe_dump(
         index.model_dump(mode="json"), sort_keys=False, allow_unicode=False
@@ -199,11 +241,20 @@ def evidence_index_bytes(
 
 def validate_evidence_index(
     data: bytes,
-) -> ReadinessEvidenceIndex | ContractBindingEvidenceIndex | AuthorityClosureEvidenceIndex:
+) -> (
+    ReadinessEvidenceIndex
+    | ContractBindingEvidenceIndex
+    | AuthorityClosureEvidenceIndex
+    | OwnerReadinessEvidenceIndex
+):
     try:
         payload = yaml.safe_load(data)
         model = (
-            AuthorityClosureEvidenceIndex
+            OwnerReadinessEvidenceIndex
+            if isinstance(payload, dict)
+            and "evidence_version" in payload
+            and payload["evidence_version"] == "5"
+            else AuthorityClosureEvidenceIndex
             if isinstance(payload, dict) and "authority_closure_version" in payload
             else ContractBindingEvidenceIndex
             if isinstance(payload, dict)

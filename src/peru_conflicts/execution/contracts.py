@@ -10,6 +10,7 @@ from pydantic import field_validator
 
 from peru_conflicts.benchmark.metrics import CURRENT_BENCHMARK_METRIC_CONTRACT_VERSION
 from peru_conflicts.benchmark.models import BENCHMARK_SCHEMA_VERSION
+from peru_conflicts.execution.readiness_approval import OwnerReadinessApproval
 from peru_conflicts.models.common import SCHEMA_VERSION, Sha256, StrictModel
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -59,8 +60,12 @@ class HistoricalAnnotationContractIdentityV3(StrictModel):
     date_pair_interpretation_sha256: Sha256
 
 
-class AnnotationContractIdentity(HistoricalAnnotationContractIdentityV3):
+class HistoricalAnnotationContractIdentityV4(HistoricalAnnotationContractIdentityV3):
     date_pair_interpretation_approval_sha256: Sha256
+
+
+class AnnotationContractIdentity(HistoricalAnnotationContractIdentityV4):
+    owner_readiness_approval_sha256: Sha256
 
 
 def _sha(path: Path) -> str:
@@ -76,12 +81,14 @@ def _schema_digest(path: Path) -> str:
 def active_annotation_contract(root: Path = ROOT) -> AnnotationContractIdentity:
     """Re-read authoritative bytes on every boundary; never cache a mutable trust anchor."""
     config = root / "config/benchmark"
-    ready = yaml.safe_load((config / "m2_02a_readiness_v2.yaml").read_bytes())
+    ready = yaml.safe_load((config / "m2_02a_readiness_v3.yaml").read_bytes())
     run = yaml.safe_load((config / "m2_02_annotation_run_v1.yaml").read_bytes())
     approval_path = config / "m2_02_date_pair_interpretation_approval_v1.yaml"
     approval = DatePairInterpretationApproval.model_validate(
         yaml.safe_load(approval_path.read_bytes())
     )
+    owner_path = config / "m2_02a_owner_readiness_approval_v1.yaml"
+    owner = OwnerReadinessApproval.model_validate(yaml.safe_load(owner_path.read_bytes()))
     identity = AnnotationContractIdentity(
         scientific_schema_version=SCHEMA_VERSION,
         scientific_schema_digest=_schema_digest(root / "schemas" / f"v{SCHEMA_VERSION}"),
@@ -98,7 +105,21 @@ def active_annotation_contract(root: Path = ROOT) -> AnnotationContractIdentity:
         discovery_policy_approval_sha256=_sha(config / "m2_02_owner_approval_v1.yaml"),
         date_pair_interpretation_sha256=_sha(root / "docs/m2_02_date_pair_interpretation_v1.md"),
         date_pair_interpretation_approval_sha256=_sha(approval_path),
+        owner_readiness_approval_sha256=_sha(owner_path),
     )
+    for field in (
+        "scientific_schema_digest",
+        "benchmark_schema_digest",
+        "evaluator_sha256",
+        "critical_field_set_sha256",
+        "date_pair_interpretation_approval_sha256",
+    ):
+        if getattr(owner, field) != getattr(identity, field):
+            raise ValueError("owner readiness approval differs from active run/readiness authority")
+    if owner.readiness_evidence_index_v4_sha256 != _sha(
+        root / "docs/m2_02a_readiness_evidence_index_v4.yaml"
+    ):
+        raise ValueError("owner readiness prereview evidence differs")
     if (
         approval.interpretation_document_sha256 != identity.date_pair_interpretation_sha256
         or approval.source_date_correction_approval_sha256
@@ -113,9 +134,30 @@ def active_annotation_contract(root: Path = ROOT) -> AnnotationContractIdentity:
         "normative_evaluator_sha256": identity.evaluator_sha256,
         "date_correction_approval_sha256": identity.date_correction_approval_sha256,
         "m2_02_approval_sha256": identity.discovery_policy_approval_sha256,
+        "readiness_id": "m2-02a-readiness-v3",
+        "metric_contract_version": identity.metric_contract_version,
+        "critical_field_set_sha256": identity.critical_field_set_sha256,
+        "date_pair_interpretation_approval_sha256": (
+            identity.date_pair_interpretation_approval_sha256
+        ),
+        "owner_readiness_approval_sha256": identity.owner_readiness_approval_sha256,
+        "owner_readiness_approved": True,
+        "annotation_launch_approved": False,
+        "annotation_started": False,
+        "human_gold_created": False,
+        "dropbox_writes_approved": False,
+        "parser_work_approved": False,
+        "normative_metric_amendment_approved": False,
+        "m3_approved": False,
     }
     expected_run = {
         "run_id": "m2-02-v1",
+        "status": "readiness_approved_not_launched",
+        "owner_readiness_approved": True,
+        "owner_readiness_approval_sha256": identity.owner_readiness_approval_sha256,
+        "launch_approved": False,
+        "annotation_started": False,
+        "human_gold_created": False,
         "scientific_schema_version": identity.scientific_schema_version,
         "benchmark_schema_version": identity.benchmark_schema_version,
         "metric_contract_version": identity.metric_contract_version,

@@ -1,5 +1,7 @@
 run_id: m2-02-v1
-status: readiness_candidate_not_launched
+status: readiness_approved_not_launched
+owner_readiness_approved: true
+owner_readiness_approval_sha256: 36a5074264f93a9c565b4011b7162031d62e3a135eaba17336dcd8c51cc43cba
 owner_readiness_approval_required: true
 launch_approved: false
 human_gold_created: false

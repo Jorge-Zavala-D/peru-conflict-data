@@ -1,22 +1,25 @@
-# M2-02 annotation execution protocol — readiness candidate
+# M2-02 annotation execution protocol — owner readiness approved; launch not approved
 
-Implementation is authorized; production readiness and human launch are **not approved**.
+M2-02A owner readiness is **approved**; human launch remains **not approved**.
 No human is assigned, no package is issued, and no human submission or gold exists.
 The owner-approved discovery policy remains unchanged. This execution candidate does
-not implement parser scoring or approve M3. Fifteen separate readiness decisions
-remain for Jorge; readiness approval would still not authorize annotation launch.
+not implement parser scoring or approve M3. All 15 owner-readiness decisions are closed. Readiness permits preparation of a
+separate launch gate only; real issuance, annotation, production locking, human gold,
+Dropbox execution writes, parser work, normative discovery-start scoring and M3 remain unauthorized.
 
 ## Current alignment contract
 
-The active readiness reference is `config/benchmark/m2_02a_readiness_v2.yaml`.
+The active readiness reference is `config/benchmark/m2_02a_readiness_v3.yaml`.
 Scientific v0.3.1 and benchmark v0.1.1 implement only the owner-authorized
 [action/alert source-date correction](m2_01_date_semantics_correction_v1.md).
 Earlier readiness config/index files are historical evidence, not current version pins.
-The current metadata-only index is `m2_02a_readiness_evidence_index_v4.yaml`;
-v3 remains immutable pre-ratification evidence. The unlaunched `m2-02-v1` run candidate
+The current metadata-only index is `m2_02a_readiness_evidence_index_v5.yaml`;
+v1–v4 remain immutable historical evidence. The unlaunched `m2-02-v1` run candidate
 is corrected in place, not replaced by a second active run. One strict
 `AnnotationContractIdentity` binds run/readiness versions, schema digests,
-evaluator, critical set, historical approvals and the owner-ratified date-pair rule.
+evaluator, critical set, historical approvals and the owner-ratified date-pair rule and owner-readiness approval.
+The approval binds prereview head 35bc0fa78c5ddfde51e9acf88bf4fcda754d89f3;
+active packages bind its hash. Old prereview packages and receipts are stale.
 The run independently pins the critical-field bytes and dedicated date-pair approval;
 that approval pins the interpretation document. A changed document cannot authorize itself.
 Package IDs incorporate that identity; manifest, eligibility binding and issuance
@@ -259,19 +262,20 @@ M3 and discovery-start scoring still require their separate owner approvals.
 
 ## Readiness evidence and remaining owner boundary
 
-The tracked `docs/m2_02a_readiness_evidence_index_v4.yaml` contains closed, source-neutral
+The tracked `docs/m2_02a_readiness_evidence_index_v5.yaml` contains closed, source-neutral
 metadata only. It binds preserved reference/package summaries, immutable historical
 review evidence and the authority-closure packet. The data guard rejects free-text payloads,
 unknown fields and noncanonical comments in that index. It is not benchmark data.
-The reviewed implementation head identifies the e53284 contract-binding parent; content
-pins bind the current contract and previews, and the prior-index SHA chains to v3 without
-inserting the containing commit's own SHA. A final exact-commit review/CI receipt
-supplements the index after commit; embedding
-that future commit identity or its review hash inside the same commit would be circular.
+The reviewed implementation identity is the exact 35bc0fa prereview head/tree.
+The owner-readiness approval points backward to that identity. Current packages bind
+its hash, and v5 chains immutable v4. Final exact-head CI/review evidence is recorded
+outside the containing commit to avoid circular provenance.
 
 Real native references stay in ignored `.cache/m2-02a1/`; current unissued blank previews
-are in `.cache/m2-02a1e/` and earlier previews remain immutable. No real
+are in `.cache/m2-02a2/` and earlier previews remain immutable. No real
 forms are completed. Synthetic references and responses are explicitly invented.
 The owner packet binds exact configs, frozen authority, preview hashes, rehearsal,
-Git/CI and principal review. All fifteen readiness decisions remain null. Nothing in
-this document grants production readiness, human launch or Dropbox write authority.
+Git/CI and principal review. All fifteen readiness decisions are approved with their individual limitations.
+Owner readiness permits preparation of a separate launch gate only. Human issuance,
+annotation, production locking, human gold, Dropbox execution writes, parser work,
+normative discovery-start scoring and M3 remain unauthorized.
