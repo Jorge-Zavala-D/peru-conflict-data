@@ -1,10 +1,12 @@
 """Read-only active annotation custody; never execution or annotation authority."""
 
 import hashlib
+from datetime import datetime
 from pathlib import Path
 from typing import Literal
 
 import yaml
+from pydantic import field_validator
 
 from peru_conflicts.benchmark.metrics import CURRENT_BENCHMARK_METRIC_CONTRACT_VERSION
 from peru_conflicts.benchmark.models import BENCHMARK_SCHEMA_VERSION
@@ -13,7 +15,38 @@ from peru_conflicts.models.common import SCHEMA_VERSION, Sha256, StrictModel
 ROOT = Path(__file__).resolve().parents[3]
 
 
-class AnnotationContractIdentity(StrictModel):
+class DatePairInterpretationApproval(StrictModel):
+    approval_record_version: Literal["1.0.0"]
+    approval_id: Literal["M2-DATE-PAIR-INTERPRETATION-RATIFICATION-V1"]
+    owner: Literal["Jorge Zavala"]
+    recorded_at: str
+    authority: Literal["explicit_owner_ratification_in_m2_02a_1e_prompt_2026_09_11"]
+    reviewed_pr_number: Literal[13]
+    reviewed_parent_head: Literal["e53284ae55d9221b80a1af8dc6ec8d8742e527a1"]
+    reviewed_parent_tree: Literal["e1692fc4dd8d4cfb54d9b0bc40e2008f9937fd8d"]
+    source_date_correction_approval_sha256: Sha256
+    interpretation_document_sha256: Sha256
+    scientific_schema_version: Literal["0.3.1"]
+    benchmark_schema_version: Literal["0.1.1"]
+    metric_contract_version: Literal["0.1.1"]
+    critical_field_set_expanded: Literal[False]
+    evaluator_arithmetic_changed: Literal[False]
+    owner_readiness_approved: Literal[False]
+    annotation_launch_approved: Literal[False]
+    human_gold_created: Literal[False]
+    m3_approved: Literal[False]
+
+    @field_validator("recorded_at")
+    @classmethod
+    def aware_recording_time(cls, value: str) -> str:
+        if datetime.fromisoformat(value).utcoffset() is None:
+            raise ValueError("recording timestamp must include an offset")
+        return value
+
+
+class HistoricalAnnotationContractIdentityV3(StrictModel):
+    """Immutable pre-ratification evidence shape, never an active authority."""
+
     scientific_schema_version: Literal["0.3.1"]
     scientific_schema_digest: Sha256
     benchmark_schema_version: Literal["0.1.1"]
@@ -24,6 +57,10 @@ class AnnotationContractIdentity(StrictModel):
     date_correction_approval_sha256: Sha256
     discovery_policy_approval_sha256: Sha256
     date_pair_interpretation_sha256: Sha256
+
+
+class AnnotationContractIdentity(HistoricalAnnotationContractIdentityV3):
+    date_pair_interpretation_approval_sha256: Sha256
 
 
 def _sha(path: Path) -> str:
@@ -41,6 +78,10 @@ def active_annotation_contract(root: Path = ROOT) -> AnnotationContractIdentity:
     config = root / "config/benchmark"
     ready = yaml.safe_load((config / "m2_02a_readiness_v2.yaml").read_bytes())
     run = yaml.safe_load((config / "m2_02_annotation_run_v1.yaml").read_bytes())
+    approval_path = config / "m2_02_date_pair_interpretation_approval_v1.yaml"
+    approval = DatePairInterpretationApproval.model_validate(
+        yaml.safe_load(approval_path.read_bytes())
+    )
     identity = AnnotationContractIdentity(
         scientific_schema_version=SCHEMA_VERSION,
         scientific_schema_digest=_schema_digest(root / "schemas" / f"v{SCHEMA_VERSION}"),
@@ -56,7 +97,14 @@ def active_annotation_contract(root: Path = ROOT) -> AnnotationContractIdentity:
         ),
         discovery_policy_approval_sha256=_sha(config / "m2_02_owner_approval_v1.yaml"),
         date_pair_interpretation_sha256=_sha(root / "docs/m2_02_date_pair_interpretation_v1.md"),
+        date_pair_interpretation_approval_sha256=_sha(approval_path),
     )
+    if (
+        approval.interpretation_document_sha256 != identity.date_pair_interpretation_sha256
+        or approval.source_date_correction_approval_sha256
+        != identity.date_correction_approval_sha256
+    ):
+        raise ValueError("date-pair interpretation differs from owner ratification")
     expected_ready = {
         "scientific_schema": f"v{identity.scientific_schema_version}",
         "scientific_digest": identity.scientific_schema_digest,
@@ -73,6 +121,10 @@ def active_annotation_contract(root: Path = ROOT) -> AnnotationContractIdentity:
         "metric_contract_version": identity.metric_contract_version,
         "date_correction_approval_sha256": identity.date_correction_approval_sha256,
         "discovery_approval_sha256": identity.discovery_policy_approval_sha256,
+        "critical_field_set_sha256": identity.critical_field_set_sha256,
+        "date_pair_interpretation_approval_sha256": (
+            identity.date_pair_interpretation_approval_sha256
+        ),
     }
     if any(ready.get(k) != v for k, v in expected_ready.items()) or any(
         run.get(k) != v for k, v in expected_run.items()

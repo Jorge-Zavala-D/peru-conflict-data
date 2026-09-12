@@ -22,7 +22,9 @@ The [owner-authorized date correction](docs/scientific_schema_v0_3_0_to_v0_3_1_d
 advances the active readiness contracts to scientific v0.3.1 and benchmark v0.1.1;
 only action/alert source dates and precision replace parsed dates in object matching.
 The unlaunched run and neutral package/issuance identities explicitly bind those active
-contracts; the current source-neutral evidence index is v3. Historical indexes remain intact.
+contracts; the current source-neutral evidence index is v4. Historical indexes remain intact.
+The active run pins the exact critical-field set and the separately recorded M2-02A.1E
+date-pair ratification, which authenticates the interpretation document.
 This does not approve readiness or annotation launch. The two machine pilot aids were verified only for
 protocol coherence and remain non-gold. M2 human gold does not exist and M2-02 human annotation has
 not started. Object-family thresholds remain deferred until the post-M2-03 gate

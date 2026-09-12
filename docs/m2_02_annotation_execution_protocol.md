@@ -12,11 +12,13 @@ The active readiness reference is `config/benchmark/m2_02a_readiness_v2.yaml`.
 Scientific v0.3.1 and benchmark v0.1.1 implement only the owner-authorized
 [action/alert source-date correction](m2_01_date_semantics_correction_v1.md).
 Earlier readiness config/index files are historical evidence, not current version pins.
-The current metadata-only index is `m2_02a_readiness_evidence_index_v3.yaml`;
-v2 remains immutable pre-binding evidence. The unlaunched `m2-02-v1` run candidate
+The current metadata-only index is `m2_02a_readiness_evidence_index_v4.yaml`;
+v3 remains immutable pre-ratification evidence. The unlaunched `m2-02-v1` run candidate
 is corrected in place, not replaced by a second active run. One strict
 `AnnotationContractIdentity` binds run/readiness versions, schema digests,
-evaluator, critical set, historical approvals and the owner-confirmed date-pair rule.
+evaluator, critical set, historical approvals and the owner-ratified date-pair rule.
+The run independently pins the critical-field bytes and dedicated date-pair approval;
+that approval pins the interpretation document. A changed document cannot authorize itself.
 Package IDs incorporate that identity; manifest, eligibility binding and issuance
 receipt carry the same identity. Verification re-reads tracked authority and rejects
 stale or altered contracts before slot validation/projection. A/B contracts must match.
@@ -101,7 +103,8 @@ and requires both current sealed payloads. Instructional promises alone are insu
 
 ## Human-operable package
 
-Each package contains `PACKAGE_MANIFEST.json`, `INSTRUCTIONS.md`, `FORM_GUIDE.md`, `references/`, and
+Each package contains `PACKAGE_MANIFEST.json`, `INSTRUCTIONS.md`, `FORM_GUIDE.md`,
+`DATE_SEMANTICS_ADDENDUM.md`, `DATE_PAIR_INTERPRETATION.md`, `references/`, and
 five CSV forms: discoveries, objects, annotations, evidence and inspection.
 All CSVs initially contain headers only. There are no source answers or precreated
 case units. The role and opaque package ID are the only A/B-specific differences.
@@ -114,17 +117,16 @@ denotes an unissued local readiness preview.
 
 All commands now additionally require `--issuance COORDINATOR_RECEIPT` and
 `--issuance-sha256 TRUSTED_COORDINATOR_PIN`. These are neutral out-of-band inputs, not
-files added to the frozen package. The historical preview's command examples omit these
-new required arguments; they fail closed without them. This supplement changes the
-reader trust contract, not the preserved reference/package bytes. No real issuance
+files added to the frozen package. Current examples include both required arguments;
+the earlier incomplete examples are historical evidence only. No real issuance
 receipt or person assignment is created in this task.
 
 ```text
-uv run python scripts/prepare_m2_annotation.py page PACKAGE --report 260 --page 1
-uv run python scripts/prepare_m2_annotation.py position PACKAGE --report 260 --page 1 --line 3 --column 7
-uv run python scripts/prepare_m2_annotation.py slots PACKAGE
-uv run python scripts/prepare_m2_annotation.py inspection-template PACKAGE
-uv run python scripts/prepare_m2_annotation.py validate PACKAGE
+uv run python scripts/prepare_m2_annotation.py page PACKAGE --issuance COORDINATOR_RECEIPT --issuance-sha256 TRUSTED_COORDINATOR_PIN --report 260 --page 1
+uv run python scripts/prepare_m2_annotation.py position PACKAGE --issuance COORDINATOR_RECEIPT --issuance-sha256 TRUSTED_COORDINATOR_PIN --report 260 --page 1 --line 3 --column 7
+uv run python scripts/prepare_m2_annotation.py slots PACKAGE --issuance COORDINATOR_RECEIPT --issuance-sha256 TRUSTED_COORDINATOR_PIN
+uv run python scripts/prepare_m2_annotation.py inspection-template PACKAGE --issuance COORDINATOR_RECEIPT --issuance-sha256 TRUSTED_COORDINATOR_PIN
+uv run python scripts/prepare_m2_annotation.py validate PACKAGE --issuance COORDINATOR_RECEIPT --issuance-sha256 TRUSTED_COORDINATOR_PIN
 ```
 
 The helper prints numbered native text and context for the human-selected line/column.
@@ -257,18 +259,18 @@ M3 and discovery-start scoring still require their separate owner approvals.
 
 ## Readiness evidence and remaining owner boundary
 
-The tracked `docs/m2_02a_readiness_evidence_index.yaml` contains closed, source-neutral
+The tracked `docs/m2_02a_readiness_evidence_index_v4.yaml` contains closed, source-neutral
 metadata only. It binds preserved reference/package summaries, immutable historical
-review evidence and the new hardening packet. The data guard rejects free-text payloads,
+review evidence and the authority-closure packet. The data guard rejects free-text payloads,
 unknown fields and noncanonical comments in that index. It is not benchmark data.
-The reviewed implementation head identifies the pre-hardening parent; precommit content
-pins bind the hardening files without attempting to insert the containing commit's own
-SHA. The eventual hardening head/tree, final review and CI are external release evidence.
-The index binds the precommit hardening review separately from the historical principal
-receipt. A final exact-commit review/CI receipt supplements it after commit; embedding
+The reviewed implementation head identifies the e53284 contract-binding parent; content
+pins bind the current contract and previews, and the prior-index SHA chains to v3 without
+inserting the containing commit's own SHA. A final exact-commit review/CI receipt
+supplements the index after commit; embedding
 that future commit identity or its review hash inside the same commit would be circular.
 
-Real native references and blank packages stay in ignored `.cache/m2-02a1/`; no real
+Real native references stay in ignored `.cache/m2-02a1/`; current unissued blank previews
+are in `.cache/m2-02a1e/` and earlier previews remain immutable. No real
 forms are completed. Synthetic references and responses are explicitly invented.
 The owner packet binds exact configs, frozen authority, preview hashes, rehearsal,
 Git/CI and principal review. All fifteen readiness decisions remain null. Nothing in

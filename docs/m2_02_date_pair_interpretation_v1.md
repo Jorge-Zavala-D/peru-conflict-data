@@ -1,6 +1,9 @@
 # Owner-confirmed action/alert date-pair interpretation v1
 
-Jorge explicitly approved the proposed rule in the M2-02A.1D follow-up decision.
+Jorge explicitly ratified this interpretation in the M2-02A.1E pre-owner-readiness
+review prompt on 2026-09-11. The dedicated versioned record is
+`config/benchmark/m2_02_date_pair_interpretation_approval_v1.yaml`; its actual
+recording timestamp is distinct from the ratification prompt date.
 This supplements, and does not replace or rewrite, the historical date-correction
 approval M2-DATE-SOURCE-PRESERVATION-CORRECTION-V1.
 

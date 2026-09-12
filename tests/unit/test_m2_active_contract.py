@@ -25,6 +25,7 @@ from peru_conflicts.execution.source_dates import validate_date_pair
         ("critical_field_set_sha256", "f" * 64),
         ("discovery_policy_approval_sha256", "f" * 64),
         ("date_pair_interpretation_sha256", "f" * 64),
+        ("date_pair_interpretation_approval_sha256", "f" * 64),
     ],
 )
 def test_contract_mutation_rejects_package_and_trusted_receipt(field: str, value: str) -> None:
@@ -60,6 +61,8 @@ def test_contract_mutation_rejects_package_and_trusted_receipt(field: str, value
         ("benchmark_schema_version", "0.1.0"),
         ("date_correction_approval_sha256", "f" * 64),
         ("metric_contract_version", "0.1.0"),
+        ("critical_field_set_sha256", "f" * 64),
+        ("date_pair_interpretation_approval_sha256", "f" * 64),
     ],
 )
 def test_run_drift_rejected_before_building_package(

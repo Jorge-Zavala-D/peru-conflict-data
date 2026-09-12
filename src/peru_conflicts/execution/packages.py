@@ -83,6 +83,9 @@ the form syntax; it does not supply answers or tell you where objects begin.
 ## Commands
 
 Replace PACKAGE with the local package path (quote paths with spaces).
+COORDINATOR_RECEIPT and TRUSTED_COORDINATOR_PIN are separately trusted synthetic
+readiness inputs, not package files. Real eligibility and issuance do not exist;
+production locking remains disabled.
 The commands below are COORDINATOR-ONLY readiness demonstrations, not instructions
 to give an annotator access to this repository. The repository contains private
 benchmark routing/configuration and must NOT be exposed to either human.
@@ -90,14 +93,19 @@ Before human issuance a separately reviewed isolated neutral runtime must exclud
 repository/configuration/machine-aid access. That launch requirement is not fulfilled here.
 The coordinator can rehearse using the repository's existing uv environment:
 
-    uv run python scripts/prepare_m2_annotation.py page PACKAGE --report 260 --page 1
-    uv run python scripts/prepare_m2_annotation.py position PACKAGE
-        --report 260 --page 1 --line 1 --column 1
-    uv run python scripts/prepare_m2_annotation.py slots PACKAGE
-    uv run python scripts/prepare_m2_annotation.py inspection-template PACKAGE
-    uv run python scripts/prepare_m2_annotation.py validate PACKAGE
+    uv run python scripts/prepare_m2_annotation.py page PACKAGE \
+--issuance COORDINATOR_RECEIPT --issuance-sha256 TRUSTED_COORDINATOR_PIN --report 260 --page 1
+    uv run python scripts/prepare_m2_annotation.py position PACKAGE \
+--issuance COORDINATOR_RECEIPT --issuance-sha256 TRUSTED_COORDINATOR_PIN \
+--report 260 --page 1 --line 1 --column 1
+    uv run python scripts/prepare_m2_annotation.py slots PACKAGE \
+--issuance COORDINATOR_RECEIPT --issuance-sha256 TRUSTED_COORDINATOR_PIN
+    uv run python scripts/prepare_m2_annotation.py inspection-template PACKAGE \
+--issuance COORDINATOR_RECEIPT --issuance-sha256 TRUSTED_COORDINATOR_PIN
+    uv run python scripts/prepare_m2_annotation.py validate PACKAGE \
+--issuance COORDINATOR_RECEIPT --issuance-sha256 TRUSTED_COORDINATOR_PIN
 
-Enter the wrapped position example on ONE command line. Commands print output and
+Enter each example on ONE command line. Commands print output and
 do not overwrite forms. The coordinator will provide the
 reviewed command environment before any launch. Copy generated CSV text only into a
 new blank form, never over saved human work. Validation never locks your work.

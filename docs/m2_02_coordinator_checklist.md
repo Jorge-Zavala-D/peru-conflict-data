@@ -3,7 +3,9 @@
 Before any future use, validate the active `m2-02-v1` run against readiness v2:
 scientific v0.3.1 / benchmark and metric v0.1.1. Verify the same strict contract
 identity in both package manifests and all trusted eligibility/issuance identities.
-Never reuse a pre-binding package or receipt. Current evidence index: v3; earlier
+Verify the run-pinned critical-field and date-pair approval hashes, and the approval's
+interpretation-document hash. Never reuse a pre-ratification package or receipt.
+Current evidence index: v4; earlier
 indexes are historical. Aligned custody does not authorize production locking or launch.
 
 All items below are requirements, not completed owner approvals.

@@ -7,6 +7,8 @@ annotation_started: false
 benchmark_schema_version: '0.1.1'
 scientific_schema_version: '0.3.1'
 metric_contract_version: '0.1.1'
+critical_field_set_sha256: 4bda5733677a14e087114decf86f0a1ed58f6eb68aa43498cbb2377431e65ff0
+date_pair_interpretation_approval_sha256: f1e865bf97d6b8ef7e1946f63f7e45722766b050232a5cacfa38b9e369eaf49a
 date_correction_approval_sha256: 5bbe288b2e771091e30d8e223f60e341a060cc52c8546799a4f7074ee7fc3b1a
 discovery_policy_id: m2-02-execution-policy-v1
 discovery_approval_sha256: b1cd4f9412be9b87476b65290f47bce4dfb39654d7cc47aaac4b2bc15b71347f
