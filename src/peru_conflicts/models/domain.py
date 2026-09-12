@@ -398,8 +398,6 @@ class DefensoriaAction(VersionedModel):
     report_id: Identifier
     case_id: str | None = None
     action_date: date | None = None
-    action_date_original: str | None = None
-    action_date_precision_original: str | None = None
     action_type_original: str | None = None
     intervention_category_original: str | None = None
     intervention_category_normalized: str | None = None
@@ -415,8 +413,6 @@ class Alert(VersionedModel):
     report_id: Identifier
     case_id: str | None = None
     alert_date: date | None = None
-    alert_date_original: str | None = None
-    alert_date_precision_original: str | None = None
     text_original: str | None = None
     alert_type_original: str | None = None
     risk_original: str | None = None

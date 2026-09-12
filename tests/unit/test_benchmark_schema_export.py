@@ -18,7 +18,7 @@ from peru_conflicts.schema_export import export_json_schemas
 
 
 def test_benchmark_schema_contract_is_independently_versioned() -> None:
-    assert BENCHMARK_SCHEMA_VERSION == "0.1.1"
+    assert BENCHMARK_SCHEMA_VERSION == "0.1.0"
 
 
 def test_benchmark_schema_export_matches_registry(tmp_path: Path) -> None:

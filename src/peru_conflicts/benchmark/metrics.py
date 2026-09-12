@@ -20,7 +20,7 @@ from peru_conflicts.benchmark.models import (
 )
 from peru_conflicts.hashing import canonical_json_bytes
 
-OBJECT_MATCH_FIELDS_V010: dict[str, tuple[str, ...]] = {
+OBJECT_MATCH_FIELDS: dict[str, tuple[str, ...]] = {
     "actor": ("name_original", "actor_type_original", "role_original"),
     "alert": (
         "alert_date",
@@ -98,23 +98,6 @@ OBJECT_MATCH_FIELDS_V010: dict[str, tuple[str, ...]] = {
         "casualty_components",
     ),
 }
-
-
-CURRENT_BENCHMARK_METRIC_CONTRACT_VERSION = "0.1.1"
-OBJECT_MATCH_FIELDS_V011: dict[str, tuple[str, ...]] = {
-    **OBJECT_MATCH_FIELDS_V010,
-    "dp_action": (
-        "action_date_original",
-        "action_date_precision_original",
-        *OBJECT_MATCH_FIELDS_V010["dp_action"][1:],
-    ),
-    "alert": (
-        "alert_date_original",
-        "alert_date_precision_original",
-        *OBJECT_MATCH_FIELDS_V010["alert"][1:],
-    ),
-}
-OBJECT_MATCH_FIELDS = OBJECT_MATCH_FIELDS_V011
 
 
 @dataclass(frozen=True, slots=True)
