@@ -1,13 +1,5 @@
 # Execution plan: Milestones 1-12
 
-Current M2 readiness custody targets scientific v0.3.1 and benchmark/metric v0.1.1;
-historical v0.3.0/v0.1.0 remain immutable. The unlaunched m2-02-v1 run candidate,
-neutral package manifests and coordinator issuance identities bind the same active
-contract. Readiness v3 is owner-approved with all 15 decisions closed; evidence index v5 chains to
-immutable v4. The successor run and packages bind the owner-readiness approval,
-which points backward to the exact prereview candidate; no circular approval exists. The run pins the critical-field set and the dedicated date-pair approval,
-which pins the interpretation document. Production locking and launch remain prohibited.
-
 Version: 0.3.0 (M2-01 scientific schema and benchmark protocol approved)
 
 ## Plan contract
@@ -143,10 +135,8 @@ across reports 260-269. The approved decisions and exclusions are recorded in
 
 The source-neutral discovery policy in `docs/m2_02_discovery_execution_policy.md` is owner-approved,
 with all nine decisions recorded in `config/benchmark/m2_02_owner_approval_v1.yaml`.
-M2-02A.1 production-readiness infrastructure is implemented as a separately authorized
-owner-review candidate; policy approval itself did not grant readiness or launch authority.
-The candidate is documented in `docs/m2_02_annotation_execution_protocol.md` and
-`docs/m2_02_coordinator_checklist.md`. A separate readiness/launch gate is required before annotation.
+M2-02A production-readiness infrastructure is next, but is not yet readiness-approved or resumed
+by this policy approval. A separate readiness/launch gate is required before human annotation.
 M1 and M2-01 remain complete; M2-02 annotation has not started and no human gold exists.
 No schema approval is reopened. A separate versioned owner-approved metric amendment is mandatory
 before discovery-start keys may enter normative parser scoring or M3 evaluation. The final M3 gate

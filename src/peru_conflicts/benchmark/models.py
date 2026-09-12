@@ -20,7 +20,7 @@ from peru_conflicts.models.common import (
     StrictModel,
 )
 
-BENCHMARK_SCHEMA_VERSION = "0.1.1"
+BENCHMARK_SCHEMA_VERSION = "0.1.0"
 BenchmarkThreshold = Annotated[
     float,
     Field(strict=True, ge=0.0, le=1.0, allow_inf_nan=False),
@@ -47,7 +47,7 @@ BENCHMARK_OBJECT_TYPES = frozenset(
 class BenchmarkVersionedModel(StrictModel):
     """Base for the independently versioned benchmark technical contract."""
 
-    benchmark_schema_version: Literal["0.1.1"] = BENCHMARK_SCHEMA_VERSION
+    benchmark_schema_version: Literal["0.1.0"] = BENCHMARK_SCHEMA_VERSION
 
 
 class AnnotationUnitType(StrEnum):
@@ -548,12 +548,8 @@ class ObjectMetricThreshold(BenchmarkVersionedModel):
         return self
 
 
-class BenchmarkAcceptanceGateSpec(StrictModel):
+class BenchmarkAcceptanceGateSpec(BenchmarkVersionedModel):
     """Versioned policy applied separately to deterministic benchmark metrics."""
-
-    # The existing gate policy remains historical, draft and unapproved. Updating
-    # annotation records does not migrate or approve that independent policy.
-    benchmark_schema_version: Literal["0.1.0"] = "0.1.0"
 
     gate_id: Identifier
     policy_status: GatePolicyStatus
@@ -716,11 +712,9 @@ class M201M3ComponentApprovals(StrictModel):
         return self
 
 
-class M201OwnerApproval(StrictModel):
+class M201OwnerApproval(BenchmarkVersionedModel):
     """Owner approval of M2-01 protocol components, never of human gold or final M3."""
 
-    # Historical governance authority is not migrated with active annotation records.
-    benchmark_schema_version: Literal["0.1.0"] = "0.1.0"
     approval_record_version: Literal["1.0.0"]
     milestone: Literal["M2-01"]
     owner: Literal["Jorge Zavala"]
@@ -750,7 +744,7 @@ class M201OwnerApproval(StrictModel):
         return self
 
 
-BENCHMARK_MODEL_REGISTRY: dict[str, type[StrictModel]] = {
+BENCHMARK_MODEL_REGISTRY: dict[str, type[BenchmarkVersionedModel]] = {
     "annotation_object_instance": AnnotationObjectInstance,
     "annotation_disagreement": AnnotationDisagreement,
     "annotation_slot": AnnotationSlot,

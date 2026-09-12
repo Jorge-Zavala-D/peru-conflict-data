@@ -15,6 +15,7 @@ from typing import Literal, Self
 from pydantic import Field, model_validator
 
 from peru_conflicts.benchmark.models import (
+    BENCHMARK_OBJECT_TYPES,
     AnnotationUnit,
     AnnotationUnitType,
     PartitionRole,
@@ -22,8 +23,6 @@ from peru_conflicts.benchmark.models import (
 )
 from peru_conflicts.hashing import canonical_json_bytes
 from peru_conflicts.models.common import Identifier, Sha256, StrictModel
-
-from .compatibility import require_compatible
 
 
 def _digest(payload: object) -> str:
@@ -100,7 +99,29 @@ class DiscoveredObject(StrictModel):
 
     @model_validator(mode="after")
     def validate_boundary(self) -> Self:
-        require_compatible(self.domain_object_type, self.unit_type)
+        if self.domain_object_type not in BENCHMARK_OBJECT_TYPES:
+            raise ValueError("unregistered object family")
+        if self.domain_object_type == "case_observation":
+            if self.unit_type is not AnnotationUnitType.CASE_OBSERVATION:
+                raise ValueError("a discovered case must retain case-observation semantics")
+        elif self.unit_type not in {
+            AnnotationUnitType.REPORT_ANNEX_EVENT,
+            AnnotationUnitType.SOURCE_ONLY_OBJECT,
+        }:
+            raise ValueError("this proof supports only independent annex or source-only objects")
+        if (
+            self.unit_type is AnnotationUnitType.REPORT_ANNEX_EVENT
+            and self.domain_object_type
+            not in {
+                "protest_event",
+                "violence_event",
+                "dp_action",
+                "alert",
+                "agreement",
+                "dialogue_event",
+            }
+        ):
+            raise ValueError("non-event objects cannot be represented as annex events")
         if not 1 <= self.start.page <= self.end.page <= self.window.page_count:
             raise ValueError("discovered extent is outside the whole-report assignment")
         if self.start.page == self.end.page:
