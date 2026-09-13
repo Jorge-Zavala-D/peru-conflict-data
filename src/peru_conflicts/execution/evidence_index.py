@@ -1,0 +1,272 @@
+"""Closed metadata-only audit index. Not a scientific/benchmark schema or payload."""
+
+from typing import Annotated, Literal
+
+import yaml
+from pydantic import Field, StringConstraints, model_validator
+
+from peru_conflicts.models.common import Sha256, StrictModel
+
+from .contracts import (
+    AnnotationContractIdentity,
+    HistoricalAnnotationContractIdentityV3,
+    HistoricalAnnotationContractIdentityV4,
+)
+
+GitSha = Annotated[str, StringConstraints(pattern=r"^[a-f0-9]{40}$")]
+Count = Annotated[int, Field(ge=0)]
+
+
+class AuditArtifact(StrictModel):
+    bytes: Count
+    sha256: Sha256
+
+
+class AuditSource(StrictModel):
+    report_number: Annotated[int, Field(ge=260, le=269)]
+    expected_sha256: Sha256
+    observed_sha256: Sha256
+    expected_pages: Count
+    observed_pages: Count
+    association_status: Literal["explicit_report_identity", "unresolved_opaque_filename"]
+
+
+class AuditPackage(StrictModel):
+    role: Literal["annotator-a", "annotator-b"]
+    manifest_sha256: Sha256
+    reports: Count
+    pages: Count
+    files: Count
+    blank_forms: Count
+    answers: Literal[0]
+    machine_suggestions: Literal[0]
+    partition_labels: Literal[0]
+    parser_outputs: Literal[0]
+    gold: Literal[0]
+
+
+class AuditExtractor(StrictModel):
+    executable: Literal["pdftotext.exe", "pdfinfo.exe"]
+    version: Annotated[str, StringConstraints(pattern=r"^\d+\.\d+\.\d+$")]
+    sha256: Sha256
+
+
+class ReadinessEvidenceIndex(StrictModel):
+    kind: Literal["SOURCE_NEUTRAL_READINESS_EVIDENCE_NOT_AUTHORITY"]
+    provenance_scope: Literal["reviewed_parent_plus_precommit_content_pins_no_circular_head"]
+    base_sha: GitSha
+    base_tree: GitSha
+    reviewed_implementation_sha: GitSha
+    reviewed_implementation_tree: GitSha
+    benchmark_digest: Sha256
+    scientific_digest: Sha256
+    m2_01_approval_sha256: Sha256
+    m2_02_approval_sha256: Sha256
+    evaluator_sha256: Sha256
+    m3_gate_sha256: Sha256
+    m3_policy_status: Literal["owner_review_draft"]
+    m3_owner_approved: Literal[False]
+    owner_readiness_approved: Literal[False]
+    source_custody: list[AuditSource]
+    extractors: list[AuditExtractor]
+    extraction_flags: Literal["-f N -l N -raw|-layout -enc UTF-8 -eol unix -nopgbrk snapshot.pdf -"]
+    comparison_method: Literal[
+        "per_page_bytes_codepoints_lines_max_line_repeated_lines_multispace_no_semantics"
+    ]
+    recommendation: Literal["raw_pending_owner_review"]
+    comparison: dict[
+        Literal["raw", "layout"],
+        dict[
+            Literal[
+                "bytes",
+                "lines",
+                "max_line_codepoints",
+                "duplicate_nonempty_lines",
+                "multi_space_lines",
+            ],
+            Count,
+        ],
+    ]
+    pages: Count
+    reference_bytes: Count
+    first_manifest_sha256: Sha256
+    second_manifest_sha256: Sha256
+    repeat_identical: Literal[True]
+    ocr: Literal[False]
+    packages: list[AuditPackage]
+    artifacts: dict[
+        Literal[
+            "original_packet",
+            "original_matrix",
+            "original_principal_review",
+            "original_synthetic",
+            "hardening_packet",
+            "hardening_matrix",
+            "hardening_synthetic",
+            "hardening_principal_precommit",
+        ],
+        AuditArtifact,
+    ]
+    synthetic_scenarios: list[
+        Literal[
+            "eligibility_role_person_binding",
+            "attestation_mutation",
+            "trusted_replacement_rejection",
+            "manifest_reference_role_mutations",
+            "resolved_unresolved_compatibility",
+            "subordinate_inventory_compatibility",
+            "literal_strings",
+            "launch_disabled",
+        ]
+    ]
+    synthetic_exact_matches: Count
+    synthetic_boundary_disagreements: Count
+    synthetic_a_only: Count
+    synthetic_b_only: Count
+    supersession_preserved: Literal[True]
+    adjudication: Literal[False]
+    human_gold: Literal[False]
+    dropbox_directories: Count
+    dropbox_files: Count
+    dropbox_bytes: Count
+    m1_files: Count
+    m1_bytes: Count
+    m2_external_root_exists: Literal[False]
+    dropbox_writes: Literal[0]
+
+
+class DateAlignmentCorrection(StrictModel):
+    prior_blocker: Literal["BLOCKED_FROZEN_CONTRACT_INCONSISTENCY"]
+    owner_decision: Literal["M2-DATE-SOURCE-PRESERVATION-CORRECTION-V1"]
+    owner_correction_sha256: Sha256
+    historical_scientific_digest: Sha256
+    historical_benchmark_digest: Sha256
+    historical_evaluator_sha256: Sha256
+    scientific_version: Literal["0.3.1"]
+    benchmark_version: Literal["0.1.1"]
+    semantic_difference: Literal["dp_action_and_alert_original_date_plus_precision_only"]
+    arithmetic_unchanged: Literal[True]
+    critical_fields: Literal[40]
+    reference_unchanged: Literal[True]
+    unresolved_crosswalk_fields: Literal[0]
+    roundtrip_all_families_exact: Literal[True]
+    crosswalk: AuditArtifact
+    roundtrip: AuditArtifact
+    annotation_launch_approved: Literal[False]
+    pending_readiness_decisions: Literal[15]
+
+
+class AlignmentEvidenceIndex(ReadinessEvidenceIndex):
+    correction: DateAlignmentCorrection
+
+
+class ContractBindingEvidenceFields[ContractT: HistoricalAnnotationContractIdentityV3](StrictModel):
+    kind: Literal["CONTRACT_BINDING_READINESS_EVIDENCE_NOT_AUTHORITY"]
+    provenance_scope: Literal["reviewed_parent_plus_precommit_content_pins_no_circular_head"]
+    base_sha: GitSha
+    reviewed_implementation_sha: GitSha
+    reviewed_implementation_tree: GitSha
+    prior_index_sha256: Sha256
+    contract_identity: ContractT
+    packages: list[AuditPackage]
+    reference_manifest_sha256: Sha256
+    reference_bytes: Literal[3853200]
+    pages: Literal[1128]
+    repeat_identical: Literal[True]
+    owner_readiness_approved: Literal[False]
+    annotation_launch_approved: Literal[False]
+    human_gold_created: Literal[False]
+    pending_readiness_decisions: Literal[15]
+    roundtrip: AuditArtifact
+    crosswalk: AuditArtifact
+    date_pair_semantics: AuditArtifact
+    dropbox_writes: Literal[0]
+
+
+class ContractBindingEvidenceIndex(
+    ContractBindingEvidenceFields[HistoricalAnnotationContractIdentityV3]
+):
+    pass
+
+
+class AuthorityClosureEvidenceIndex(
+    ContractBindingEvidenceFields[HistoricalAnnotationContractIdentityV4]
+):
+    authority_closure_version: Literal["4"]
+
+
+class OwnerReadinessEvidenceIndex(StrictModel):
+    kind: Literal["OWNER_READINESS_APPROVAL_EVIDENCE_NOT_LAUNCH_AUTHORITY"]
+    evidence_version: Literal["5"]
+    base_sha: GitSha
+    reviewed_implementation_sha: GitSha
+    reviewed_implementation_tree: GitSha
+    prior_index_sha256: Sha256
+    owner_readiness_approval_sha256: Sha256
+    contract_identity: AnnotationContractIdentity
+    packages: list[AuditPackage]
+    reference_manifest_sha256: Sha256
+    reference_bytes: Literal[3853200]
+    pages: Literal[1128]
+    repeat_identical: Literal[True]
+    owner_readiness_approved: Literal[True]
+    pending_readiness_decisions: Literal[0]
+    annotation_launch_approved: Literal[False]
+    annotation_started: Literal[False]
+    human_gold_created: Literal[False]
+    dropbox_writes: Literal[0]
+    parser_work_approved: Literal[False]
+    m3_owner_approved: Literal[False]
+
+    @model_validator(mode="after")
+    def matching_approval(self) -> "OwnerReadinessEvidenceIndex":
+        if (
+            self.owner_readiness_approval_sha256
+            != self.contract_identity.owner_readiness_approval_sha256
+        ):
+            raise ValueError("evidence index approval differs from package contract")
+        return self
+
+
+def evidence_index_bytes(
+    index: ReadinessEvidenceIndex
+    | ContractBindingEvidenceIndex
+    | AuthorityClosureEvidenceIndex
+    | OwnerReadinessEvidenceIndex,
+) -> bytes:
+    return yaml.safe_dump(
+        index.model_dump(mode="json"), sort_keys=False, allow_unicode=False
+    ).encode("utf-8")
+
+
+def validate_evidence_index(
+    data: bytes,
+) -> (
+    ReadinessEvidenceIndex
+    | ContractBindingEvidenceIndex
+    | AuthorityClosureEvidenceIndex
+    | OwnerReadinessEvidenceIndex
+):
+    try:
+        payload = yaml.safe_load(data)
+        model = (
+            OwnerReadinessEvidenceIndex
+            if isinstance(payload, dict)
+            and "evidence_version" in payload
+            and payload["evidence_version"] == "5"
+            else AuthorityClosureEvidenceIndex
+            if isinstance(payload, dict) and "authority_closure_version" in payload
+            else ContractBindingEvidenceIndex
+            if isinstance(payload, dict)
+            and "kind" in payload
+            and payload["kind"] == "CONTRACT_BINDING_READINESS_EVIDENCE_NOT_AUTHORITY"
+            else AlignmentEvidenceIndex
+            if isinstance(payload, dict) and "correction" in payload
+            else ReadinessEvidenceIndex
+        )
+        index = model.model_validate(payload)
+    except yaml.YAMLError as error:
+        raise ValueError("invalid evidence metadata encoding") from error
+    if evidence_index_bytes(index) != data:
+        raise ValueError("evidence index must be canonical metadata only, without comments/payload")
+    return index

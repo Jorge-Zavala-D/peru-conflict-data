@@ -518,7 +518,7 @@ def test_adjudication_is_versioned_append_only_data() -> None:
     )
 
     assert decision.supersedes_adjudication_id == "adj_1"
-    assert decision.schema_version == "0.3.0"
+    assert decision.schema_version == "0.3.1"
 
 
 def test_adjudication_rejects_invalid_review_chain() -> None:

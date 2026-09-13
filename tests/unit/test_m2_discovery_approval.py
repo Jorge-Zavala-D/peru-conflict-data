@@ -155,10 +155,9 @@ def test_frozen_authority_and_evaluator_are_not_amended_by_approval() -> None:
         == authority["m2_01_owner_approval_sha256"]
         == "e338944f504c4bcce1c8312758121330b9487e4f996bf66fd8623c1eeae29ce5"
     )
-    assert (
-        hashlib.sha256((ROOT / "src/peru_conflicts/benchmark/metrics.py").read_bytes()).hexdigest()
-        == "a6264b995f05d4ac80f08e1f545b93813d88452eafa7857c52343703c6f8261f"
-    )
+    from test_m2_contract_versions import assert_metric_correction_scope
+
+    assert_metric_correction_scope()
     gate = yaml.safe_load((ROOT / "config/benchmark/m3_acceptance_gates_v1.yaml").read_bytes())
     assert gate["owner_approved"] is False
     assert gate["policy_status"] == "owner_review_draft"
