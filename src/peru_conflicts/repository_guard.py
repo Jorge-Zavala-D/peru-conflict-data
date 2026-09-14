@@ -134,6 +134,23 @@ def find_policy_violations(
                 payload = json.loads(content)
             except (ValueError, UnicodeError):
                 payload = None
+            if isinstance(payload, dict):
+                fields = cast(dict[str, object], payload)
+                # Neutral runtime exports include package-bound drafts, including
+                # blank or inspection-only forms without any annotation records.
+                if (
+                    isinstance(fields.get("package"), dict)
+                    and isinstance(fields.get("input_hashes"), dict)
+                    and isinstance(fields.get("complete"), bool)
+                    and all(
+                        isinstance(fields.get(name), list)
+                        for name in ("discoveries", "unresolved", "inspections", "records")
+                    )
+                ):
+                    violations.append(
+                        Violation(path, "neutral annotation draft payload must not enter Git")
+                    )
+                    continue
             if isinstance(payload, dict) and {
                 "benchmark_schema_version",
                 "annotator_id",

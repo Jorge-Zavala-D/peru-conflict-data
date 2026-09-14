@@ -1,5 +1,17 @@
 # M2-02 coordinator readiness / future launch checklist
 
+The coordinator-only [launch protocol](m2_02_annotation_launch_protocol.md) now
+specifies the M2-02B.1 preparation boundary, exact proposed topology, independent
+runtime custody, future 54-check real-account ceremony and 16-decision null dossier.
+This checklist grants no authority to execute those future steps.
+
+- [ ] Validate original package lineage separately from derived neutral-view and runtime identities.
+- [ ] Keep the launcher, interpreter, dependencies and expected pins independently trusted outside the repository for unissued rehearsals.
+- [ ] Generate a new ignored review snapshot without overwriting earlier receipts; inspect missing stages marked NOT RUN.
+- [ ] After measured tests, independent review and exact-head CI, validate the complete evidence gate against the reviewed source snapshot.
+- [ ] Keep all 16 owner-launch responses null and all 54 real-account checks NOT RUN during preparation.
+- [ ] Obtain separately reviewed real-binding support and explicit external-write authority before future provisioning or account-test uploads.
+
 Before any future use, validate the active `m2-02-v1` run against owner-approved readiness v3:
 scientific v0.3.1 / benchmark and metric v0.1.1. Verify the same strict contract
 identity in both package manifests and all trusted eligibility/issuance identities.

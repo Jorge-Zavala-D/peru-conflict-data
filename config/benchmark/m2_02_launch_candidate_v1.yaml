@@ -1,0 +1,123 @@
+{
+  "candidate_id": "M2-02-LAUNCH-CANDIDATE-V1",
+  "status": "owner_review_draft",
+  "protected_main_merge_sha": "995b54115f94454fc81d4af36f138add43ba8614",
+  "protected_main_merge_tree": "67284c356125d4f9758dc28a9e6c92a45cab3553",
+  "readiness_v3_sha256": "b6fd726b2f7067cb38e8e04df51eb9f39d7f6928837775a747beb4b5e3dcc4a2",
+  "evidence_v5_sha256": "5cd65a2d78884e9744ef2cc8c21bbbf9ef4bfe1342553c62c11f29156034f224",
+  "reference_manifest_sha256": "060d6f166e35400ba53d563fb75dfae4c4872d22796b12762e35bd6d15f88202",
+  "contract_identity": {
+    "scientific_schema_version": "0.3.1",
+    "scientific_schema_digest": "6a913cc7855aa96809f60cff5b2cd8255451975fe38afd81ed128a15ef65c2d5",
+    "benchmark_schema_version": "0.1.1",
+    "benchmark_schema_digest": "bc18a979f38add53c67a109d7f6b2b1e61f1ee34c9099cd4a1aadb7491803ebf",
+    "metric_contract_version": "0.1.1",
+    "evaluator_sha256": "5174c58f8702b79288663612546c96c173bb524f706c5fe6d0fde395d6735d82",
+    "critical_field_set_sha256": "4bda5733677a14e087114decf86f0a1ed58f6eb68aa43498cbb2377431e65ff0",
+    "date_correction_approval_sha256": "5bbe288b2e771091e30d8e223f60e341a060cc52c8546799a4f7074ee7fc3b1a",
+    "discovery_policy_approval_sha256": "b1cd4f9412be9b87476b65290f47bce4dfb39654d7cc47aaac4b2bc15b71347f",
+    "date_pair_interpretation_sha256": "7d5e9bc442625690df03b8ce9739d07b3221dee033d125930b994251baef4ea5",
+    "date_pair_interpretation_approval_sha256": "f1e865bf97d6b8ef7e1946f63f7e45722766b050232a5cacfa38b9e369eaf49a",
+    "owner_readiness_approval_sha256": "36a5074264f93a9c565b4011b7162031d62e3a135eaba17336dcd8c51cc43cba"
+  },
+  "identities": [
+    {
+      "original": {
+        "run_id": "m2-02-v1",
+        "role": "annotator-a",
+        "package_id": "775fa5a0ae108afceaa99d14f9d918b6641599517958a05af16f1c0741fff851",
+        "contract_identity": {
+          "scientific_schema_version": "0.3.1",
+          "scientific_schema_digest": "6a913cc7855aa96809f60cff5b2cd8255451975fe38afd81ed128a15ef65c2d5",
+          "benchmark_schema_version": "0.1.1",
+          "benchmark_schema_digest": "bc18a979f38add53c67a109d7f6b2b1e61f1ee34c9099cd4a1aadb7491803ebf",
+          "metric_contract_version": "0.1.1",
+          "evaluator_sha256": "5174c58f8702b79288663612546c96c173bb524f706c5fe6d0fde395d6735d82",
+          "critical_field_set_sha256": "4bda5733677a14e087114decf86f0a1ed58f6eb68aa43498cbb2377431e65ff0",
+          "date_correction_approval_sha256": "5bbe288b2e771091e30d8e223f60e341a060cc52c8546799a4f7074ee7fc3b1a",
+          "discovery_policy_approval_sha256": "b1cd4f9412be9b87476b65290f47bce4dfb39654d7cc47aaac4b2bc15b71347f",
+          "date_pair_interpretation_sha256": "7d5e9bc442625690df03b8ce9739d07b3221dee033d125930b994251baef4ea5",
+          "date_pair_interpretation_approval_sha256": "f1e865bf97d6b8ef7e1946f63f7e45722766b050232a5cacfa38b9e369eaf49a",
+          "owner_readiness_approval_sha256": "36a5074264f93a9c565b4011b7162031d62e3a135eaba17336dcd8c51cc43cba"
+        },
+        "manifest_sha256": "45540cc5face34903fa98fb1fc7763546d3e8328d189a68588ae93e23ec27484",
+        "reference_aggregate_sha256": "ac7ff842555f63e4583792db7b1e316d67514dd7539ab530d9e9eba67bf0dd08",
+        "file_set_sha256": "1d9a6ed30905931dfa4b6010a8c3edbb138ff3a1c33037327468fe9f8a5924df",
+        "reference_policy_sha256s": [
+          "b829706d0c13d306d919061514795ae2b491d65aa99677b9ff6409f3ae2381b9"
+        ],
+        "execution_policy_version": "m2-02-execution-policy-v1",
+        "neutral_reader_contract": "m2-neutral-reader-contract-v1"
+      },
+      "projection_policy": "m2-neutral-human-view-v1",
+      "view_sha256": "4a741fdbb087457ac3e9c7803db6527b7e01bbca5943d1fb5f8f376599e9d225",
+      "view_file_set_sha256": "70aacbabbb87eea8964a11e9a60d31ea01d26643387fd2c74da901ba5a581b99",
+      "runtime_policy": "m2-neutral-runtime-source-selection-v1",
+      "runtime_sha256": "865f8f3cf06e14b872fef5873e883335d5b96bea3c169f24a39a588fccd9d290",
+      "runtime_file_set_sha256": "df9e07dfc1f336140e129285f488db3a47e95c8ee825d5e2c707cc5236474863",
+      "runtime_contract_sha256": "81f1fc101f4b524d0b1bf6e7644a0dc3ec6787429522acd37a21814dd3dff053",
+      "registry_sha256": "9f08563945686a6a96540beceeb053a01dbc76bc992418820c1294e3092684b0",
+      "launcher_sha256": "0cd838769afbbc38ebcf496393823b21a3a209ccc65835c685942b7962d45e50",
+      "interpreter_sha256": "88b9e780cfdc38597c7f53e20f7165262befa28d9a5e9470360d349e172ecf37",
+      "dependency_sha256": "e1b8506b39c87b76b0d7f9bad508d4ae319f6c3271384b5cb4b03c2490baf03f"
+    },
+    {
+      "original": {
+        "run_id": "m2-02-v1",
+        "role": "annotator-b",
+        "package_id": "a02c3bebc30ce8a173c9020cd1cd161e35db8980824ff59e7656150cbd130764",
+        "contract_identity": {
+          "scientific_schema_version": "0.3.1",
+          "scientific_schema_digest": "6a913cc7855aa96809f60cff5b2cd8255451975fe38afd81ed128a15ef65c2d5",
+          "benchmark_schema_version": "0.1.1",
+          "benchmark_schema_digest": "bc18a979f38add53c67a109d7f6b2b1e61f1ee34c9099cd4a1aadb7491803ebf",
+          "metric_contract_version": "0.1.1",
+          "evaluator_sha256": "5174c58f8702b79288663612546c96c173bb524f706c5fe6d0fde395d6735d82",
+          "critical_field_set_sha256": "4bda5733677a14e087114decf86f0a1ed58f6eb68aa43498cbb2377431e65ff0",
+          "date_correction_approval_sha256": "5bbe288b2e771091e30d8e223f60e341a060cc52c8546799a4f7074ee7fc3b1a",
+          "discovery_policy_approval_sha256": "b1cd4f9412be9b87476b65290f47bce4dfb39654d7cc47aaac4b2bc15b71347f",
+          "date_pair_interpretation_sha256": "7d5e9bc442625690df03b8ce9739d07b3221dee033d125930b994251baef4ea5",
+          "date_pair_interpretation_approval_sha256": "f1e865bf97d6b8ef7e1946f63f7e45722766b050232a5cacfa38b9e369eaf49a",
+          "owner_readiness_approval_sha256": "36a5074264f93a9c565b4011b7162031d62e3a135eaba17336dcd8c51cc43cba"
+        },
+        "manifest_sha256": "c4b8acc6f0dbe4920ac8a0c4e06607dedcc04f6377a3723f4293a314058a77b7",
+        "reference_aggregate_sha256": "ac7ff842555f63e4583792db7b1e316d67514dd7539ab530d9e9eba67bf0dd08",
+        "file_set_sha256": "1d9a6ed30905931dfa4b6010a8c3edbb138ff3a1c33037327468fe9f8a5924df",
+        "reference_policy_sha256s": [
+          "b829706d0c13d306d919061514795ae2b491d65aa99677b9ff6409f3ae2381b9"
+        ],
+        "execution_policy_version": "m2-02-execution-policy-v1",
+        "neutral_reader_contract": "m2-neutral-reader-contract-v1"
+      },
+      "projection_policy": "m2-neutral-human-view-v1",
+      "view_sha256": "58f33685eb4d9a2664b2176516fc23f5917ac6799dee579102af30f7a5362668",
+      "view_file_set_sha256": "b3cd795469a3bd65717fc17ceb5fe8166b1ed572940aa49106a7046b58f97d68",
+      "runtime_policy": "m2-neutral-runtime-source-selection-v1",
+      "runtime_sha256": "865f8f3cf06e14b872fef5873e883335d5b96bea3c169f24a39a588fccd9d290",
+      "runtime_file_set_sha256": "df9e07dfc1f336140e129285f488db3a47e95c8ee825d5e2c707cc5236474863",
+      "runtime_contract_sha256": "81f1fc101f4b524d0b1bf6e7644a0dc3ec6787429522acd37a21814dd3dff053",
+      "registry_sha256": "9f08563945686a6a96540beceeb053a01dbc76bc992418820c1294e3092684b0",
+      "launcher_sha256": "0cd838769afbbc38ebcf496393823b21a3a209ccc65835c685942b7962d45e50",
+      "interpreter_sha256": "88b9e780cfdc38597c7f53e20f7165262befa28d9a5e9470360d349e172ecf37",
+      "dependency_sha256": "e1b8506b39c87b76b0d7f9bad508d4ae319f6c3271384b5cb4b03c2490baf03f"
+    }
+  ],
+  "external_layout_version": "m2-02-external-layout-v1",
+  "access_control_test_protocol_version": "m2-02-real-access-tests-v1",
+  "owner_readiness_approved": true,
+  "owner_launch_approved": false,
+  "annotation_launch_approved": false,
+  "annotation_started": false,
+  "real_humans_assigned": false,
+  "real_eligibility_attestations_created": false,
+  "external_root_created": false,
+  "dropbox_writes_approved": false,
+  "real_access_tests_passed": false,
+  "real_issuance_receipts_created": false,
+  "real_packages_issued": false,
+  "production_locking_enabled": false,
+  "human_gold_created": false,
+  "parser_work_approved": false,
+  "m3_owner_approved": false,
+  "normative_metric_amendment_approved": false
+}
