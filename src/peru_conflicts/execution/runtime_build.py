@@ -19,6 +19,7 @@ from .compatibility import CASE_SUBORDINATES
 from .contracts import active_annotation_contract
 from .neutral_forms import required_fields
 from .packages import verify_package
+from .python_environment import PythonEnvironmentTrustManifest, capture_rehearsal_environment
 from .references import sha256
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -185,11 +186,23 @@ class RuntimeManifest(StrictModel):
     launcher_sha256: Sha256
     interpreter_sha256: Sha256
     dependency_sha256: Sha256
+    python_environment_sha256: Sha256
+    python_environment_manifest_sha256: Sha256
+    python_environment: PythonEnvironmentTrustManifest
     dependency_versions: dict[str, str]
     python_version: str
 
     @model_validator(mode="after")
     def consistent_identity(self) -> Self:
+        environment = self.python_environment
+        if (
+            self.python_environment_sha256 != environment.python_environment_sha256
+            or self.python_environment_manifest_sha256
+            != sha256(_json(environment.model_dump(mode="json")))
+            or self.interpreter_sha256 != environment.interpreter_sha256
+            or self.dependency_sha256 != environment.dependency_sha256
+        ):
+            raise ValueError("runtime Python environment identity differs")
         if self.runtime_sha256 != sha256(
             _json({"policy": self.policy, "file_hashes": self.file_hashes})
         ):
@@ -198,6 +211,7 @@ class RuntimeManifest(StrictModel):
             ("CONTRACT.json", self.contract_sha256),
             ("FIELD_REGISTRY.json", self.registry_sha256),
             ("DEPENDENCIES.json", self.dependency_sha256),
+            ("PYTHON_ENVIRONMENT.json", self.python_environment_manifest_sha256),
         ):
             if self.file_hashes.get(name) != expected:
                 raise ValueError("runtime material identity differs")
@@ -367,6 +381,11 @@ def build_runtime(output_root: Path) -> RuntimeManifest:
     files["DEPENDENCIES.json"] = _json(
         {"versions": versions, "file_hashes": dependency_hashes, "python_version": sys.version}
     )
+    environment = capture_rehearsal_environment(sha256(files["DEPENDENCIES.json"]))
+    files["PYTHON_ENVIRONMENT.json"] = _json(environment.model_dump(mode="json"))
+    files["PYTHON_ENVIRONMENT_POLICY.py"] = (
+        Path(__file__).with_name("python_environment_policy.py").read_bytes()
+    )
     hashes = {name: sha256(data) for name, data in sorted(files.items())}
     manifest = RuntimeManifest(
         runtime_sha256=sha256(_json({"policy": POLICY, "file_hashes": hashes})),
@@ -378,6 +397,9 @@ def build_runtime(output_root: Path) -> RuntimeManifest:
             Path(getattr(sys, "_base_executable", sys.executable)).resolve().read_bytes()
         ),
         dependency_sha256=sha256(files["DEPENDENCIES.json"]),
+        python_environment_sha256=environment.python_environment_sha256,
+        python_environment_manifest_sha256=sha256(files["PYTHON_ENVIRONMENT.json"]),
+        python_environment=environment,
         dependency_versions=versions,
         python_version=sys.version,
     )

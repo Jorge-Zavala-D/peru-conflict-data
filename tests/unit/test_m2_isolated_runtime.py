@@ -63,6 +63,8 @@ def isolated(tmp_path: Path) -> tuple[list[str], Path, Path]:
         "dependency_sha256": runtime.dependency_sha256,
         "launcher_sha256": runtime.launcher_sha256,
         "interpreter_sha256": runtime.interpreter_sha256,
+        "python_environment_sha256": runtime.python_environment_sha256,
+        "python_environment_manifest_sha256": runtime.python_environment_manifest_sha256,
         "view_sha256": view.view_sha256,
         "original_package_sha256": view.original_package_sha256,
         "contract_sha256": runtime.contract_sha256,
@@ -95,6 +97,8 @@ def isolated(tmp_path: Path) -> tuple[list[str], Path, Path]:
         "dependency_sha256",
         "launcher_sha256",
         "interpreter_sha256",
+        "python_environment_sha256",
+        "python_environment_manifest_sha256",
         "view_sha256",
         "contract_sha256",
     ):
@@ -108,6 +112,61 @@ def run(isolated: tuple[list[str], Path, Path], *args: str) -> subprocess.Comple
     return subprocess.run(
         [*command, *args], cwd=root, text=True, encoding="utf-8", capture_output=True, timeout=30
     )
+
+
+@pytest.mark.parametrize("change", ["manifest", "aggregate", "stdlib", "identity", "production"])
+def test_substituted_python_environment_rejected_before_output(
+    isolated: tuple[list[str], Path, Path], change: str
+) -> None:
+    """Even repinning runtime bytes cannot override independent environment pins."""
+    runtime_root = isolated[2] / "runtime"
+    manifest_path = runtime_root / "RUNTIME_MANIFEST.json"
+    manifest = json.loads(manifest_path.read_bytes())
+    if change == "manifest":
+        environment_path = runtime_root / "PYTHON_ENVIRONMENT.json"
+        environment_path.write_bytes(b"{}\n")
+        manifest["file_hashes"]["PYTHON_ENVIRONMENT.json"] = sha256(environment_path.read_bytes())
+    elif change == "aggregate":
+        manifest["python_environment_sha256"] = "0" * 64
+    else:
+        environment_path = runtime_root / "PYTHON_ENVIRONMENT.json"
+        environment = json.loads(environment_path.read_bytes())
+        if change == "stdlib":
+            name = environment["stdlib_path"] + "/os.py"
+            environment["file_hashes"][name] = "0" * 64
+        elif change == "identity":
+            environment["identity"]["build"] = "different CPython build"
+        else:
+            environment["production_approved"] = True
+        environment.pop("python_environment_sha256")
+        environment["python_environment_sha256"] = sha256(json_bytes(environment))
+        environment_path.write_bytes(json_bytes(environment))
+        manifest["python_environment"] = environment
+        manifest["python_environment_sha256"] = environment["python_environment_sha256"]
+        manifest["python_environment_manifest_sha256"] = sha256(environment_path.read_bytes())
+        manifest["file_hashes"]["PYTHON_ENVIRONMENT.json"] = sha256(environment_path.read_bytes())
+    manifest["runtime_sha256"] = sha256(
+        json_bytes({"policy": manifest["policy"], "file_hashes": manifest["file_hashes"]})
+    )
+    manifest_path.write_bytes(json_bytes(manifest))
+    receipt_path = isolated[2] / "receipt.json"
+    receipt = json.loads(receipt_path.read_bytes())
+    receipt["runtime_sha256"] = manifest["runtime_sha256"]
+    if change in {"stdlib", "identity", "production"}:
+        # All claims and supplied pins are self-consistent, but do not describe
+        # the actual running installation (or falsely claim production approval).
+        for key in ("python_environment_sha256", "python_environment_manifest_sha256"):
+            receipt[key] = manifest[key]
+            isolated[0][isolated[0].index("--" + key.replace("_", "-")) + 1] = manifest[key]
+    receipt_path.write_bytes(json_bytes(receipt))
+    for key, value in {
+        "--runtime-sha256": manifest["runtime_sha256"],
+        "--issuance-sha256": sha256(receipt_path.read_bytes()),
+    }.items():
+        isolated[0][isolated[0].index(key) + 1] = value
+    result = run(isolated, "validate")
+    assert result.returncode != 0
+    assert not result.stdout
 
 
 def test_isolated_commands_and_incomplete_zero_semantics(

@@ -10,6 +10,16 @@ from pydantic import field_validator, model_validator
 from peru_conflicts.hashing import canonical_json_bytes
 from peru_conflicts.models.common import Sha256, StrictModel
 
+from .access_policy import (
+    ACCESS_CHECKS,
+    ACCESS_EXPECTATIONS_BY_ID,
+    ACCESS_POLICY_V2,
+    ACCESS_POLICY_V2_SHA256,
+    AccessActor,
+    AccessOperation,
+    AccessResource,
+    AclOutcome,
+)
 from .contracts import AnnotationContractIdentity, validate_annotation_contract_alignment
 from .coordination import (
     EligibilityAttestation,
@@ -43,66 +53,6 @@ DRAFT_FALSE_FLAGS = (
     "m3_owner_approved",
     "normative_metric_amendment_approved",
 )
-
-# Each ID fixes actor, operation, resource and the required outcome. PASS means
-# that outcome was observed, so a denied-read check must never mean read allowed.
-ACCESS_CHECKS: dict[str, tuple[str, str, str, str]] = {
-    "a-read-own-issue": ("annotator-a", "read", "annotator-a/issue", "allow"),
-    "a-write-own-submission": ("annotator-a", "write", "annotator-a/submission", "allow"),
-    "b-read-own-issue": ("annotator-b", "read", "annotator-b/issue", "allow"),
-    "b-write-own-submission": ("annotator-b", "write", "annotator-b/submission", "allow"),
-    **{
-        f"coordinator-{operation}-{area}-{role}": (
-            "coordinator",
-            operation,
-            f"annotator-{role}/{area}",
-            "allow",
-        )
-        for role in ("a", "b")
-        for area in ("issue", "submission")
-        for operation in ("list", "read")
-    },
-    **{
-        f"{role}-{operation}-other-{area}": (
-            f"annotator-{role}",
-            operation,
-            f"annotator-{other}/{area}",
-            "deny",
-        )
-        for role, other in (("a", "b"), ("b", "a"))
-        for area in ("issue", "submission")
-        for operation in ("list", "read")
-    },
-    **{
-        f"{role}-{operation}-{area}": (
-            f"annotator-{role}",
-            operation,
-            f"coordinator/{area}",
-            "deny",
-        )
-        for role in ("a", "b")
-        for area in (
-            "custody",
-            "comparison",
-            "adjudication",
-            "held-out-sealed",
-            "receipts",
-            "locked/annotator-a",
-            "locked/annotator-b",
-            "supersession",
-        )
-        for operation in ("list", "read")
-    },
-    **{
-        f"coordinator-{operation}-custody": (
-            "coordinator",
-            operation,
-            "coordinator/custody",
-            "allow",
-        )
-        for operation in ("list", "read")
-    },
-}
 
 # These are named hypothetical prerequisite assertions, never callable actions.
 # External-write authority is checked before any hypothetical external operation.
@@ -147,6 +97,8 @@ class LaunchIdentity(StrictModel):
     launcher_sha256: Sha256
     interpreter_sha256: Sha256
     dependency_sha256: Sha256
+    python_environment_sha256: Sha256
+    python_environment_manifest_sha256: Sha256
 
     @model_validator(mode="after")
     def contract_alignment(self) -> Self:
@@ -182,6 +134,8 @@ def compose_identity(
         launcher_sha256=runtime.launcher_sha256,
         interpreter_sha256=runtime.interpreter_sha256,
         dependency_sha256=runtime.dependency_sha256,
+        python_environment_sha256=runtime.python_environment_sha256,
+        python_environment_manifest_sha256=runtime.python_environment_manifest_sha256,
     )
 
 
@@ -223,9 +177,10 @@ class LaunchCandidate(StrictModel):
     contract_identity: AnnotationContractIdentity
     identities: tuple[LaunchIdentity, LaunchIdentity]
     external_layout_version: Literal["m2-02-external-layout-v1"] = "m2-02-external-layout-v1"
-    access_control_test_protocol_version: Literal["m2-02-real-access-tests-v1"] = (
-        "m2-02-real-access-tests-v1"
+    access_control_test_protocol_version: Literal["m2-02-real-access-tests-v2"] = (
+        "m2-02-real-access-tests-v2"
     )
+    access_policy_sha256: Sha256
     owner_readiness_approved: Literal[True] = True
     owner_launch_approved: Literal[False] = False
     annotation_launch_approved: Literal[False] = False
@@ -262,6 +217,8 @@ class LaunchCandidate(StrictModel):
         pair = _validate_pair(self.identities)
         if pair[0].original.contract_identity != self.contract_identity:
             raise ValueError("candidate differs from governing annotation contract")
+        if self.access_policy_sha256 != ACCESS_POLICY_V2_SHA256:
+            raise ValueError("candidate access policy identity is stale or substituted")
         return self
 
 
@@ -359,13 +316,38 @@ def private_eligibility_template() -> dict[str, str | None]:
 class AccessReceipt(StrictModel):
     kind: Literal["REAL_ACCOUNT_ACCESS_TEST", "SYNTHETIC_ACCESS_REHEARSAL"]
     check_id: str
+    actor: AccessActor
+    resource: AccessResource
+    operation: AccessOperation
+    expected_outcome: AclOutcome
+    control_layer: Literal["ACL"] = "ACL"
+    rationale_id: str
     composite_pair_sha256: Sha256
     status: Literal["NOT RUN", "PASS", "FAIL"] = "NOT RUN"
 
     @model_validator(mode="after")
     def no_real_test_claim(self) -> Self:
-        if self.check_id not in ACCESS_CHECKS:
+        expected = ACCESS_EXPECTATIONS_BY_ID.get(self.check_id)
+        if expected is None:
             raise ValueError("unknown access actor/operation/resource/outcome route")
+        actual_route = (
+            self.actor,
+            self.resource,
+            self.operation,
+            self.expected_outcome,
+            self.control_layer,
+            self.rationale_id,
+        )
+        expected_route = (
+            expected.actor,
+            expected.resource,
+            expected.operation,
+            expected.expected_outcome,
+            expected.control_layer,
+            expected.rationale_id,
+        )
+        if actual_route != expected_route:
+            raise ValueError("access receipt differs from access policy")
         if self.kind == "REAL_ACCOUNT_ACCESS_TEST" and self.status != "NOT RUN":
             raise ValueError("real-account tests remain NOT RUN in this draft")
         return self
@@ -375,8 +357,17 @@ def real_access_test_template(identities: Sequence[LaunchIdentity]) -> tuple[Acc
     """Unperformed future real-account checks, containing no account identities."""
     digest = pair_sha256(identities)
     return tuple(
-        AccessReceipt(kind="REAL_ACCOUNT_ACCESS_TEST", check_id=check, composite_pair_sha256=digest)
-        for check in ACCESS_CHECKS
+        AccessReceipt(
+            kind="REAL_ACCOUNT_ACCESS_TEST",
+            check_id=row.check_id,
+            actor=row.actor,
+            resource=row.resource,
+            operation=row.operation,
+            expected_outcome=row.expected_outcome,
+            rationale_id=row.rationale_id,
+            composite_pair_sha256=digest,
+        )
+        for row in ACCESS_POLICY_V2.acl_expectations
     )
 
 
@@ -455,6 +446,8 @@ def synthetic_launch_preflight(
                 "dependency_sha256": identity.dependency_sha256,
                 "launcher_sha256": identity.launcher_sha256,
                 "interpreter_sha256": identity.interpreter_sha256,
+                "python_environment_sha256": identity.python_environment_sha256,
+                "python_environment_manifest_sha256": identity.python_environment_manifest_sha256,
                 "view_sha256": identity.view_sha256,
                 "original_package_sha256": identity.original.manifest_sha256,
                 "contract_sha256": identity.runtime_contract_sha256,

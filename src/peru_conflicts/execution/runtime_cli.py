@@ -305,7 +305,14 @@ def execute(args: argparse.Namespace, stack: ExitStack) -> str:
     if expected_runtime != args.runtime_sha256 or manifest["runtime_sha256"] != args.runtime_sha256:
         raise ValueError("trusted runtime pin differs")
     _inventory(files, manifest["file_hashes"])
-    for field in ("dependency", "contract", "launcher", "interpreter"):
+    for field in (
+        "dependency",
+        "contract",
+        "launcher",
+        "interpreter",
+        "python_environment",
+        "python_environment_manifest",
+    ):
         if manifest[field + "_sha256"] != getattr(args, field + "_sha256"):
             raise ValueError("runtime prerequisite pin differs")
     if (
@@ -314,6 +321,27 @@ def execute(args: argparse.Namespace, stack: ExitStack) -> str:
         or digest(files["FIELD_REGISTRY.json"]) != manifest["registry_sha256"]
     ):
         raise ValueError("runtime material pin differs")
+    if digest(files["PYTHON_ENVIRONMENT.json"]) != args.python_environment_manifest_sha256:
+        raise ValueError("Python environment manifest pin differs")
+    # This policy is executed only from the already verified runtime snapshot.
+    # No repository fallback, site import, or third-party validator is involved.
+    # These are consistency checks; already-loaded stdlib and later OS/native
+    # reads require independently provisioned, continuously protected custody.
+    environment_policy: dict[str, Any] = {"__name__": "verified_python_environment_policy"}
+    exec(
+        compile(files["PYTHON_ENVIRONMENT_POLICY.py"], "<verified-environment-policy>", "exec"),
+        environment_policy,
+    )
+    environment = document(files["PYTHON_ENVIRONMENT.json"])
+    environment_policy["validate_document"](environment)
+    if (
+        manifest["python_environment"] != environment
+        or environment["python_environment_sha256"] != args.python_environment_sha256
+        or environment["interpreter_sha256"] != args.interpreter_sha256
+        or environment["dependency_sha256"] != args.dependency_sha256
+        or environment_policy["capture_document"](args.dependency_sha256) != environment
+    ):
+        raise ValueError("Python environment differs independently supplied rehearsal pins")
     dependencies = document(files["DEPENDENCIES.json"])
     if (
         dependencies["python_version"] != sys.version
@@ -345,6 +373,8 @@ def execute(args: argparse.Namespace, stack: ExitStack) -> str:
         "dependency_sha256": args.dependency_sha256,
         "launcher_sha256": args.launcher_sha256,
         "interpreter_sha256": args.interpreter_sha256,
+        "python_environment_sha256": args.python_environment_sha256,
+        "python_environment_manifest_sha256": args.python_environment_manifest_sha256,
         "view_sha256": args.view_sha256,
         "original_package_sha256": args.package_sha256,
         "contract_sha256": args.contract_sha256,
@@ -446,6 +476,8 @@ def main() -> int:
         "dependency",
         "launcher",
         "interpreter",
+        "python-environment",
+        "python-environment-manifest",
         "view",
         "package",
         "contract",

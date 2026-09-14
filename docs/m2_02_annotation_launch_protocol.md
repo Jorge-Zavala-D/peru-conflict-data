@@ -3,8 +3,10 @@
 This is a coordinator-only preparation protocol for `m2-02-v1`. It is not an
 annotator handout and grants no launch, external-write, issuance, or lock authority.
 The launch candidate is a draft; all 16 owner-launch responses remain null and
-all 54 real-account access checks remain `NOT RUN`. No private person identity,
-contact detail, exposure history, or actual attestation belongs in Git.
+all 108 mechanically derived v2 ACL checks remain `NOT RUN`. The complete
+54-row v1 matrix remains immutable historical evidence, not the active protocol.
+No private person identity, contact detail, exposure history, or actual attestation
+belongs in Git.
 
 ## Authority and separate gates
 
@@ -48,7 +50,8 @@ package digest or reuse an old package receipt as derived-view authority.
 
 The composite identity binds original package/manifest/reference/contract,
 neutral view and file set, runtime and file set, field registry, contract,
-launcher, interpreter and dependency inventory. The candidate YAML byte SHA and
+launcher, interpreter, dependency inventory and complete Python environment
+manifest/aggregate. The candidate YAML byte SHA and
 canonical-model SHA are different pins. Neither a candidate nor a self-consistent
 replacement receipt supplies its own authority: expected pins must arrive from
 independently trusted coordinator custody.
@@ -71,6 +74,8 @@ in a temporary rehearsal directory. The invocation shape is:
   --package <neutral-view-root> --issuance <trusted-root>/unissued-binding.json
   --runtime-sha256 <runtime-aggregate> --dependency-sha256 <dependency-inventory>
   --launcher-sha256 <launcher-bytes> --interpreter-sha256 <base-interpreter-bytes>
+  --python-environment-sha256 <environment-aggregate>
+  --python-environment-manifest-sha256 <environment-manifest-bytes>
   --view-sha256 <view-aggregate> --package-sha256 <original-manifest-bytes>
   --contract-sha256 <contract-bytes> --issuance-sha256 <independent-receipt-bytes>
   --role annotator-a validate
@@ -83,10 +88,55 @@ complete inspection and resolved or explicitly unresolved slots. A successful
 validation of blank real-source views has zero discoveries/records and remains
 incomplete. It is structural compatibility, not annotation or human rehearsal.
 
+The required `PythonEnvironmentTrustManifest` is path-neutral rehearsal evidence.
+It binds CPython's exact version/build/compiler, platform, machine architecture,
+pointer width and ABI, interpreter bytes, the complete pure stdlib, available
+Python zip archives, extension modules and distribution runtime files. Windows
+inventory covers `Lib`, `DLLs`, Tcl runtime when present, and root DLL/executable
+files. Supported Linux installations have a dedicated CPython distribution
+prefix, such as the CI setup-python installation. Inventory covers the configured
+stdlib including `lib-dynload`, Python executables/archives, every distribution
+shared object under `lib`/`lib64` (including multiarch and private subdirectories),
+and bundled Tcl/Tk runtime data. Internal file symlink targets are explicitly
+bound. Shared system prefixes such as `/usr` and `/usr/local`, external link
+targets, and aliased native runtime directories fail closed; they are not
+supported installation layouts. These checks do not assert that an arbitrary
+custom prefix is independently approved or owned by the distribution; that
+requires the separate pre-execution provisioning review. Windows dedicated layouts
+fail closed on any `._pth` entry (including `python._pth` and versioned
+`python313._pth`) in the distribution root or interpreter directory, and on
+`pyvenv.cfg` in either directory or its immediate parent. These bounded startup
+configuration checks do not establish trust in inputs Python already consumed.
+Bytecode/cache directories,
+`site-packages`, `dist-packages` and user packages are excluded; the separately
+allowlisted dependency inventory remains independently pinned. External OS
+loaders, kernels, linked system libraries and hardware form an explicit separate
+trust boundary. The manifest contains no installation root or private absolute
+paths. Both annotators must have identical environment identities; no environment
+equivalence contract is approved. Changed stdlib bytes with unchanged interpreter
+and dependency bytes invalidate the environment and all earlier bindings.
+
 An executable copied from an untrusted package cannot establish its own trust by
 checking its own hash. The launcher, interpreter and expected pins therefore need
 separately reviewed custody before execution. A repository development interpreter
 or repository launcher path is not the independent operational trust root.
+Before any future production invocation, a separately trusted mechanism must
+independently authenticate and provision the interpreter, stdlib, native runtime,
+launcher and dependencies, then protect their custody throughout execution.
+The running Python process has already used stdlib modules before it can hash
+them: its checks cannot authenticate those loaded modules, establish this trust
+root, or prevent later environment mutation. `-I -S -B` and the launcher's
+captured-byte checks provide in-process consistency against separately supplied
+pins only. `-B` prevents bytecode writes, not bytecode reads. Because `.pyc` files
+and `__pycache__` remain excluded, future independently trusted pre-execution
+provisioning must remove or reject caches, or independently validate their
+derivation from the pinned source bytes, before Python starts. This rehearsal
+does not implement that production mechanism. The same stdlib-only
+inventory/validation policy is used by the
+builder and from runtime-pinned captured bytes by the launcher, with no
+repository fallback. All generated manifests have `production_approved: false`;
+self-consistent rehearsal hashes never constitute production provisioning or
+launch approval. This change implements no production provisioning mechanism.
 `UNISSUED_RUNTIME_REHEARSAL` is currently the supported receipt kind. The CLI's
 `--issuance` argument name does not turn that receipt into real issuance. Future
 private provisioning and support for real launch-authorized runtime bindings need
@@ -96,31 +146,37 @@ or invent real issuance receipts during M2-02B.1.
 ## Proposed external areas and least privilege
 
 All paths below are relative to the proposed root
-`06_validation/m2_benchmark/annotation_runs/m2-02-v1`. The topology is unchanged;
-these are proposed paths, not directories to create in this task.
+`06_validation/m2_benchmark/annotation_runs/m2-02-v1`. The area paths are unchanged;
+the approved access semantics are hardened. These are proposed paths, not directories
+to create in this task.
 
-| Area | Annotator A | Annotator B | Coordinator purpose |
+| Area | Annotator A ACL | Annotator B ACL | Coordinator ACL / purpose |
 | --- | --- | --- | --- |
-| `coordinator/custody` | None | None | Source, authority and private eligibility custody |
-| `annotator-a/issue` | Read | None | Verified A delivery |
-| `annotator-a/submission` | Own draft/upload | None | Receive A independently |
-| `annotator-b/issue` | None | Read | Verified B delivery |
-| `annotator-b/submission` | None | Own draft/upload | Receive B independently |
-| `coordinator/locked/annotator-a` | None | None | Immutable accepted A locks |
-| `coordinator/locked/annotator-b` | None | None | Immutable accepted B locks |
-| `coordinator/supersession` | None | None | Single-parent replacement lineage |
-| `coordinator/comparison` | None | None | Comparison after both locks |
-| `coordinator/adjudication` | None | None | Later authorized decisions |
-| `coordinator/held-out-sealed` | None | None | Partition routing and sealed evaluation |
-| `coordinator/receipts` | None | None | Private operational receipts and manifests |
+| `coordinator/custody` | Deny list/read/write | Deny list/read/write | Allow list/read/write; source, authority and private eligibility custody |
+| `annotator-a/issue` | Allow list/read; deny write | Deny list/read/write | Allow list/read/write; verified A delivery |
+| `annotator-a/submission` | Allow list/read/write in private account-scoped draft workspace | Deny list/read/write | Allow list/read/write; receive A independently |
+| `annotator-b/issue` | Deny list/read/write | Allow list/read; deny write | Allow list/read/write; verified B delivery |
+| `annotator-b/submission` | Deny list/read/write | Allow list/read/write in private account-scoped draft workspace | Allow list/read/write; receive B independently |
+| `coordinator/locked/annotator-a` | Deny list/read/write | Deny list/read/write | Allow list/read/write; application hash control preserves accepted A bytes |
+| `coordinator/locked/annotator-b` | Deny list/read/write | Deny list/read/write | Allow list/read/write; application hash control preserves accepted B bytes |
+| `coordinator/supersession` | Deny list/read/write | Deny list/read/write | Allow list/read/write; single-parent replacement lineage |
+| `coordinator/comparison` | Deny list/read/write | Deny list/read/write | Allow list/read/write; compare only after both valid locks |
+| `coordinator/adjudication` | Deny list/read/write | Deny list/read/write | Allow list/read/write; later M2-03 only |
+| `coordinator/held-out-sealed` | Deny list/read/write | Deny list/read/write | Allow list/read/write; private benchmark-role routing/results |
+| `coordinator/receipts` | Deny list/read/write | Deny list/read/write | Allow list/read/write; authority, access, eligibility, issuance and lock receipts |
 
-The coordinator owns all areas and must be able to list/read both issue and
-submission areas. Never share the run root or a coordinator ancestor with either
-annotator. Inspect inherited group membership, existing shares and old links;
+The coordinator owns all areas and must be able to list/read/write where necessary
+to provision and receive materials. Never share the run root or a coordinator
+ancestor with either annotator. Inspect inherited group membership, existing shares and old links;
 path separation alone is not access isolation. Use only role-specific grants.
-Dropbox permissions and version history do not establish application-level
-immutability. No links, invitations, uploads, directories or sharing changes are
-authorized by this proposal.
+Coordinator write permission is operationally required. Accepted bytes are instead
+hash-controlled and superseded append-only by the application/provenance layer;
+that rule is not an ACL denial. A public upload-only file request is not a substitute
+for the required private account-scoped list/read/write draft workspace. A view-only
+link interface cannot grant edit access, while a file-request upload URL does not
+grant destination browse access; neither proves future account ACLs. If the required
+private semantics cannot be enforced, launch is blocked. No links, invitations,
+uploads, directories or sharing changes are authorized by this proposal.
 
 ## Future private eligibility and real-account tests
 
@@ -133,14 +189,17 @@ exposure history and timestamp to the exact run/original package/reference/view/
 runtime/contract composite. Keep real names, contacts and exposure histories in
 private coordinator custody. Blank templates are not attestations.
 
-After separately authorized private provisioning, perform all 54 fixed checks from
+After separately authorized private provisioning, perform every ACL row derived from
+the typed `m2-02-real-access-tests-v2` policy (currently 108 rows) from
 `launch_access_test_protocol_receipt.json` using the **actual accounts**. For each
 check record private account identity, time, exact actor/operation/resource,
-expected allow or deny outcome, and independently reviewable observation evidence.
-Use a harmless separately authorized test upload for each own-submission write.
-Test positive A/B own-issue reads and own-submission writes; coordinator list/read
-of both areas and custody; A/B list/read denial of the other's issue/submission
-and every coordinator area. Inspect that distributed content has no partition
+expected uppercase `ALLOW` or `DENY` outcome, control layer, unique rationale ID,
+and independently reviewable observation evidence. Use a harmless separately
+authorized test file for each own-submission write. Test A/B list/read on each own
+issued area and list/read/write in each own private draft workspace; deny own-issued
+writes. Deny all three operations on the other annotator's issue/submission and every
+coordinator-only area. Test coordinator list/read/write wherever operationally
+needed. Inspect that distributed content has no partition
 metadata or prohibited machine aids in addition to these permission probes.
 
 `PASS` means the specified outcome was actually observed: a denied-read check
@@ -210,7 +269,8 @@ Optional `raw_evidence` maps safe filenames to the same `{path, sha256}` pins;
 JUnit XML, raw command output and detailed CI observations are preserved unchanged
 under the snapshot's `raw_evidence/` directory and included in the byte inventory.
 
-Each snapshot includes the requested receipts, typed topology, 54 NOT RUN tests,
+Each snapshot includes the requested receipts, typed topology, all v2 ACL rows as
+NOT RUN tests, the policy version and identity, separately typed application controls,
 blank private eligibility template, JSON/Markdown 16-decision dossier, proposed
 PR body, final packet and a non-circular `SHA256SUMS.txt`. Missing stages have
 explicit `NOT RUN` placeholders. The first nine dossier items can be technical
@@ -297,8 +357,43 @@ their actual scope without being mislabeled a fresh final run.
 
 An underlying `NOT RUN`, failed outcome, stale identity, missing file, substituted
 summary, or mismatch with normalized observations rejects technical completion even
-when all input hashes have been refreshed. The 54 **operational** access rows remain
+when all input hashes have been refreshed. All derived v2 **operational** ACL rows remain
 NOT RUN and the 16 owner responses remain null; they must never be changed to satisfy
 these technical checks. This validates consistency of pinned local records, not
 remote authentication or the truthfulness of an invented observation. Actual
 measurement, independent review and owner authority remain separate responsibilities.
+
+### M2-02B.1b hardening evidence renewal
+
+Use `scripts/prepare_m2_launch_review.py INPUTS NEW_SNAPSHOT --cache-namespace m2-02b1b`
+for hardening snapshots. Only `m2-02b1` and `m2-02b1b` are accepted namespaces;
+the historical default remains available to reproduce the prior review workflow.
+All snapshots remain append-only. Historical `.cache/m2-02b1` receipts, original
+A/B packages and existing neutral views are preserved. Pin the historical packet
+as raw evidence to distinguish its commit, runtime and CI from the renewed review.
+
+Hardening mode requires three additional receipts before `--require-complete`
+can succeed: `access_policy_v2_receipt.json`,
+`python_environment_trust_receipt.json`, and `runtime_identity_receipt.json`.
+`hardening_receipt_documents(candidate, runtime)` derives their exact expected
+content from the current strict candidate and measured rehearsal runtime. The
+policy receipt binds the full v2 policy and derived ACL count with zero executed
+real-account checks. The environment receipt binds both environment hashes and
+the complete inventory, retains `production_approved: false`, and records
+independent provisioning and external OS/system-library trust as NOT RUN.
+The runtime receipt binds the ordered A/B composite identities and policy.
+Supplied stale or substituted receipts fail even when preparing an incomplete
+snapshot; missing receipts are explicit NOT RUN placeholders. A hash refresh
+alone cannot make old policy or environment content current.
+
+An initial hardening packet has `hardening_review_status: INCOMPLETE`.
+Only validated current local gates, independent principal review, exact final-head
+Linux/Windows CI and all required technical and hardening receipts can yield
+`M2_02B1_OWNER_LAUNCH_DESIGN_REVIEW_READY_AFTER_HARDENING`. That technical status
+still leaves every launch flag false, all sixteen owner responses null and all
+real-account ACL checks NOT RUN. The measured rehearsal distribution is not an
+approved production environment. Decision 6 presents v2 access evidence for
+later owner review; it does not choose or approve that decision. Before any future
+production invocation, a separately trusted mechanism must independently verify
+the pinned Python installation before execution and protect its custody throughout
+execution; the launcher's consistency check cannot authenticate already used stdlib.

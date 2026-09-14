@@ -13,7 +13,8 @@ from peru_conflicts.hashing import canonical_json_bytes
 from peru_conflicts.models.common import Sha256, StrictModel
 
 from .launch import (
-    ACCESS_CHECKS,
+    ACCESS_POLICY_V2,
+    ACCESS_POLICY_V2_SHA256,
     CEREMONY_STEPS,
     DRAFT_FALSE_FLAGS,
     LaunchCandidate,
@@ -39,49 +40,45 @@ RECEIPT_NAMES = (
 )
 EXTERNAL_ROOT = "06_validation/m2_benchmark/annotation_runs/m2-02-v1"
 AREAS = (
-    ("coordinator/custody", "Source, authority and private eligibility custody", "none", "none"),
-    ("annotator-a/issue", "Verified neutral A runtime/package; no ancestor share", "read", "none"),
+    ("coordinator/custody", "Source, authority and private eligibility custody"),
+    (
+        "annotator-a/issue",
+        "Private issued-package area; A may list/read but not write",
+    ),
     (
         "annotator-a/submission",
-        "A private draft/upload area; no coordinator content",
-        "write-own",
-        "none",
+        "Private account-scoped A draft workspace with normal list/read/write semantics",
     ),
-    ("annotator-b/issue", "Verified neutral B runtime/package; no ancestor share", "none", "read"),
+    (
+        "annotator-b/issue",
+        "Private issued-package area; B may list/read but not write",
+    ),
     (
         "annotator-b/submission",
-        "B private draft/upload area; no coordinator content",
-        "none",
-        "write-own",
+        "Private account-scoped B draft workspace with normal list/read/write semantics",
     ),
     (
         "coordinator/locked/annotator-a",
         "Immutable A locks; append-only application protocol",
-        "none",
-        "none",
     ),
     (
         "coordinator/locked/annotator-b",
         "Immutable B locks; append-only application protocol",
-        "none",
-        "none",
     ),
-    ("coordinator/supersession", "Explicit single-parent lock replacement lineage", "none", "none"),
-    ("coordinator/comparison", "Comparison only after both valid locks", "none", "none"),
-    ("coordinator/adjudication", "Later M2-03 adjudication, not authorized now", "none", "none"),
+    ("coordinator/supersession", "Explicit single-parent lock replacement lineage"),
+    ("coordinator/comparison", "Comparison only after both valid locks"),
+    ("coordinator/adjudication", "Later M2-03 adjudication, not authorized now"),
     (
         "coordinator/held-out-sealed",
         "Private benchmark-role routing and sealed results",
-        "none",
-        "none",
     ),
     (
         "coordinator/receipts",
         "Authority, access, eligibility, issuance and lock receipts",
-        "none",
-        "none",
     ),
 )
+
+ACCESS_ROW_COUNT = len(ACCESS_POLICY_V2.acl_expectations)
 
 # Each row is a question for the owner, not a decision by this software.
 DECISIONS = (
@@ -97,8 +94,9 @@ DECISIONS = (
     (
         "ISOLATED-RUNTIME",
         "Accept the independent runtime design and exact selected runtime identity?",
-        "Runtime manifest, file hashes, independent interpreter/dependencies "
-        "and separately trusted launcher plan",
+        "Runtime and Python-environment manifests, exact stdlib/native bytes, "
+        "interpreter/dependencies and separately trusted launcher plan; independent "
+        "pre-execution provisioning verification and protected custody remain future prerequisites",
         "Accept runtime design for later private provisioning",
         "Revise runtime design before launch",
         "Repository access or an untrusted bootstrap exposes coordinator knowledge",
@@ -115,7 +113,8 @@ DECISIONS = (
     (
         "EXTERNAL-TOPOLOGY",
         "Accept the exact proposed areas and least-privilege access design?",
-        "Typed topology and real-account test protocol; no area creation evidence is claimed",
+        "Typed private draft topology, ACL policy and separate application immutability controls; "
+        "no area creation evidence is claimed",
         "Approve topology design only",
         "Revise topology; no external write follows",
         "Inherited shares expose cross-annotator or coordinator content",
@@ -130,8 +129,10 @@ DECISIONS = (
     ),
     (
         "AB-ACCESS-TEST-PROTOCOL",
-        "Accept all 54 real-account allow/deny checks and evidence procedure?",
-        "Actor/operation/resource/expected-outcome matrix; all statuses NOT RUN",
+        f"Accept all {ACCESS_ROW_COUNT} derived real-account ACL checks and evidence procedure?",
+        "Typed v2 actor/resource/list-read-write/expected-outcome matrix and policy identity; "
+        "private account-scoped read/write drafts, read-only issued packages and explicit "
+        "foreign/coordinator denials; all statuses NOT RUN",
         "Approve later test protocol only",
         "Revise protocol before provisioning",
         "Path assumptions mistaken for observed account isolation",
@@ -139,7 +140,8 @@ DECISIONS = (
     (
         "HELDOUT-SEALING-LAUNCH-PROTOCOL",
         "Accept coordinator-only routing and held-out sealing at launch?",
-        "Coordinator protocol, neutral view audit and real isolation test plan",
+        "Coordinator protocol, neutral view audit and explicit annotator list/read/write denials "
+        "for held-out-sealed",
         "Approve sealing design only",
         "Block launch until secrecy is demonstrable",
         "Held-out labels or partition assignments leak into development",
@@ -190,7 +192,7 @@ DECISIONS = (
         "REAL-AB-ACCESS-ISOLATION",
         "Have all required outcomes passed using the actual separate accounts?",
         "Future timestamped private real-account test evidence "
-        "for all 54 checks and exact composites",
+        f"for all {ACCESS_ROW_COUNT} derived ACL checks and exact composites",
         "Accept observed isolation for tested state only",
         "Repair permissions and rerun all affected tests",
         "Cross-access survives inherited memberships or old links",
@@ -331,6 +333,11 @@ class TechnicalStageReceipt(StrictModel):
 
 
 TECHNICAL_STAGES = (*RECEIPT_NAMES, "final_ci_receipt.json")
+HARDENING_RECEIPTS = (
+    "access_policy_v2_receipt.json",
+    "python_environment_trust_receipt.json",
+    "runtime_identity_receipt.json",
+)
 BASELINE_FIELDS = (
     "protected_main_merge_sha",
     "protected_main_merge_tree",
@@ -676,6 +683,8 @@ def _json(value: object) -> bytes:
 def proposed_topology() -> dict[str, object]:
     return {
         "kind": "PROPOSED_EXTERNAL_TOPOLOGY_NOT_EXECUTED",
+        "access_policy_version": ACCESS_POLICY_V2.policy_version,
+        "access_policy_sha256": ACCESS_POLICY_V2_SHA256,
         "root": EXTERNAL_ROOT,
         "created": False,
         "dropbox_writes": 0,
@@ -685,11 +694,19 @@ def proposed_topology() -> dict[str, object]:
                 "path": f"{EXTERNAL_ROOT}/{path}",
                 "purpose": purpose,
                 "owner": "coordinator",
-                "annotator_a": a,
-                "annotator_b": b,
+                "acl_expectations": [
+                    row.model_dump(mode="json")
+                    for row in ACCESS_POLICY_V2.acl_expectations
+                    if row.resource == path
+                ],
+                "application_controls": [
+                    row.model_dump(mode="json")
+                    for row in ACCESS_POLICY_V2.application_controls
+                    if row.resource == path
+                ],
                 "exists_created_by_task": False,
             }
-            for path, purpose, a, b in AREAS
+            for path, purpose in AREAS
         ],
         "conditions": [
             "Never share the run root or a coordinator ancestor with annotators.",
@@ -753,12 +770,47 @@ def _dossier_markdown(dossier: dict[str, Any]) -> bytes:
     return ("\n".join(lines) + "\n").encode()
 
 
+def hardening_receipt_documents(
+    candidate: LaunchCandidate, runtime: RuntimeManifest
+) -> dict[str, dict[str, object]]:
+    """Derive review bindings from captured rehearsal bytes, never production trust."""
+    return {
+        "access_policy_v2_receipt.json": {
+            "kind": "M2_02B1B_ACCESS_POLICY_V2_REVIEW_ONLY",
+            "access_policy_sha256": ACCESS_POLICY_V2_SHA256,
+            "protocol_version": candidate.access_control_test_protocol_version,
+            "policy": ACCESS_POLICY_V2.model_dump(mode="json"),
+            "acl_check_count": ACCESS_ROW_COUNT,
+            "real_account_tests_executed": 0,
+            "real_account_test_status": "NOT RUN",
+        },
+        "python_environment_trust_receipt.json": {
+            "kind": "M2_02B1B_PYTHON_ENVIRONMENT_REHEARSAL_ONLY",
+            "runtime_sha256": runtime.runtime_sha256,
+            "python_environment_sha256": runtime.python_environment_sha256,
+            "python_environment_manifest_sha256": runtime.python_environment_manifest_sha256,
+            "environment": runtime.python_environment.model_dump(mode="json"),
+            "production_approved": False,
+            "independent_pre_execution_provisioning_verification": "NOT RUN",
+            "external_os_and_system_library_trust": "NOT RUN",
+        },
+        "runtime_identity_receipt.json": {
+            "kind": "M2_02B1B_RUNTIME_IDENTITY_REHEARSAL_ONLY",
+            "runtime_sha256": runtime.runtime_sha256,
+            "access_policy_sha256": candidate.access_policy_sha256,
+            "identities": [identity.model_dump(mode="json") for identity in candidate.identities],
+            "production_approved": False,
+        },
+    }
+
+
 def prepare_review(
     workspace_root: Path,
     snapshot_name: str,
     inputs: ReviewInputs,
     *,
     require_complete: bool = False,
+    cache_namespace: str = "m2-02b1",
 ) -> Path:
     """Capture pinned inputs and write a new ignored snapshot; perform no external action.
 
@@ -770,7 +822,10 @@ def prepare_review(
     workspace_root = workspace_root.absolute()
     if workspace_root.resolve(strict=True) != workspace_root:
         raise ValueError("workspace cannot be aliased")
-    cache = workspace_root / ".cache/m2-02b1"
+    if cache_namespace not in {"m2-02b1", "m2-02b1b"}:
+        raise ValueError("invalid cache namespace")
+    hardening = cache_namespace == "m2-02b1b"
+    cache = workspace_root / ".cache" / cache_namespace
     output = cache / snapshot_name
     for path in (workspace_root / ".cache", cache, output):
         if path.is_symlink() or path.resolve() != path.absolute():
@@ -779,6 +834,7 @@ def prepare_review(
         raise ValueError("snapshot already exists")
     unknown = set(inputs.evidence) - {
         *RECEIPT_NAMES,
+        *HARDENING_RECEIPTS,
         "completion_gates.json",
         "core_tests_measured_receipt.json",
         "regression_groups_measured_receipt.json",
@@ -819,12 +875,25 @@ def prepare_review(
             document(data)
         for name, pin in inputs.raw_evidence.items():
             files[f"raw_evidence/{name}"] = capture(f"raw_evidence/{name}", pin)
+        if hardening:
+            for name, expected in hardening_receipt_documents(candidate, runtime).items():
+                if name not in files:
+                    if require_complete:
+                        raise ValueError(f"hardening requires current receipt: {name}")
+                else:
+                    try:
+                        _equal(document(files[name]), expected)
+                    except ValueError as error:
+                        raise ValueError(
+                            f"hardening receipt is stale or inconsistent: {name}"
+                        ) from error
         completion = (
             _validate_completion(workspace_root, inputs, files, stack, candidate)
             if require_complete
             else None
         )
-        missing = [name for name in TECHNICAL_STAGES if name not in files]
+        required = (*TECHNICAL_STAGES, *HARDENING_RECEIPTS) if hardening else TECHNICAL_STAGES
+        missing = [name for name in required if name not in files]
         for name in missing:
             files[name] = _json(
                 {
@@ -840,23 +909,19 @@ def prepare_review(
         files["annotator_b_neutral_view_manifest.json"] = view_bytes[1]
         files["proposed_external_topology.json"] = _json(proposed_topology())
         files["private_eligibility_template.json"] = _json(private_eligibility_template())
-        access: list[dict[str, object]] = []
-        for receipt in real_access_test_template(identities):
-            actor, operation, resource, expected = ACCESS_CHECKS[receipt.check_id]
-            access.append(
-                {
-                    **receipt.model_dump(mode="json"),
-                    "actor": actor,
-                    "operation": operation,
-                    "resource": resource,
-                    "expected_outcome": expected,
-                }
-            )
+        access = [
+            receipt.model_dump(mode="json") for receipt in real_access_test_template(identities)
+        ]
         files["launch_access_test_protocol_receipt.json"] = _json(
             {
                 "kind": "REAL_ACCOUNT_ACCESS_PROTOCOL_NOT_EXECUTED",
                 "protocol_version": candidate.access_control_test_protocol_version,
+                "access_policy_sha256": candidate.access_policy_sha256,
+                "acl_check_count": ACCESS_ROW_COUNT,
                 "checks": access,
+                "application_controls": [
+                    row.model_dump(mode="json") for row in ACCESS_POLICY_V2.application_controls
+                ],
                 "real_account_tests_executed": 0,
                 "ceremony_steps": CEREMONY_STEPS,
             }
@@ -876,7 +941,8 @@ def prepare_review(
             "Validation: consult the byte-pinned supplied evidence in final_m2_02b1_packet.json. "
             "Missing stages are NOT RUN; supplied receipt content "
             "is not a fresh re-attestation.\n\n"
-            "All 54 real-account tests remain NOT RUN; all 16 owner responses remain null. "
+            f"All {ACCESS_ROW_COUNT} derived real-account ACL tests remain NOT RUN; "
+            "all 16 owner responses remain null. "
             "No real humans, eligibility or issuance records, external areas, Dropbox writes, "
             "package delivery, annotation, production locks, gold, parser work or M3 authority.\n\n"
             "Future operation requires separate owner approval, private verification "
@@ -884,6 +950,14 @@ def prepare_review(
             "and separately authorized external writes.\n"
         ).encode()
         packet = {
+            "cache_namespace": cache_namespace,
+            "hardening_review_status": (
+                "M2_02B1_OWNER_LAUNCH_DESIGN_REVIEW_READY_AFTER_HARDENING"
+                if hardening and completion is not None
+                else "INCOMPLETE"
+                if hardening
+                else "NOT APPLICABLE"
+            ),
             "kind": "M2_02B1_REVIEW_PREPARATION_ONLY",
             "launch_authority": False,
             "completion_gates_satisfied": completion is not None,

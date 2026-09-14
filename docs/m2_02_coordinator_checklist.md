@@ -2,14 +2,17 @@
 
 The coordinator-only [launch protocol](m2_02_annotation_launch_protocol.md) now
 specifies the M2-02B.1 preparation boundary, exact proposed topology, independent
-runtime custody, future 54-check real-account ceremony and 16-decision null dossier.
+runtime custody, the future mechanically derived v2 real-account ACL ceremony and
+16-decision null dossier. The historical v1 matrix remains exactly 54 rows.
 This checklist grants no authority to execute those future steps.
 
 - [ ] Validate original package lineage separately from derived neutral-view and runtime identities.
 - [ ] Keep the launcher, interpreter, dependencies and expected pins independently trusted outside the repository for unissued rehearsals.
 - [ ] Generate a new ignored review snapshot without overwriting earlier receipts; inspect missing stages marked NOT RUN.
 - [ ] After measured tests, independent review and exact-head CI, validate the complete evidence gate against the reviewed source snapshot.
-- [ ] Keep all 16 owner-launch responses null and all 54 real-account checks NOT RUN during preparation.
+- [ ] Keep all 16 owner-launch responses null and every derived v2 real-account ACL check NOT RUN during preparation.
+- [ ] Require private account-scoped list/read/write draft workspaces; do not substitute public upload-only file requests or view links.
+- [ ] Confirm coordinator list/read/write remains operationally allowed while accepted-byte immutability is enforced by separate hash-controlled append-only application rules.
 - [ ] Obtain separately reviewed real-binding support and explicit external-write authority before future provisioning or account-test uploads.
 
 Before any future use, validate the active `m2-02-v1` run against owner-approved readiness v3:

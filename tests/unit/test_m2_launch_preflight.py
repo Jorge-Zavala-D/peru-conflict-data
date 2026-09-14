@@ -49,6 +49,11 @@ def test_not_run_access_cannot_pass() -> None:
         AccessReceipt(
             kind="REAL_ACCOUNT_ACCESS_TEST",
             check_id="a-read-own-issue",
+            actor="annotator-a",
+            resource="annotator-a/issue",
+            operation="read",
+            expected_outcome="ALLOW",
+            rationale_id="ACL-A-READ-OWN-ISSUE",
             composite_pair_sha256="a" * 64,
             status="PASS",
         )
@@ -101,6 +106,7 @@ def rehearsal(tmp_path_factory: pytest.TempPathFactory) -> Rehearsal:
         reference_manifest_sha256="060d6f166e35400ba53d563fb75dfae4c4872d22796b12762e35bd6d15f88202",
         contract_identity=active_annotation_contract(),
         identities=(identities[0], identities[1]),
+        access_policy_sha256=l.ACCESS_POLICY_V2_SHA256,
     )
     people = (
         person("annotator-a", "synthetic-private-a"),
@@ -116,11 +122,16 @@ def rehearsal(tmp_path_factory: pytest.TempPathFactory) -> Rehearsal:
     access = tuple(
         l.AccessReceipt(
             kind="SYNTHETIC_ACCESS_REHEARSAL",
-            check_id=check,
+            check_id=row.check_id,
+            actor=row.actor,
+            resource=row.resource,
+            operation=row.operation,
+            expected_outcome=row.expected_outcome,
+            rationale_id=row.rationale_id,
             composite_pair_sha256=l.pair_sha256(identities),
             status="PASS",
         )
-        for check in l.ACCESS_CHECKS
+        for row in l.ACCESS_POLICY_V2.acl_expectations
     )
     ceremony = l.CeremonyEvidence(
         composite_pair_sha256=l.pair_sha256(identities), steps=l.CEREMONY_STEPS
@@ -133,6 +144,8 @@ def rehearsal(tmp_path_factory: pytest.TempPathFactory) -> Rehearsal:
                 "dependency_sha256": identity.dependency_sha256,
                 "launcher_sha256": identity.launcher_sha256,
                 "interpreter_sha256": identity.interpreter_sha256,
+                "python_environment_sha256": identity.python_environment_sha256,
+                "python_environment_manifest_sha256": identity.python_environment_manifest_sha256,
                 "view_sha256": identity.view_sha256,
                 "original_package_sha256": identity.original.manifest_sha256,
                 "contract_sha256": identity.runtime_contract_sha256,
@@ -168,6 +181,31 @@ def test_complete_synthetic_prerequisites_never_authorize(rehearsal: Rehearsal) 
     receipts = tuple(c.issuance_receipt(binding) for binding in originals)
     with pytest.raises(ValueError, match="disabled"):
         c.production_lock_preflight(rehearsal["people"], rehearsal["packages"], originals, receipts)
+
+
+def test_stale_receipt_without_environment_is_rejected(rehearsal: Rehearsal) -> None:
+    stale: list[bytes] = []
+    for raw in rehearsal["runtime_receipts"]:
+        payload = json.loads(raw)
+        payload.pop("python_environment_sha256", None)
+        payload.pop("python_environment_manifest_sha256", None)
+        stale.append(json.dumps(payload).encode())
+    inputs = rehearsal.copy()
+    inputs["runtime_receipts"] = tuple(stale)
+    inputs["runtime_receipt_sha256s"] = tuple(sha256(raw) for raw in stale)
+    result = l.synthetic_launch_preflight(**inputs)
+    assert not result.prerequisites_satisfied
+    assert "runtime_rehearsal_receipt_custody_failed" in result.failures
+
+
+@pytest.mark.parametrize(
+    "field", ["python_environment_sha256", "python_environment_manifest_sha256"]
+)
+def test_a_b_environment_mismatch_is_rejected(rehearsal: Rehearsal, field: str) -> None:
+    identities = rehearsal["identities"]
+    changed = identities[1].model_copy(update={field: "0" * 64})
+    with pytest.raises(ValueError, match="A/B"):
+        l.pair_sha256((identities[0], changed))
 
 
 @pytest.mark.parametrize(
@@ -311,6 +349,17 @@ def test_real_access_templates_remain_not_run(rehearsal: Rehearsal) -> None:
     assert not l.synthetic_launch_preflight(**args).prerequisites_satisfied
 
 
+def test_candidate_requires_exact_access_policy_identity(rehearsal: Rehearsal) -> None:
+    payload = rehearsal["candidate"].model_dump(mode="json")
+    payload.pop("access_policy_sha256")
+    with pytest.raises(ValueError):
+        l.LaunchCandidate.model_validate_json(json.dumps(payload))
+    with pytest.raises(ValueError, match="access policy identity"):
+        l.LaunchCandidate.model_validate_json(
+            json.dumps({**payload, "access_policy_sha256": "f" * 64})
+        )
+
+
 @pytest.mark.parametrize("missing", ["people", "packages", "bindings", "access"])
 def test_missing_private_custody_or_access_denies(rehearsal: Rehearsal, missing: str) -> None:
     args = rehearsal.copy()
@@ -323,6 +372,26 @@ def test_missing_private_custody_or_access_denies(rehearsal: Rehearsal, missing:
     else:
         args["access"] = ()
     assert not l.synthetic_launch_preflight(**args).prerequisites_satisfied
+
+
+@pytest.mark.parametrize("change", ["one_missing", "duplicate", "wrong_outcome", "cross_role"])
+def test_access_rehearsal_requires_exact_policy_rows(rehearsal: Rehearsal, change: str) -> None:
+    args = rehearsal.copy()
+    access = args["access"]
+    if change == "one_missing":
+        args["access"] = access[:-1]
+    elif change == "duplicate":
+        args["access"] = (*access[:-1], access[0])
+    elif change == "wrong_outcome":
+        args["access"] = (
+            access[0].model_copy(update={"expected_outcome": "DENY"}),
+            *access[1:],
+        )
+    else:
+        args["access"] = (access[0].model_copy(update={"actor": "annotator-b"}), *access[1:])
+    result = l.synthetic_launch_preflight(**args)
+    assert not result.prerequisites_satisfied
+    assert "access_checks_incomplete_or_failed" in result.failures
 
 
 @pytest.mark.parametrize(

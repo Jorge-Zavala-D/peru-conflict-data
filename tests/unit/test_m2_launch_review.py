@@ -9,11 +9,16 @@ from typing import Any
 import pytest
 import yaml
 
+from peru_conflicts.execution.access_policy import ACCESS_POLICY_V2, ACCESS_POLICY_V2_SHA256
 from peru_conflicts.execution.coordination import package_identity
 from peru_conflicts.execution.launch import LaunchCandidate, compose_identity, model_sha256
 from peru_conflicts.execution.packages import build_package
 from peru_conflicts.execution.references import build_manifest, sha256
-from peru_conflicts.execution.runtime_build import build_neutral_view, build_runtime
+from peru_conflicts.execution.runtime_build import (
+    RuntimeManifest,
+    build_neutral_view,
+    build_runtime,
+)
 from peru_conflicts.hashing import canonical_json_bytes
 
 
@@ -72,10 +77,22 @@ def test_packet_preserves_unresolved_launch_and_real_access(
         for row in dossier["decisions"]
     )
     access = json.loads((result / "launch_access_test_protocol_receipt.json").read_text())
-    assert len(access["checks"]) == 54
+    assert access["protocol_version"] == "m2-02-real-access-tests-v2"
+    assert access["access_policy_sha256"] == ACCESS_POLICY_V2_SHA256
+    assert access["acl_check_count"] == len(ACCESS_POLICY_V2.acl_expectations)
+    assert len(access["checks"]) == len(ACCESS_POLICY_V2.acl_expectations)
     assert {row["status"] for row in access["checks"]} == {"NOT RUN"}
+    assert {row["control_layer"] for row in access["checks"]} == {"ACL"}
+    assert {row["expected_outcome"] for row in access["checks"]} == {"ALLOW", "DENY"}
+    assert len({row["check_id"] for row in access["checks"]}) == len(access["checks"])
+    assert access["application_controls"] == [
+        row.model_dump(mode="json") for row in ACCESS_POLICY_V2.application_controls
+    ]
     topology = json.loads((result / "proposed_external_topology.json").read_text())
     assert isinstance(topology["areas"], list) and len(topology["areas"]) == 12
+    assert topology["access_policy_version"] == ACCESS_POLICY_V2.policy_version
+    assert topology["access_policy_sha256"] == ACCESS_POLICY_V2_SHA256
+    assert all(len(area["acl_expectations"]) == 9 for area in topology["areas"])
     assert not (tmp_path / "06_validation").exists()
     packet = json.loads((result / "final_m2_02b1_packet.json").read_text())
     assert packet["completion_gates_satisfied"] is False
@@ -434,15 +451,117 @@ def complete_inputs(tmp_path: Path, material: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def test_complete_evidence_remains_preparation_without_launch(
-    tmp_path: Path, complete_inputs: dict[str, Any]
+def with_hardening_receipts(tmp_path: Path, values: dict[str, Any]) -> dict[str, Any]:
+    module = review_module()
+    candidate = LaunchCandidate.model_validate_json(Path(values["candidate"]["path"]).read_bytes())
+    runtime = RuntimeManifest.model_validate_json(Path(values["runtime"]["path"]).read_bytes())
+    evidence = dict(values["evidence"])
+    for name, body in module.hardening_receipt_documents(candidate, runtime).items():
+        path = tmp_path / name
+        path.write_bytes(canonical_json_bytes(body))
+        evidence[name] = {"path": str(path), "sha256": sha256(path.read_bytes())}
+    return {**values, "evidence": evidence}
+
+
+@pytest.mark.parametrize(
+    "receipt",
+    [
+        "access_policy_v2_receipt.json",
+        "python_environment_trust_receipt.json",
+        "runtime_identity_receipt.json",
+    ],
+)
+def test_hardening_completion_requires_new_receipts(
+    tmp_path: Path, complete_inputs: dict[str, Any], receipt: str
 ) -> None:
     module = review_module()
+    values = with_hardening_receipts(tmp_path, complete_inputs)
+    del values["evidence"][receipt]
+    with pytest.raises(ValueError, match=r"hardening.*receipt"):
+        module.prepare_review(
+            tmp_path,
+            "hardening-missing",
+            module.ReviewInputs.model_validate(values),
+            require_complete=True,
+            cache_namespace="m2-02b1b",
+        )
+    assert not (tmp_path / ".cache/m2-02b1b/hardening-missing").exists()
+
+
+@pytest.mark.parametrize(
+    "receipt,field,replacement",
+    [
+        ("access_policy_v2_receipt.json", "access_policy_sha256", "0" * 64),
+        ("access_policy_v2_receipt.json", "acl_check_count", 48),
+        ("access_policy_v2_receipt.json", "real_account_test_status", "PASS"),
+        ("python_environment_trust_receipt.json", "python_environment_sha256", "0" * 64),
+        ("python_environment_trust_receipt.json", "python_environment_manifest_sha256", "0" * 64),
+        ("python_environment_trust_receipt.json", "production_approved", True),
+        ("runtime_identity_receipt.json", "runtime_sha256", "0" * 64),
+    ],
+)
+def test_hardening_rejects_stale_receipts_even_in_incomplete_mode(
+    tmp_path: Path, material: dict[str, Any], receipt: str, field: str, replacement: object
+) -> None:
+    module = review_module()
+    values = with_hardening_receipts(tmp_path, material)
+    path = Path(values["evidence"][receipt]["path"])
+    body = json.loads(path.read_bytes())
+    body[field] = replacement
+    path.write_bytes(canonical_json_bytes(body))
+    values["evidence"][receipt]["sha256"] = sha256(path.read_bytes())
+    with pytest.raises(ValueError, match="hardening receipt is stale"):
+        module.prepare_review(
+            tmp_path,
+            "stale",
+            module.ReviewInputs.model_validate(values),
+            cache_namespace="m2-02b1b",
+        )
+    assert not (tmp_path / ".cache/m2-02b1b/stale").exists()
+
+
+def test_new_hardening_snapshot_is_incomplete_and_preserves_historical_bytes(
+    tmp_path: Path, material: dict[str, Any]
+) -> None:
+    module = review_module()
+    old = module.prepare_review(tmp_path, "old", module.ReviewInputs.model_validate(material))
+    before = {path.name: path.read_bytes() for path in old.iterdir()}
+    values = with_hardening_receipts(tmp_path, material)
+    new = module.prepare_review(
+        tmp_path, "initial", module.ReviewInputs.model_validate(values), cache_namespace="m2-02b1b"
+    )
+    packet = json.loads((new / "final_m2_02b1_packet.json").read_bytes())
+    assert packet["hardening_review_status"] == "INCOMPLETE"
+    assert packet["completion_gates_satisfied"] is False
+    assert "final_ci_receipt.json" in packet["missing_measured_receipts"]
+    assert "principal_review_receipt.json" in packet["missing_measured_receipts"]
+    assert before == {path.name: path.read_bytes() for path in old.iterdir()}
+
+
+def test_hardening_cache_namespace_is_validated(tmp_path: Path, material: dict[str, Any]) -> None:
+    module = review_module()
+    with pytest.raises(ValueError, match="cache namespace"):
+        module.prepare_review(
+            tmp_path,
+            "escape",
+            module.ReviewInputs.model_validate(material),
+            cache_namespace="../elsewhere",
+        )
+
+
+@pytest.mark.parametrize("cache_namespace", ["m2-02b1", "m2-02b1b"])
+def test_complete_evidence_remains_preparation_without_launch(
+    tmp_path: Path, complete_inputs: dict[str, Any], cache_namespace: str
+) -> None:
+    module = review_module()
+    if cache_namespace == "m2-02b1b":
+        complete_inputs = with_hardening_receipts(tmp_path, complete_inputs)
     result = module.prepare_review(
         tmp_path,
         "complete",
         module.ReviewInputs.model_validate(complete_inputs),
         require_complete=True,
+        cache_namespace=cache_namespace,
     )
     packet = json.loads((result / "final_m2_02b1_packet.json").read_text())
     assert packet["completion_gates_satisfied"] is True
