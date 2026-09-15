@@ -2,8 +2,12 @@
 
 This is a coordinator-only preparation protocol for `m2-02-v1`. It is not an
 annotator handout and grants no launch, external-write, issuance, or lock authority.
-The launch candidate is a draft; all 16 owner-launch responses remain null and
-all 108 mechanically derived v2 ACL checks remain `NOT RUN`. The complete
+The launch-design candidate v2 is owner-approved for design only: nine technical/design
+decisions are approved and seven operational launch decisions remain unresolved/null.
+The approval is recorded in `config/benchmark/m2_02b1_launch_design_approval_v1.yaml`;
+`config/benchmark/m2_02_launch_candidate_v2.yaml` binds its exact bytes and preserves
+the reviewed v1 candidate unchanged. Design approval is not annotation launch approval.
+All 108 mechanically derived v2 ACL checks remain `NOT RUN`. The complete
 54-row v1 matrix remains immutable historical evidence, not the active protocol.
 No private person identity, contact detail, exposure history, or actual attestation
 belongs in Git.
@@ -254,6 +258,12 @@ adjudications and sealed held-out results out of human issue areas and runtime.
 Held-out labels must not enter parser-development workflows.
 
 ## Generate and complete a review snapshot
+
+The following generator documents historical pre-approval v1 review packets.
+Those immutable packets correctly retain sixteen null responses. The current
+design-approved successor is candidate v2 and its separate M2-02B.1c approval;
+it does not rewrite or retroactively approve the historical dossier. Exactly nine
+design decisions are approved, and exactly seven operational decisions remain null.
 
 `uv run python scripts/prepare_m2_launch_review.py <inputs.json> <new-snapshot-name>`
 is a **coordinator development** command. It writes exclusively beneath the
