@@ -143,10 +143,13 @@ across reports 260-269. The approved decisions and exclusions are recorded in
 
 The source-neutral discovery policy in `docs/m2_02_discovery_execution_policy.md` is owner-approved,
 with all nine decisions recorded in `config/benchmark/m2_02_owner_approval_v1.yaml`.
-M2-02A.1 production-readiness infrastructure is implemented as a separately authorized
-owner-review candidate; policy approval itself did not grant readiness or launch authority.
+M2-02A production readiness is owner-approved by its separate fifteen-decision record.
+M2-02B.1 launch design is also owner-approved: nine technical/design decisions are
+closed in `config/benchmark/m2_02b1_launch_design_approval_v1.yaml`, while seven
+operational launch decisions remain unresolved. Candidate v2 binds the preserved
+reviewed candidate v1. Neither readiness nor design approval grants launch authority.
 The candidate is documented in `docs/m2_02_annotation_execution_protocol.md` and
-`docs/m2_02_coordinator_checklist.md`. A separate readiness/launch gate is required before annotation.
+`docs/m2_02_coordinator_checklist.md`. A separate operational launch gate is required before annotation.
 M1 and M2-01 remain complete; M2-02 annotation has not started and no human gold exists.
 No schema approval is reopened. A separate versioned owner-approved metric amendment is mandatory
 before discovery-start keys may enter normative parser scoring or M3 evaluation. The final M3 gate

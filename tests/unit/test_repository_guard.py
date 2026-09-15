@@ -6,7 +6,11 @@ from pathlib import Path
 
 import pytest
 import yaml
+from test_m2_annotation import blank, complete, form, populated
 
+from peru_conflicts.execution.neutral_forms import NeutralDraft, validate_neutral_forms
+from peru_conflicts.execution.packages import verify_package
+from peru_conflicts.hashing import canonical_json_bytes
 from peru_conflicts.repository_guard import (
     find_policy_violations,
     git_candidate_contents,
@@ -83,6 +87,82 @@ def test_readiness_evidence_index_rejects_source_payload(tmp_path: Path) -> None
     path.parent.mkdir()
     path.write_text("source_text: Invented source transcription\n", encoding="utf-8")
     assert find_policy_violations([path], repo_root=tmp_path)
+
+
+def _neutral_export(kind: str) -> bytes:
+    """Serialize only invented forms through the canonical runtime export contract."""
+    package = populated() if kind in {"completed", "partial"} else blank()
+    if kind == "partial":
+        package["inspection.csv"] = form("inspection.csv", [])
+    elif kind == "inspection_only":
+        complete(package)
+    draft = validate_neutral_forms(
+        package, expected_package=verify_package(package, allow_drafts=True)
+    )
+    assert draft.complete == (kind in {"completed", "inspection_only"})
+    assert bool(draft.records) == (kind in {"completed", "partial"})
+    if kind == "inspection_only":
+        assert draft.inspections
+        assert all(row["zero_discoveries_confirmed"] == "true" for row in draft.inspections)
+    return canonical_json_bytes(draft.model_dump(mode="json", exclude={"input_files"}))
+
+
+@pytest.mark.parametrize("kind", ["completed", "partial", "inspection_only", "blank"])
+def test_guard_rejects_canonical_neutral_exports(tmp_path: Path, kind: str) -> None:
+    # Blank exports also carry the bound execution package and input hashes.
+    path = tmp_path / "ordinary.json"
+    path.write_bytes(_neutral_export(kind))
+
+    violations = find_policy_violations([path], repo_root=tmp_path)
+
+    assert len(violations) == 1
+    assert violations[0].path == path
+    assert "annotation" in violations[0].reason
+
+
+def test_guard_accepts_neutral_schema_and_generic_configuration(tmp_path: Path) -> None:
+    schema = tmp_path / "neutral.schema.json"
+    schema.write_bytes(canonical_json_bytes(NeutralDraft.model_json_schema()))
+    configuration = tmp_path / "configuration.json"
+    configuration.write_bytes(
+        canonical_json_bytes(
+            {
+                "package": "example-package",
+                "input_hashes": {},
+                "discoveries": [],
+                "unresolved": [],
+                "inspections": [],
+                "records": [],
+                "complete": False,
+            }
+        )
+    )
+
+    assert find_policy_violations([schema, configuration], repo_root=tmp_path) == []
+
+
+@pytest.mark.parametrize("kind", ["completed", "partial", "inspection_only", "blank"])
+@pytest.mark.parametrize("export_staged", [True, False])
+def test_staged_neutral_guard_uses_index_not_worktree(
+    tmp_path: Path, kind: str, export_staged: bool
+) -> None:
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    path = tmp_path / "ordinary.json"
+    export = _neutral_export(kind)
+    benign = b'{"mode":"synthetic configuration"}'
+    path.write_bytes(export if export_staged else benign)
+    subprocess.run(["git", "add", "ordinary.json"], cwd=tmp_path, check=True)
+    path.write_bytes(benign if export_staged else export)
+    candidates = git_candidate_paths(tmp_path, staged=True)
+    sizes = git_candidate_sizes(tmp_path, candidates, staged=True)
+    contents = git_candidate_contents(tmp_path, candidates, staged=True, sizes=sizes)
+
+    violations = find_policy_violations(
+        candidates, repo_root=tmp_path, sizes=sizes, contents=contents
+    )
+
+    assert bool(violations) is export_staged
+    assert bool(find_policy_violations([path], repo_root=tmp_path)) is not export_staged
 
 
 def test_guard_rejects_credential_like_files(tmp_path: Path) -> None:

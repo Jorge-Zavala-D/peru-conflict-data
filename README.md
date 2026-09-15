@@ -12,6 +12,10 @@ only. M2-02A owner readiness is approved: all 15 decisions are closed in
 Readiness v3 and evidence index v5 bind that approval. This permits preparation of
 a separate launch gate only; no real issuance, annotation, production locking,
 human gold, Dropbox execution writes or parser work is authorized.
+The nine M2-02B.1 technical/design launch decisions are now owner-approved in
+`config/benchmark/m2_02b1_launch_design_approval_v1.yaml`. Candidate v2 preserves
+the reviewed runtime and human material; seven operational decisions remain
+unresolved. No real humans, access tests, package issuance or launch are authorized.
 See the [execution candidate](docs/m2_02_annotation_execution_protocol.md) and
 [coordinator checklist](docs/m2_02_coordinator_checklist.md). No normative discovery-start scoring is approved,
 and the final M3 gate remains unapproved.

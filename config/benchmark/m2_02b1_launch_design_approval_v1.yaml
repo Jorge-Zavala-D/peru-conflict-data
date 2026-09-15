@@ -1,0 +1,156 @@
+{
+  "approval_id": "M2-02B1-LAUNCH-DESIGN-APPROVAL-V1",
+  "owner": "Jorge Zavala",
+  "authority": "Explicit owner decisions in M2-02B.1c prompt",
+  "recorded_at": "2026-09-15T06:57:51.5818744+00:00",
+  "pr": 16,
+  "branch": "codex/m2-02b1-launch-preflight",
+  "reviewed_head": "2f0f7a78a09306952aaa548757ce29f6694d767d",
+  "reviewed_tree": "1d7cbdf43ba0701fe8057b5ffed4e652a6224817",
+  "reviewed_merge_test": "beb9ab22f0b08411f14d60038b8d91e5bfc7cf6f",
+  "reviewed_actions_run": 34855471245,
+  "decision_count": 16,
+  "approved_count": 9,
+  "pending_count": 7,
+  "decisions": [
+    {
+      "decision_id": "POSTMERGE-M2-02A-VERIFIED",
+      "status": "APPROVED",
+      "response": "APPROVE",
+      "scope": "**APPROVE.**\n\nI accept the recovered protected-main M2-02A readiness identity:\n\n```text\nmerge:\n995b54115f94454fc81d4af36f138add43ba8614\n\ntree:\n67284c356125d4f9758dc28a9e6c92a45cab3553\n```\n\nincluding the documented recovery lineage following the accidental PR #14 revert and PR #15 restoration.\n\nThis approval accepts the recovered substantive M2-02A readiness tree and custody.\n\nIt does NOT authorize annotation launch."
+    },
+    {
+      "decision_id": "ISOLATED-RUNTIME",
+      "status": "APPROVED",
+      "response": "APPROVE",
+      "scope": "**APPROVE DESIGN ONLY.**\n\nApprove the isolated neutral annotator-runtime architecture, including:\n\n- canonical-validator allowlist projection;\n- isolated runtime source bundle;\n- separate neutral package view;\n- no repository fallback;\n- `python -I -S -B`;\n- separately pinned launcher;\n- separately pinned third-party dependency inventory;\n- Python-environment trust manifest;\n- interpreter identity;\n- standard-library/native-runtime inventory;\n- environment aggregate identity;\n- A/B identical Python-environment requirement;\n- explicit external OS/kernel/system-library/hardware trust boundary.\n\nMandatory limitation:\n\nThe currently measured Python environment is rehearsal evidence only.\n\nIts manifest remains:\n\n```text\nproduction_approved = false\n```\n\nActual launch requires **independent pre-execution provisioning and authentication of the production Python environment**.\n\nThe running Python process MUST NOT be treated as bootstrapping trust in the stdlib it already consumed.\n\nNo production environment is approved by this decision."
+    },
+    {
+      "decision_id": "RUNTIME-NEUTRALITY",
+      "status": "APPROVED",
+      "response": "APPROVE",
+      "scope": "**APPROVE.**\n\nApprove the demonstrated runtime/human-view neutrality architecture.\n\nThe human runtime may contain only the source-neutral allowlisted functionality needed for:\n\n- page display;\n- position conversion;\n- slot generation;\n- inspection-template generation;\n- draft validation.\n\nIt must not expose:\n\n- benchmark partition role;\n- parser-development/held-out/pilot labels;\n- parser predictions;\n- machine source answers;\n- machine prefill;\n- another annotator's work;\n- gold/adjudication data;\n- coordinator routing;\n- owner private metadata.\n\nCanonical/isolated validation equivalence remains mandatory.\n\nAny future divergence invalidates the launch candidate."
+    },
+    {
+      "decision_id": "EXTERNAL-TOPOLOGY",
+      "status": "APPROVED",
+      "response": "APPROVE",
+      "scope": "**APPROVE DESIGN ONLY.**\n\nApprove the proposed future external root:\n\n`06_validation/m2_benchmark/annotation_runs/m2-02-v1`\n\nand its reviewed logical areas for:\n\n- coordinator custody;\n- A issue;\n- A submission;\n- B issue;\n- B submission;\n- accepted locked A;\n- accepted locked B;\n- supersession;\n- comparison;\n- adjudication;\n- held-out sealed results;\n- coordinator receipts.\n\nThis approval authorizes the **layout/design only**.\n\nIt does NOT authorize:\n\n- folder creation;\n- Dropbox writes;\n- sharing changes;\n- invitations;\n- links;\n- test uploads;\n- package delivery.\n\nThose require a later exact operational authorization."
+    },
+    {
+      "decision_id": "ELIGIBILITY-PROTOCOL",
+      "status": "APPROVED",
+      "response": "APPROVE",
+      "scope": "**APPROVE DESIGN ONLY.**\n\nApprove the private distinct-human/exposure attestation protocol.\n\nA future annotator must be privately verified as:\n\n- a real human person;\n- assigned exactly one role;\n- distinct from the other annotator;\n- not exposed to the other annotator's work;\n- not exposed to machine-generated source answers/prefill;\n- not exposed to parser predictions;\n- not exposed to held-out labels or benchmark partition assignments;\n- not using ChatGPT, Codex or another model as the annotator.\n\nThe private eligibility record must bind the human to the exact:\n\n- run;\n- role;\n- original package;\n- reference identity;\n- neutral view;\n- runtime;\n- Python environment;\n- contract identity.\n\nNo actual person is approved or assigned by this decision.\n\nNo human PII belongs in Git."
+    },
+    {
+      "decision_id": "AB-ACCESS-TEST-PROTOCOL",
+      "status": "APPROVED",
+      "response": "APPROVE",
+      "scope": "**APPROVE V2 DESIGN ONLY.**\n\nApprove:\n\n`m2-02-real-access-tests-v2`\n\nand its typed least-privilege policy.\n\nThe policy currently derives:\n\n**108 ACL checks**\n\nfrom all:\n\n- 3 actors;\n- 12 logical resources;\n- 3 operations (`list`, `read`, `write`).\n\nApprove the following design principles:\n\n- A can list/read A issue area but cannot write it;\n- B can list/read B issue area but cannot write it;\n- each annotator can list/read/write their own private submission workspace;\n- each annotator is denied list/read/write on the other annotator's areas;\n- each annotator is denied list/read/write on all coordinator-only areas;\n- coordinator operational ACLs are allowed where required;\n- accepted locked A/B bytes use separate application/provenance immutability controls rather than falsely claiming coordinator ACL denial.\n\nHistorical v1 remains historical only.\n\nMandatory limitation:\n\n**All 108 real-account results remain NOT RUN.**\n\nThis decision approves only the test protocol.\n\nNo account-isolation result is approved or inferred."
+    },
+    {
+      "decision_id": "HELDOUT-SEALING-LAUNCH-PROTOCOL",
+      "status": "APPROVED",
+      "response": "APPROVE",
+      "scope": "**APPROVE DESIGN ONLY.**\n\nApprove coordinator-only partition routing and held-out sealing.\n\nFixed coordinator partition remains:\n\n```text\nprotocol pilots:\n264\n269\n\nparser development:\n260\n262\n266\n268\n\nheld-out evaluation:\n261\n263\n265\n267\n```\n\nHumans receive report identities/source material but no partition roles.\n\nHeld-out human labels must never enter parser-development workflows before the later authorized benchmark-evaluation stage.\n\nThis decision approves the sealing/routing design only.\n\nActual external permissions and account isolation remain untested."
+    },
+    {
+      "decision_id": "ISSUANCE-CEREMONY",
+      "status": "APPROVED",
+      "response": "APPROVE",
+      "scope": "**APPROVE DESIGN ONLY.**\n\nApprove the ordered fail-closed issuance ceremony.\n\nThe later real ceremony must require, in order, verified evidence for:\n\n1. protected-main launch authority;\n2. exact approved runtime;\n3. exact A/B original/neutral package identities;\n4. exact reference identity;\n5. private eligible human A;\n6. private eligible human B;\n7. two distinct people;\n8. all required real access checks;\n9. explicit external-write authority;\n10. exact external paths and permissions;\n11. role-specific eligibility bindings;\n12. role-specific issuance receipts;\n13. A issued only to A;\n14. B issued only to B;\n15. independent verification of delivered bytes;\n16. issue timestamp and recipient identity;\n17. only then annotation-start recording.\n\nIf any prerequisite fails, launch remains false.\n\nThis approval does NOT issue any package."
+    },
+    {
+      "decision_id": "PRODUCTION-LOCK-PRECONDITIONS",
+      "status": "APPROVED",
+      "response": "APPROVE",
+      "scope": "**APPROVE DESIGN ONLY.**\n\nApprove the later production-lock prerequisites:\n\n- separate owner launch approval;\n- valid actual-human eligibility;\n- valid A/B isolation evidence;\n- exact issuance custody;\n- valid complete human submission;\n- complete report/object-family inspection;\n- all required human-declared slots resolved or explicitly unresolved;\n- explicit human lock confirmation;\n- separate coordinator lock confirmation;\n- no ambiguous supersession fork;\n- immutable parent preservation;\n- append-only supersession;\n- no in-place overwrite.\n\nCurrent production locking MUST remain disabled.\n\nThis approval does not enable locking."
+    },
+    {
+      "decision_id": "ANNOTATOR-A-ELIGIBILITY",
+      "status": "UNRESOLVED",
+      "response": null,
+      "scope": null
+    },
+    {
+      "decision_id": "ANNOTATOR-B-ELIGIBILITY",
+      "status": "UNRESOLVED",
+      "response": null,
+      "scope": null
+    },
+    {
+      "decision_id": "DISTINCT-HUMANS",
+      "status": "UNRESOLVED",
+      "response": null,
+      "scope": null
+    },
+    {
+      "decision_id": "REAL-AB-ACCESS-ISOLATION",
+      "status": "UNRESOLVED",
+      "response": null,
+      "scope": null
+    },
+    {
+      "decision_id": "REAL-EXTERNAL-WRITE-AUTHORIZATION",
+      "status": "UNRESOLVED",
+      "response": null,
+      "scope": null
+    },
+    {
+      "decision_id": "REAL-PACKAGE-ISSUANCE",
+      "status": "UNRESOLVED",
+      "response": null,
+      "scope": null
+    },
+    {
+      "decision_id": "ANNOTATION-LAUNCH",
+      "status": "UNRESOLVED",
+      "response": null,
+      "scope": null
+    }
+  ],
+  "bindings": {
+    "owner_readiness_approval_sha256": "36a5074264f93a9c565b4011b7162031d62e3a135eaba17336dcd8c51cc43cba",
+    "readiness_v3_sha256": "b6fd726b2f7067cb38e8e04df51eb9f39d7f6928837775a747beb4b5e3dcc4a2",
+    "evidence_v5_sha256": "5cd65a2d78884e9744ef2cc8c21bbbf9ef4bfe1342553c62c11f29156034f224",
+    "candidate_v1_sha256": "e230f9d277803e8ff8324922a1c91e1a8ce5ae5d689aac8146b1745b96d7ba02",
+    "candidate_v1_model_sha256": "173d0cb66f2faa36cde73a7844cc963b97cbc2fbe0bf6c6e0cda915700219cf2",
+    "access_policy_sha256": "54d0d97c05bee58680064ca61f9a7cf512f6b5244b10ff9be035c82892624422",
+    "runtime_sha256": "1e9efd35c82ee95ccc382c379b34009b70f0bfd85b284530871c91bc98c677ba",
+    "runtime_file_set_sha256": "49d686c9349fda6230e49f22ae136f203977015b329f2cf2023276187231c476",
+    "python_environment_sha256": "f1ecff17cd7adbe8b544270c3ea4fe5e3bd12a512ad1f6fbdb77816a6d286455",
+    "python_environment_manifest_sha256": "9ea05dd0a396e8dda33b21d0050b0110bbe7e64188ce8324b333b7c9f9461db2",
+    "launcher_sha256": "44489530f735f09418ef2bd4a9aee9c15eb65b5519f97136d484eaa71852f1a0",
+    "interpreter_sha256": "88b9e780cfdc38597c7f53e20f7165262befa28d9a5e9470360d349e172ecf37",
+    "dependency_sha256": "e1b8506b39c87b76b0d7f9bad508d4ae319f6c3271384b5cb4b03c2490baf03f",
+    "reference_manifest_sha256": "060d6f166e35400ba53d563fb75dfae4c4872d22796b12762e35bd6d15f88202",
+    "annotator_a_package_manifest_sha256": "45540cc5face34903fa98fb1fc7763546d3e8328d189a68588ae93e23ec27484",
+    "annotator_b_package_manifest_sha256": "c4b8acc6f0dbe4920ac8a0c4e06607dedcc04f6377a3723f4293a314058a77b7",
+    "annotator_a_view_sha256": "4a741fdbb087457ac3e9c7803db6527b7e01bbca5943d1fb5f8f376599e9d225",
+    "annotator_b_view_sha256": "58f33685eb4d9a2664b2176516fc23f5917ac6799dee579102af30f7a5362668",
+    "final_hardening_packet_sha256": "b676ad1f1db287763318e5fbcf1f1f4f40f290b45e3c379fa4b2a359358f4c84"
+  },
+  "python_environment_design_approved": true,
+  "production_python_environment_approved": false,
+  "independent_preexecution_provisioning_required": true,
+  "owner_readiness_approved": true,
+  "launch_design_approved": true,
+  "launch_design_decisions_approved": 9,
+  "launch_operational_decisions_pending": 7,
+  "owner_launch_approved": false,
+  "annotation_launch_approved": false,
+  "annotation_started": false,
+  "real_humans_assigned": false,
+  "real_eligibility_attestations_created": false,
+  "external_root_created": false,
+  "dropbox_writes_approved": false,
+  "real_access_tests_passed": false,
+  "real_issuance_receipts_created": false,
+  "real_packages_issued": false,
+  "production_locking_enabled": false,
+  "human_gold_created": false,
+  "parser_work_approved": false,
+  "m3_owner_approved": false,
+  "normative_metric_amendment_approved": false
+}
