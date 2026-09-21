@@ -10,6 +10,107 @@ from test_m2_launch_preflight import Rehearsal
 from test_m2_launch_preflight import rehearsal as rehearsal
 
 
+def test_probe_operations_have_explicit_parents_and_targets() -> None:
+    c = contract()
+    plan = c.build_operational_plan(c.make_candidate())
+    operations = {row["path"]: row["operation"] for row in plan["topology"]["directory_operations"]}
+    for row in plan["checks"]:
+        assert row["status"] == "NOT RUN"
+        assert operations[str(Path(row["probe_path"]).parent).replace("\\", "/")] == "create_new"
+        assert row["operation_target"] == (
+            row["path"] if row["operation"] == "list" else row["probe_path"]
+        )
+        if row["operation"] == "write":
+            assert row["file_operation"] == "exclusive_create"
+            assert "verified_existing_parent" in row["prerequisites"]
+        elif row["operation"] == "read":
+            assert row["preparation_actor"] == "coordinator"
+            assert "verified_existing_object" in row["prerequisites"]
+    assert operations["06_validation"] == "assert_existing"
+
+
+def test_setup_can_create_absent_m2_ancestors_without_modifying_research_root() -> None:
+    c = contract()
+    plan = c.build_operational_plan(c.make_candidate())
+    operations = {row["path"]: row for row in plan["topology"]["directory_operations"]}
+    assert operations["06_validation"]["operation"] == "assert_existing"
+    assert operations["06_validation"]["modify_or_reshare"] is False
+    assert operations["06_validation/m2_benchmark"]["operation"] == "create_new"
+    assert operations["06_validation/m2_benchmark/annotation_runs"]["operation"] == "create_new"
+
+
+def test_list_operations_never_request_probe_file_creation_or_cleanup() -> None:
+    c = contract()
+    for row in c.build_operational_plan(c.make_candidate())["checks"]:
+        if row["operation"] == "list":
+            assert row["file_operation"] == "none"
+            assert row["cleanup"]["expected_sha256"] is None
+            assert row["cleanup"]["path"] == row["operation_target"]
+
+
+@pytest.mark.parametrize(
+    "mutation", ["none", "missing", "probe", "path", "expectation", "candidate", "approval"]
+)
+def test_setup_request_binds_every_component(mutation: str) -> None:
+    c = contract()
+    candidate = c.make_candidate()
+    request, components = c.build_setup_request(candidate)
+    assert request["response"] is None
+    assert request["execution_eligible"] is False
+    assert request["decision_14_eligible"] is False
+    assert all(value is None for value in request["private_bindings"].values())
+    if mutation == "missing":
+        components.pop("probe_fixtures.json")
+    elif mutation in ("probe", "path", "expectation"):
+        name = "probe_fixtures.json" if mutation == "probe" else "access_checks.json"
+        components[name] = (
+            components[name].replace(b"SYNTHETIC", b"ALTERED")
+            if mutation == "probe"
+            else components[name].replace(b"annotator-a", b"wrong-role", 1)
+        )
+    elif mutation == "candidate":
+        request["candidate_model_sha256"] = "0" * 64
+    elif mutation == "approval":
+        request["execution_eligible"] = True
+    raw = json.dumps(request).encode()
+    if mutation == "none":
+        c.validate_setup_request(raw, components, candidate)
+        assert len(json.loads(components["access_checks.json"])["checks"]) == 108
+    else:
+        with pytest.raises(ValueError):
+            c.validate_setup_request(raw, components, candidate)
+
+
+@pytest.mark.parametrize(
+    "observation",
+    [
+        "missing_parent",
+        "missing_object",
+        "stale_session",
+        "wrong_namespace",
+        "network_error",
+        "client_error",
+        "not_found",
+    ],
+)
+def test_setup_failure_is_not_a_permission_pass(observation: str) -> None:
+    c = contract()
+    assert (
+        c.classify_access_observation("DENY", observation, context_verified=True) == "INCONCLUSIVE"
+    )
+    assert (
+        c.classify_access_observation("DENY", "authorization_denied", context_verified=False)
+        == "INCONCLUSIVE"
+    )
+    assert (
+        c.classify_access_observation(
+            "DENY", "not_found", context_verified=True, provider_concealment_rule_verified=True
+        )
+        == "PASS"
+    )
+    assert c.classify_access_observation("DENY", "success", context_verified=True) == "FAIL"
+
+
 def test_cache_builder_is_exclusive_and_rejects_external_paths(tmp_path: Path) -> None:
     c = contract()
     assert hasattr(c, "write_operational_proposal")

@@ -195,15 +195,43 @@ def build_operational_plan(candidate: OperationalCandidate) -> dict[str, Any]:
                 "probe_path": probe_path,
                 "probe_sha256": sha256(probe),
                 "probe_content_utf8": probe.decode(),
+                "operation_target": target if row.operation == "list" else probe_path,
+                "preparation_actor": "coordinator",
+                "file_operation": {
+                    "list": "none",
+                    "read": "read_known_object",
+                    "write": "exclusive_create",
+                }[row.operation],
+                "prerequisites": [
+                    "verified_external_root_and_namespace",
+                    "verified_private_actor_and_fresh_session",
+                    "verified_existing_parent",
+                    "scoped_setup_authorization",
+                    {
+                        "list": "verified_existing_directory",
+                        "read": "verified_existing_object",
+                        "write": "verified_absent_target",
+                    }[row.operation],
+                ],
                 "preparation": (
-                    "Coordinator creates probe after scoped write approval."
-                    if row.operation != "write"
-                    else "Target absent before test; actor attempts unique probe creation."
+                    {
+                        "list": (
+                            "Coordinator verifies existing directory; no probe file is created."
+                        ),
+                        "read": "Coordinator creates known probe after scoped write approval.",
+                        "write": (
+                            "Target absent before test; actor attempts exclusive probe creation."
+                        ),
+                    }[row.operation]
                 ),
                 "cleanup": {
-                    "path": probe_path,
-                    "expected_sha256": sha256(probe),
-                    "rule": "Receipt-bound exact probe removal only after scoped authorization.",
+                    "path": target if row.operation == "list" else probe_path,
+                    "expected_sha256": None if row.operation == "list" else sha256(probe),
+                    "rule": (
+                        "No file created or removed; observe directory only."
+                        if row.operation == "list"
+                        else "Receipt-bound exact probe removal only after scoped authorization."
+                    ),
                 },
                 "receipt_fields": [
                     "check_id",
@@ -219,6 +247,27 @@ def build_operational_plan(candidate: OperationalCandidate) -> dict[str, Any]:
                 "status": "NOT RUN",
             }
         )
+    # Read-only baseline: only 06_validation exists; the M2 intermediate roots do not.
+    create_directories = {
+        root,
+        "06_validation/m2_benchmark",
+        "06_validation/m2_benchmark/annotation_runs",
+    }
+    for area in topology["areas"]:
+        path = PurePosixPath(area["path"])
+        create_directories.update(
+            str(p)
+            for p in (path, *path.parents)
+            if p == PurePosixPath(root) or PurePosixPath(root) in p.parents
+        )
+        create_directories.add(f"{path}/.access-probes")
+    topology["directory_operations"] = [
+        {"path": path, "operation": "assert_existing", "modify_or_reshare": False}
+        for path in ("06_validation",)
+    ] + [
+        {"path": path, "operation": "create_new", "modify_or_reshare": False}
+        for path in sorted(create_directories)
+    ]
     return {
         "kind": "OPERATIONAL_PLAN_NOT_EXECUTED",
         "candidate_sha256": model_sha256(candidate),
@@ -341,6 +390,7 @@ def operational_dossier(candidate: OperationalCandidate) -> dict[str, Any]:
             "allowed_future_scope": scope,
             "excluded": excluded,
             "executed": False,
+            "setup_request": build_setup_request(candidate)[0],
         },
     }
 
@@ -374,7 +424,8 @@ ISSUANCE_STEPS = (
     ),
     (
         "Require all 108 real account tests and two coordinator application "
-        "controls; inspect ancestor/group/link inheritance."
+        "controls; inspect ancestor/group/link inheritance and obtain owner "
+        "acceptance of isolation."
     ),
     (
         "Require separate exact production-environment owner approval and fresh "
@@ -385,7 +436,9 @@ ISSUANCE_STEPS = (
         "against the reviewed candidate, not receipt self-claims."
     ),
     (
-        "After separate issuance authority only, deliver A package to A issue "
+        "Obtain separate prospective authorization of exact issuance writes; "
+        "setup-only authority is insufficient. "
+        "After that issuance authority only, deliver A package to A issue "
         "area and B package to B issue area; never coordinator metadata."
     ),
     (
@@ -452,82 +505,300 @@ def validate_issuance_templates(templates: object, candidate: OperationalCandida
         raise ValueError("only exact role-bound blank future templates are permitted")
 
 
-def validate_environment_candidate(raw: bytes, *, expected_sha256: str) -> dict[str, Any]:
-    """Portable evidence validation, not native authentication or owner approval."""
+def build_setup_request(candidate: OperationalCandidate) -> tuple[dict[str, Any], dict[str, bytes]]:
+    """Self-contained proposed operations; unresolved private bindings prohibit execution."""
+    plan = build_operational_plan(candidate)
+    objects = {
+        "operational_candidate.json": candidate.model_dump(mode="json"),
+        "topology.json": plan["topology"],
+        "access_checks.json": {
+            "checks": plan["checks"],
+            "application_controls": plan["application_controls"],
+        },
+        "probe_fixtures.json": [
+            {
+                key: row[key]
+                for key in (
+                    "check_id",
+                    "probe_path",
+                    "probe_sha256",
+                    "probe_content_utf8",
+                    "file_operation",
+                    "preparation_actor",
+                    "prerequisites",
+                    "cleanup",
+                )
+            }
+            for row in plan["checks"]
+        ],
+        "cleanup_containment.json": {
+            "rule": (
+                "Stop on unexpected allow; preserve append-only evidence. Remove only exact "
+                "receipt-bound task probes after separate authorization; never recursive "
+                "deletion or research bytes."
+            ),
+            "probes": [row["cleanup"] for row in plan["checks"] if row["operation"] != "list"],
+            "evidence_destination": "PRIVATE_UNRESOLVED",
+            "external_evidence_file_writes_authorized": False,
+        },
+    }
+    components = {
+        name: (json.dumps(value, sort_keys=True, ensure_ascii=True, indent=2) + "\n").encode()
+        for name, value in objects.items()
+    }
+    request = {
+        "kind": "M2_SETUP_AUTHORIZATION_REQUEST_V2",
+        "decision_id": "REAL-EXTERNAL-WRITE-AUTHORIZATION",
+        "status": "UNRESOLVED",
+        "response": None,
+        "current_authorization": False,
+        "execution_eligible": False,
+        "decision_14_eligible": False,
+        "protected_main_sha": MERGE_SHA,
+        "protected_main_tree": MERGE_TREE,
+        "launch_design_approval_raw_sha256": DESIGN_SHA,
+        "access_policy_sha256": plan["topology"]["access_policy_sha256"],
+        "candidate_model_sha256": model_sha256(candidate),
+        "candidate_export_raw_sha256": sha256(components["operational_candidate.json"]),
+        "hash_semantics": (
+            "Component pins hash exact exported bytes; candidate_model_sha256 uses the "
+            "existing launch model_sha256 contract."
+        ),
+        "components": {
+            name: {"bytes": len(raw), "raw_sha256": sha256(raw)} for name, raw in components.items()
+        },
+        "private_bindings": dict.fromkeys(
+            (
+                "external_root_identity",
+                "provider_namespace",
+                "account_role_mapping",
+                "group_memberships",
+                "provider_denial_rule",
+                "private_receipt_destination",
+            )
+        ),
+        "excluded": [
+            "research_package_issuance",
+            "human_submissions",
+            "annotation",
+            "locking",
+            "comparison",
+            "adjudication",
+            "gold",
+        ],
+        "observations": (
+            "All 108 rows are NOT RUN. Path/setup/session/namespace/network/client "
+            "errors are INCONCLUSIVE. Provider not-found is denial only with a "
+            "separately reviewed concealment rule, independently established target "
+            "existence and verified account/session/namespace."
+        ),
+        "later_gate": (
+            "Exact private bindings, service capability verification, real executor and "
+            "scoped owner authorization require separate review; changing flags cannot "
+            "launch this template."
+        ),
+    }
+    return request, components
+
+
+def validate_setup_request(
+    raw: bytes, components: dict[str, bytes], candidate: OperationalCandidate
+) -> None:
+    request, expected_components = build_setup_request(candidate)
+    if evidence_json(raw) != request or components != expected_components:
+        raise ValueError("setup request/components differ from the exact unapproved snapshot")
+
+
+def classify_access_observation(
+    expected: Literal["ALLOW", "DENY"],
+    observation: str,
+    *,
+    context_verified: bool,
+    provider_concealment_rule_verified: bool = False,
+) -> Literal["PASS", "FAIL", "INCONCLUSIVE"]:
+    """Synthetic classification rule only; never performs or records an account check."""
+    if not context_verified:
+        return "INCONCLUSIVE"
+    if observation == "not_found" and provider_concealment_rule_verified:
+        observation = "authorization_denied"
+    if observation not in {"success", "authorization_denied"}:
+        return "INCONCLUSIVE"
+    return "PASS" if (observation == "success") == (expected == "ALLOW") else "FAIL"
+
+
+RUNTIME_MANIFEST_RAW_SHA256 = "4d5f8273ff210cf39eb2b105743b26ac8f3e1e1e5851e342dee09f41a9c8b346"
+
+
+def evidence_json(raw: bytes) -> dict[str, Any]:
+    """Decode once; duplicate authority fields never have last-key-wins semantics."""
+
+    def unique(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+        result: dict[str, Any] = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError("duplicate evidence key")
+            result[key] = value
+        return result
+
+    value = json.loads(raw, object_pairs_hook=unique)
+    if not isinstance(value, dict):
+        raise ValueError("evidence object required")
+    return cast(dict[str, Any], value)
+
+
+def inventory_sha256(files: dict[str, str]) -> str:
+    """SHA-256 of sorted compact JSON, no trailing newline (not a manifest raw hash)."""
+    return sha256(
+        json.dumps(files, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode()
+    )
+
+
+def validate_inventory(files: dict[str, str]) -> None:
+    from .python_environment_policy import safe_relative
+
+    seen: set[str] = set()
+    if not files:
+        raise ValueError("empty inventory")
+    for name, digest in files.items():
+        safe_relative(name)
+        folded = name.casefold()
+        if (
+            folded in seen
+            or any(part in {"__pycache__", "pyvenv.cfg"} for part in folded.split("/"))
+            or folded.endswith(("._pth", ".pyc", ".pyo"))
+            or any(part.endswith((" ", ".")) for part in name.split("/"))
+            or not re.fullmatch(r"[a-f0-9]{64}", digest)
+        ):
+            raise ValueError("ambiguous, excluded or invalid inventory entry")
+        seen.add(folded)
+
+
+def _exact_evidence_booleans(value: Any) -> Any:
+    if isinstance(value, dict):
+        value = cast(dict[str, Any], value)
+        for key in (
+            "production_candidate_prepared",
+            "production_environment_approved",
+            "python_executed",
+            "candidate_python_executed",
+            "external_provenance_verified",
+            "independent_provisioning_verified",
+        ):
+            if key in value and type(value[key]) is not bool:
+                raise ValueError("evidence authority requires literal booleans")
+    return value
+
+
+class NativeStageReceipt(StrictModel):
+    _booleans = model_validator(mode="before")(_exact_evidence_booleans)
+    kind: Literal["NATIVE_PREPYTHON_CANDIDATE_BYTE_VERIFICATION_V2"]
+    stage: str
+    expected_manifest_sha256: Sha256
+    inventory_sha256: Sha256
+    verifier_sha256: Sha256
+    files_verified: int
+    production_candidate_prepared: Literal[True]
+    production_environment_approved: Literal[False]
+    python_executed: Literal[False]
+
+
+class EnvironmentEvidence(StrictModel):
+    _booleans = model_validator(mode="before")(_exact_evidence_booleans)
+    kind: Literal["PRODUCTION_ENVIRONMENT_CANDIDATE_V3_NOT_APPROVED"]
+    protected_main: str
+    predecessor_raw_sha256: Sha256
+    verifier_sha256: Sha256
+    file_hashes: dict[str, Sha256]
+    inventory_sha256: Sha256
+    production_candidate_prepared: Literal[True]
+    production_environment_approved: Literal[False]
+    candidate_python_executed: Literal[False]
+    external_provenance_verified: Literal[False]
+    independent_provisioning_verified: Literal[False]
+    provenance_evidence_raw_sha256: Sha256
+
+
+class DependencyEvidence(StrictModel):
+    file_hashes: dict[str, Sha256]
+    versions: dict[str, str]
+    python_version: str
+
+
+def validate_environment_candidate(
+    raw: bytes,
+    *,
+    expected_sha256: str,
+    constituent_bytes: dict[str, bytes] | None = None,
+    receipt_bytes: dict[str, bytes] | None = None,
+    expected_verifier_sha256: str | None = None,
+) -> dict[str, Any]:
+    """Retained evidence consistency only; not provisioning, provenance or launch authority."""
+    from .python_environment import PythonEnvironmentTrustManifest
+    from .runtime_build import RuntimeManifest
+
     if sha256(raw) != expected_sha256:
         raise ValueError("independent environment evidence pin required")
-    document = json.loads(raw)
-    if not isinstance(document, dict):
-        raise ValueError("environment evidence must be an object")
-    data = cast(dict[str, Any], document)
-    required = {
-        "kind": "PRODUCTION_ENVIRONMENT_CANDIDATE_NOT_APPROVED",
-        "protected_main": MERGE_SHA,
-        "runtime_file_set_sha256": REVIEW_BINDINGS["runtime_file_set_sha256"],
-        "dependency_manifest_sha256": REVIEW_BINDINGS["dependency_sha256"],
+    evidence = EnvironmentEvidence.model_validate(evidence_json(raw))
+    pins = {
+        "python-v2": REVIEW_BINDINGS["python_environment_manifest_sha256"],
+        "dependencies-v1": REVIEW_BINDINGS["dependency_sha256"],
+        "runtime-v1": RUNTIME_MANIFEST_RAW_SHA256,
     }
-    if any(data.get(k) != v for k, v in required.items()):
-        raise ValueError("environment authority identities differ")
     if (
-        data.get("production_candidate_prepared") is not True
-        or data.get("production_environment_approved") is not False
-        or data.get("candidate_python_executed") is not False
+        evidence.protected_main != MERGE_SHA
+        or evidence.verifier_sha256 != expected_verifier_sha256
+        or constituent_bytes is None
+        or set(constituent_bytes) != set(pins)
+        or receipt_bytes is None
+        or set(receipt_bytes) != set(pins)
     ):
-        raise ValueError("native preparation cannot imply execution or approval")
-    for key in ("os", "platform", "trust_boundary", "python_provenance", "launcher_usage"):
-        if not isinstance(data.get(key), str) or not data[key]:
-            raise ValueError("environment trust declaration missing")
-    inventory = data.get("file_hashes")
-    if not isinstance(inventory, dict):
-        raise ValueError("complete prepared inventory required")
-    inventory = cast(dict[str, Any], inventory)
-    if len(inventory) != 2222:
-        raise ValueError("complete prepared inventory required")
-    for name, digest in inventory.items():
-        if (
-            not isinstance(digest, str)
-            or not re.fullmatch(r"[0-9a-f]{64}", digest)
-            or "\\" in name
-            or ":" in name
-            or name.startswith("/")
-            or any(part in ("", ".", "..") for part in name.split("/"))
-        ):
-            raise ValueError("invalid environment inventory entry")
+        raise ValueError("independent constituent/procedure identities required")
+    # Authenticate every raw file BEFORE parsing any constituent inventory.
+    for stage, pin in pins.items():
+        if sha256(constituent_bytes[stage]) != pin:
+            raise ValueError("independent constituent raw hash differs")
+    for value in constituent_bytes.values():
+        evidence_json(value)
+    python = PythonEnvironmentTrustManifest.model_validate_json(constituent_bytes["python-v2"])
+    dependencies = DependencyEvidence.model_validate_json(constituent_bytes["dependencies-v1"])
+    runtime = RuntimeManifest.model_validate_json(constituent_bytes["runtime-v1"])
     if (
-        inventory.get("python-v2/python.exe") != REVIEW_BINDINGS["interpreter_sha256"]
-        or inventory.get("trusted_launcher.py") != REVIEW_BINDINGS["launcher_sha256"]
+        python.symlinks
+        or runtime.python_environment != python
+        or runtime.dependency_sha256 != pins["dependencies-v1"]
+        or runtime.dependency_versions != dependencies.versions
+        or runtime.python_version != dependencies.python_version
+        or inventory_sha256(runtime.file_hashes) != REVIEW_BINDINGS["runtime_file_set_sha256"]
+        or python.interpreter_sha256 != REVIEW_BINDINGS["interpreter_sha256"]
+        or runtime.launcher_sha256 != REVIEW_BINDINGS["launcher_sha256"]
     ):
-        raise ValueError("interpreter or launcher identity differs")
-    stages = data.get("stages")
-    if not isinstance(stages, dict):
-        raise ValueError("all native stages required")
-    stages = cast(dict[str, Any], stages)
-    if set(stages) != {
-        "python-v2",
-        "dependencies-v1",
-        "runtime-v1",
-    }:
-        raise ValueError("all native stages required")
-    for stage, count, pin in (
-        ("python-v2", 2046, REVIEW_BINDINGS["python_environment_manifest_sha256"]),
-        ("dependencies-v1", 152, REVIEW_BINDINGS["dependency_sha256"]),
-        ("runtime-v1", 19, "4d5f8273ff210cf39eb2b105743b26ac8f3e1e1e5851e342dee09f41a9c8b346"),
+        raise ValueError("constituent cross-bindings differ")
+    expected: dict[str, str] = {}
+    for stage, files in (
+        ("python-v2", python.file_hashes),
+        ("dependencies-v1", dependencies.file_hashes),
+        ("runtime-v1", runtime.file_hashes),
     ):
-        if not isinstance(stages[stage], dict) or not isinstance(
-            stages[stage].get("receipt"), dict
-        ):
-            raise ValueError("native stage must contain an object receipt")
-        receipt = cast(dict[str, Any], stages[stage]["receipt"])
+        validate_inventory(files)
+        if "CANDIDATE_RECEIPT.json" in files:
+            raise ValueError("receipt is not payload")
+        receipt = NativeStageReceipt.model_validate(evidence_json(receipt_bytes[stage]))
         if (
-            receipt.get("files_verified") != count
-            or type(receipt.get("files_verified")) is not int
-            or receipt.get("expected_manifest_sha256") != pin
-            or receipt.get("production_candidate_prepared") is not True
-            or receipt.get("production_environment_approved") is not False
-            or receipt.get("python_executed") is not False
+            receipt.stage != stage
+            or receipt.expected_manifest_sha256 != pins[stage]
+            or receipt.inventory_sha256 != inventory_sha256(files)
+            or receipt.verifier_sha256 != expected_verifier_sha256
+            or receipt.files_verified != len(files)
         ):
-            raise ValueError("native stage identity or state differs")
-    return data
+            raise ValueError("native receipt stage/inventory/procedure mismatch")
+        expected.update({f"{stage}/{name}": digest for name, digest in files.items()})
+        expected[f"{stage}/CANDIDATE_RECEIPT.json"] = sha256(receipt_bytes[stage])
+    expected["runtime-v1/RUNTIME_MANIFEST.json"] = pins["runtime-v1"]
+    expected["trusted_launcher.py"] = REVIEW_BINDINGS["launcher_sha256"]
+    validate_inventory(evidence.file_hashes)
+    if evidence.file_hashes != expected or evidence.inventory_sha256 != inventory_sha256(expected):
+        raise ValueError("complete constituent-derived inventory differs")
+    return evidence.model_dump(mode="json")
 
 
 def write_operational_proposal(workspace_root: Path, snapshot_name: str) -> Path:
@@ -607,6 +878,11 @@ def write_operational_proposal(workspace_root: Path, snapshot_name: str) -> Path
         name: (json.dumps(value, sort_keys=True, ensure_ascii=True, indent=2) + "\n").encode()
         for name, value in objects.items()
     }
+    request, components = build_setup_request(candidate)
+    files.update({f"setup_request_v2/{name}": raw for name, raw in components.items()})
+    files["setup_request_v2/REQUEST.json"] = (
+        json.dumps(request, sort_keys=True, indent=2) + "\n"
+    ).encode()
     markdown = [
         "# Seven operational decisions — UNRESOLVED",
         "",
