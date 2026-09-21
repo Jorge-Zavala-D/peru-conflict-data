@@ -1,5 +1,11 @@
 # Execution plan: Milestones 1-12
 
+Current M2-02B.2 deliverable: [operational launch proposal](m2_02_operational_launch_protocol.md).
+The nine design decisions remain approved; all seven operational decisions remain
+unresolved. Environment-candidate preparation does not approve that environment.
+All 108 proposed real-account checks are NOT RUN. No external setup, issuance,
+human annotation, production lock, gold, parser work or M3 approval is authorized.
+
 Current M2 readiness custody targets scientific v0.3.1 and benchmark/metric v0.1.1;
 historical v0.3.0/v0.1.0 remain immutable. The unlaunched m2-02-v1 run candidate,
 neutral package manifests and coordinator issuance identities bind the same active

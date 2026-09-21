@@ -19,6 +19,11 @@ unresolved. No real humans, access tests, package issuance or launch are authori
 See the [execution candidate](docs/m2_02_annotation_execution_protocol.md) and
 [coordinator checklist](docs/m2_02_coordinator_checklist.md). No normative discovery-start scoring is approved,
 and the final M3 gate remains unapproved.
+
+M2-02B.2 proposes the [operational launch plan](docs/m2_02_operational_launch_protocol.md):
+private eligibility ceremonies, an unapproved environment candidate, exact future
+setup/probe paths and all 108 access checks (NOT RUN). This is preparation only;
+the seven operational decisions and production-environment approval remain pending.
 The write-once canonical M1 identity/coverage package exists at
 `06_validation/m1_corpus_manifest/v0.2.0/`. It establishes 247 numbered reports and
 247 months without mapping conflicts while preserving 287 factual gaps and 50 owner
