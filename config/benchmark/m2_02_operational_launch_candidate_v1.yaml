@@ -1,0 +1,99 @@
+{
+  "owner_readiness_approved": true,
+  "launch_design_approved": true,
+  "launch_design_decisions_approved": 9,
+  "launch_operational_decisions_pending": 7,
+  "owner_launch_approved": false,
+  "annotation_launch_approved": false,
+  "annotation_started": false,
+  "real_humans_assigned": false,
+  "real_eligibility_attestations_created": false,
+  "external_root_created": false,
+  "dropbox_writes_approved": false,
+  "real_access_tests_passed": false,
+  "real_issuance_receipts_created": false,
+  "real_packages_issued": false,
+  "production_locking_enabled": false,
+  "human_gold_created": false,
+  "parser_work_approved": false,
+  "m3_owner_approved": false,
+  "normative_metric_amendment_approved": false,
+  "candidate_id": "M2-02-OPERATIONAL-LAUNCH-CANDIDATE-V1",
+  "status": "owner_review_draft",
+  "protected_main_merge_sha": "e33acf9350701f2c0141bf2d3f697c1bb69d2080",
+  "protected_main_merge_tree": "8c7970063362f6b07029c7cd0d46a15c94bf2a5d",
+  "launch_design_approval_sha256": "82e61b502c8ecc6385a02531c081f1b9a90254bbc14098a6dd73c74f16e29c44",
+  "launch_candidate_v2_sha256": "0a3dd270a117ebc160253181045eb2b27b3532a7b12664d1965042f4e1ceea48",
+  "bindings": {
+    "owner_readiness_approval_sha256": "36a5074264f93a9c565b4011b7162031d62e3a135eaba17336dcd8c51cc43cba",
+    "readiness_v3_sha256": "b6fd726b2f7067cb38e8e04df51eb9f39d7f6928837775a747beb4b5e3dcc4a2",
+    "evidence_v5_sha256": "5cd65a2d78884e9744ef2cc8c21bbbf9ef4bfe1342553c62c11f29156034f224",
+    "candidate_v1_sha256": "e230f9d277803e8ff8324922a1c91e1a8ce5ae5d689aac8146b1745b96d7ba02",
+    "candidate_v1_model_sha256": "173d0cb66f2faa36cde73a7844cc963b97cbc2fbe0bf6c6e0cda915700219cf2",
+    "access_policy_sha256": "54d0d97c05bee58680064ca61f9a7cf512f6b5244b10ff9be035c82892624422",
+    "runtime_sha256": "1e9efd35c82ee95ccc382c379b34009b70f0bfd85b284530871c91bc98c677ba",
+    "runtime_file_set_sha256": "49d686c9349fda6230e49f22ae136f203977015b329f2cf2023276187231c476",
+    "python_environment_sha256": "f1ecff17cd7adbe8b544270c3ea4fe5e3bd12a512ad1f6fbdb77816a6d286455",
+    "python_environment_manifest_sha256": "9ea05dd0a396e8dda33b21d0050b0110bbe7e64188ce8324b333b7c9f9461db2",
+    "launcher_sha256": "44489530f735f09418ef2bd4a9aee9c15eb65b5519f97136d484eaa71852f1a0",
+    "interpreter_sha256": "88b9e780cfdc38597c7f53e20f7165262befa28d9a5e9470360d349e172ecf37",
+    "dependency_sha256": "e1b8506b39c87b76b0d7f9bad508d4ae319f6c3271384b5cb4b03c2490baf03f",
+    "reference_manifest_sha256": "060d6f166e35400ba53d563fb75dfae4c4872d22796b12762e35bd6d15f88202",
+    "annotator_a_package_manifest_sha256": "45540cc5face34903fa98fb1fc7763546d3e8328d189a68588ae93e23ec27484",
+    "annotator_b_package_manifest_sha256": "c4b8acc6f0dbe4920ac8a0c4e06607dedcc04f6377a3723f4293a314058a77b7",
+    "annotator_a_view_sha256": "4a741fdbb087457ac3e9c7803db6527b7e01bbca5943d1fb5f8f376599e9d225",
+    "annotator_b_view_sha256": "58f33685eb4d9a2664b2176516fc23f5917ac6799dee579102af30f7a5362668",
+    "final_hardening_packet_sha256": "b676ad1f1db287763318e5fbcf1f1f4f40f290b45e3c379fa4b2a359358f4c84"
+  },
+  "contract_identity": {
+    "scientific_schema_version": "0.3.1",
+    "scientific_schema_digest": "6a913cc7855aa96809f60cff5b2cd8255451975fe38afd81ed128a15ef65c2d5",
+    "benchmark_schema_version": "0.1.1",
+    "benchmark_schema_digest": "bc18a979f38add53c67a109d7f6b2b1e61f1ee34c9099cd4a1aadb7491803ebf",
+    "metric_contract_version": "0.1.1",
+    "evaluator_sha256": "5174c58f8702b79288663612546c96c173bb524f706c5fe6d0fde395d6735d82",
+    "critical_field_set_sha256": "4bda5733677a14e087114decf86f0a1ed58f6eb68aa43498cbb2377431e65ff0",
+    "date_correction_approval_sha256": "5bbe288b2e771091e30d8e223f60e341a060cc52c8546799a4f7074ee7fc3b1a",
+    "discovery_policy_approval_sha256": "b1cd4f9412be9b87476b65290f47bce4dfb39654d7cc47aaac4b2bc15b71347f",
+    "date_pair_interpretation_sha256": "7d5e9bc442625690df03b8ce9739d07b3221dee033d125930b994251baef4ea5",
+    "date_pair_interpretation_approval_sha256": "f1e865bf97d6b8ef7e1946f63f7e45722766b050232a5cacfa38b9e369eaf49a",
+    "owner_readiness_approval_sha256": "36a5074264f93a9c565b4011b7162031d62e3a135eaba17336dcd8c51cc43cba"
+  },
+  "decisions": [
+    {
+      "decision_id": "ANNOTATOR-A-ELIGIBILITY",
+      "status": "UNRESOLVED",
+      "response": null
+    },
+    {
+      "decision_id": "ANNOTATOR-B-ELIGIBILITY",
+      "status": "UNRESOLVED",
+      "response": null
+    },
+    {
+      "decision_id": "DISTINCT-HUMANS",
+      "status": "UNRESOLVED",
+      "response": null
+    },
+    {
+      "decision_id": "REAL-AB-ACCESS-ISOLATION",
+      "status": "UNRESOLVED",
+      "response": null
+    },
+    {
+      "decision_id": "REAL-EXTERNAL-WRITE-AUTHORIZATION",
+      "status": "UNRESOLVED",
+      "response": null
+    },
+    {
+      "decision_id": "REAL-PACKAGE-ISSUANCE",
+      "status": "UNRESOLVED",
+      "response": null
+    },
+    {
+      "decision_id": "ANNOTATION-LAUNCH",
+      "status": "UNRESOLVED",
+      "response": null
+    }
+  ]
+}

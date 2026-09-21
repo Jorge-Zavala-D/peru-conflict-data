@@ -1,0 +1,48 @@
+{
+  "owner_readiness_approved": true,
+  "launch_design_approved": true,
+  "launch_design_decisions_approved": 9,
+  "launch_operational_decisions_pending": 7,
+  "owner_launch_approved": false,
+  "annotation_launch_approved": false,
+  "annotation_started": false,
+  "real_humans_assigned": false,
+  "real_eligibility_attestations_created": false,
+  "external_root_created": false,
+  "dropbox_writes_approved": false,
+  "real_access_tests_passed": false,
+  "real_issuance_receipts_created": false,
+  "real_packages_issued": false,
+  "production_locking_enabled": false,
+  "human_gold_created": false,
+  "parser_work_approved": false,
+  "m3_owner_approved": false,
+  "normative_metric_amendment_approved": false,
+  "candidate_id": "M2-02-ANNOTATION-LAUNCH-CANDIDATE-V1",
+  "status": "owner_review_draft",
+  "operational_candidate_sha256": "4aa06c16fccd89e9c2746043086070a99c6b1ed28f002de57ac3aedb4dcc0db7",
+  "prerequisite_decisions": [
+    "ANNOTATOR-A-ELIGIBILITY",
+    "ANNOTATOR-B-ELIGIBILITY",
+    "DISTINCT-HUMANS",
+    "REAL-AB-ACCESS-ISOLATION",
+    "REAL-EXTERNAL-WRITE-AUTHORIZATION",
+    "REAL-PACKAGE-ISSUANCE"
+  ],
+  "required_evidence": [
+    "fresh_protected_main_authority",
+    "exact_production_environment_owner_approval",
+    "private_eligibility_role_bindings",
+    "exact_scoped_external_write_approval",
+    "all_108_real_access_checks_and_two_application_controls",
+    "exact_A_and_B_issuance_receipts",
+    "package_reference_view_runtime_environment_alignment",
+    "no_stale_evidence"
+  ],
+  "production_environment_approved": false,
+  "decision": {
+    "decision_id": "ANNOTATION-LAUNCH",
+    "status": "UNRESOLVED",
+    "response": null
+  }
+}
