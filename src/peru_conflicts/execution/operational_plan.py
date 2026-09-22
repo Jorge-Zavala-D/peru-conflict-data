@@ -27,6 +27,7 @@ MERGE_TREE = "8c7970063362f6b07029c7cd0d46a15c94bf2a5d"
 DESIGN_SHA = "82e61b502c8ecc6385a02531c081f1b9a90254bbc14098a6dd73c74f16e29c44"
 CANDIDATE_V2_SHA = "0a3dd270a117ebc160253181045eb2b27b3532a7b12664d1965042f4e1ceea48"
 OPERATIONAL_DECISIONS = tuple(row[0] for row in DECISIONS[9:])
+PRIVATE_EXECUTION_ROOT = "/M2 Private Annotation Execution/m2-02-v1"
 
 
 class PendingOperationalDecision(StrictModel):
@@ -144,10 +145,19 @@ def make_annotation_launch_candidate(candidate: OperationalCandidate) -> Annotat
     return AnnotationLaunchCandidate(operational_candidate_sha256=model_sha256(candidate))
 
 
-def build_operational_plan(candidate: OperationalCandidate) -> dict[str, Any]:
+def build_operational_plan(
+    candidate: OperationalCandidate, *, setup_version: int = 3
+) -> dict[str, Any]:
     """Exact proposal only: derives routes from the approved policy, performs no I/O."""
     candidate = OperationalCandidate.model_validate_json(candidate.model_dump_json())
     topology = cast(dict[str, Any], proposed_topology())
+    if type(setup_version) is not int or setup_version not in (2, 3):
+        raise ValueError("only reviewed setup versions 2 and 3 are supported")
+    if setup_version == 3:
+        old_root = str(topology["root"])
+        topology["root"] = PRIVATE_EXECUTION_ROOT
+        for area in topology["areas"]:
+            area["path"] = PRIVATE_EXECUTION_ROOT + area["path"][len(old_root) :]
     parents: set[str] = set()
     for area in topology["areas"]:
         parents.update(str(p) for p in PurePosixPath(area["path"]).parents if str(p) != ".")
@@ -253,6 +263,11 @@ def build_operational_plan(candidate: OperationalCandidate) -> dict[str, Any]:
         "06_validation/m2_benchmark",
         "06_validation/m2_benchmark/annotation_runs",
     }
+    existing_ancestors = ("06_validation",)
+    if setup_version == 3:
+        # Planning target only: both folders were absent at read-only inspection.
+        create_directories = {root, str(PurePosixPath(root).parent)}
+        existing_ancestors = ("/",)
     for area in topology["areas"]:
         path = PurePosixPath(area["path"])
         create_directories.update(
@@ -263,7 +278,7 @@ def build_operational_plan(candidate: OperationalCandidate) -> dict[str, Any]:
         create_directories.add(f"{path}/.access-probes")
     topology["directory_operations"] = [
         {"path": path, "operation": "assert_existing", "modify_or_reshare": False}
-        for path in ("06_validation",)
+        for path in existing_ancestors
     ] + [
         {"path": path, "operation": "create_new", "modify_or_reshare": False}
         for path in sorted(create_directories)
@@ -458,7 +473,7 @@ ISSUANCE_STEPS = (
 
 def issuance_templates(candidate: OperationalCandidate) -> list[dict[str, Any]]:
     """Blank future receipts; populated real evidence is not accepted by this proposal."""
-    root = str(proposed_topology()["root"])
+    root = PRIVATE_EXECUTION_ROOT
     return [
         {
             "kind": "BLANK_FUTURE_ISSUANCE_RECEIPT",
@@ -505,9 +520,11 @@ def validate_issuance_templates(templates: object, candidate: OperationalCandida
         raise ValueError("only exact role-bound blank future templates are permitted")
 
 
-def build_setup_request(candidate: OperationalCandidate) -> tuple[dict[str, Any], dict[str, bytes]]:
+def build_setup_request(
+    candidate: OperationalCandidate, *, setup_version: int = 3
+) -> tuple[dict[str, Any], dict[str, bytes]]:
     """Self-contained proposed operations; unresolved private bindings prohibit execution."""
-    plan = build_operational_plan(candidate)
+    plan = build_operational_plan(candidate, setup_version=setup_version)
     objects = {
         "operational_candidate.json": candidate.model_dump(mode="json"),
         "topology.json": plan["topology"],
@@ -547,7 +564,7 @@ def build_setup_request(candidate: OperationalCandidate) -> tuple[dict[str, Any]
         for name, value in objects.items()
     }
     request = {
-        "kind": "M2_SETUP_AUTHORIZATION_REQUEST_V2",
+        "kind": f"M2_SETUP_AUTHORIZATION_REQUEST_V{setup_version}",
         "decision_id": "REAL-EXTERNAL-WRITE-AUTHORIZATION",
         "status": "UNRESOLVED",
         "response": None,
@@ -602,9 +619,13 @@ def build_setup_request(candidate: OperationalCandidate) -> tuple[dict[str, Any]
 
 
 def validate_setup_request(
-    raw: bytes, components: dict[str, bytes], candidate: OperationalCandidate
+    raw: bytes,
+    components: dict[str, bytes],
+    candidate: OperationalCandidate,
+    *,
+    setup_version: int = 3,
 ) -> None:
-    request, expected_components = build_setup_request(candidate)
+    request, expected_components = build_setup_request(candidate, setup_version=setup_version)
     if evidence_json(raw) != request or components != expected_components:
         raise ValueError("setup request/components differ from the exact unapproved snapshot")
 
@@ -879,8 +900,8 @@ def write_operational_proposal(workspace_root: Path, snapshot_name: str) -> Path
         for name, value in objects.items()
     }
     request, components = build_setup_request(candidate)
-    files.update({f"setup_request_v2/{name}": raw for name, raw in components.items()})
-    files["setup_request_v2/REQUEST.json"] = (
+    files.update({f"setup_request_v3/{name}": raw for name, raw in components.items()})
+    files["setup_request_v3/REQUEST.json"] = (
         json.dumps(request, sort_keys=True, indent=2) + "\n"
     ).encode()
     markdown = [
