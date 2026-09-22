@@ -1,0 +1,730 @@
+{
+  "$defs": {
+    "JournalRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/OperationEvidence"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "kind": {
+          "enum": [
+            "intent",
+            "outcome"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "order": {
+          "$ref": "#/$defs/WorkOrder"
+        },
+        "previous_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Previous Sha256"
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "title": "Recorded At",
+          "type": "string"
+        },
+        "result": {
+          "anyOf": [
+            {
+              "enum": [
+                "PASS",
+                "FAIL",
+                "INCONCLUSIVE",
+                "BLOCKED"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Result"
+        },
+        "sequence": {
+          "title": "Sequence",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "sequence",
+        "previous_sha256",
+        "kind",
+        "order",
+        "evidence",
+        "result",
+        "recorded_at"
+      ],
+      "title": "JournalRecord",
+      "type": "object"
+    },
+    "OperationEvidence": {
+      "additionalProperties": false,
+      "properties": {
+        "after": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Snapshot"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "application_after_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Application After Sha256"
+        },
+        "application_before_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Application Before Sha256"
+        },
+        "application_checks": {
+          "default": [],
+          "items": {
+            "enum": [
+              "overwrite_rejected",
+              "prior_hash_preserved"
+            ],
+            "type": "string"
+          },
+          "title": "Application Checks",
+          "type": "array"
+        },
+        "application_replacement": {
+          "anyOf": [
+            {
+              "enum": [
+                "conflict",
+                "success"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Application Replacement"
+        },
+        "before": {
+          "items": {
+            "$ref": "#/$defs/Snapshot"
+          },
+          "title": "Before",
+          "type": "array"
+        },
+        "capability_evidence": {
+          "additionalProperties": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "title": "Capability Evidence",
+          "type": "object"
+        },
+        "label": {
+          "const": "SYNTHETIC_ONLY",
+          "default": "SYNTHETIC_ONLY",
+          "title": "Label",
+          "type": "string"
+        },
+        "namespace": {
+          "pattern": "^synthetic-[a-z0-9-]+$",
+          "title": "Namespace",
+          "type": "string"
+        },
+        "observation": {
+          "enum": [
+            "success",
+            "authorization_denied",
+            "not_found",
+            "network_error",
+            "conflict"
+          ],
+          "title": "Observation",
+          "type": "string"
+        },
+        "observed_at": {
+          "format": "date-time",
+          "title": "Observed At",
+          "type": "string"
+        },
+        "order_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Order Sha256",
+          "type": "string"
+        },
+        "run_id": {
+          "pattern": "^synthetic-[a-z0-9-]+$",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "sequence": {
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "session": {
+          "$ref": "#/$defs/Session"
+        },
+        "share_mode": {
+          "anyOf": [
+            {
+              "enum": [
+                "viewer",
+                "editor"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Share Mode"
+        },
+        "share_role": {
+          "anyOf": [
+            {
+              "enum": [
+                "annotator-a",
+                "annotator-b",
+                "coordinator"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Share Role"
+        },
+        "source_evidence": {
+          "minLength": 1,
+          "title": "Source Evidence",
+          "type": "string"
+        },
+        "source_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Source Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "order_sha256",
+        "run_id",
+        "sequence",
+        "session",
+        "namespace",
+        "observed_at",
+        "observation",
+        "before",
+        "after",
+        "capability_evidence",
+        "source_evidence",
+        "source_sha256"
+      ],
+      "title": "OperationEvidence",
+      "type": "object"
+    },
+    "Session": {
+      "additionalProperties": false,
+      "properties": {
+        "account": {
+          "pattern": "^synthetic-[a-z0-9-]+$",
+          "title": "Account",
+          "type": "string"
+        },
+        "actor": {
+          "enum": [
+            "annotator-a",
+            "annotator-b",
+            "coordinator"
+          ],
+          "title": "Actor",
+          "type": "string"
+        },
+        "private_evidence_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Private Evidence Sha256",
+          "type": "string"
+        },
+        "session": {
+          "pattern": "^synthetic-[a-z0-9-]+$",
+          "title": "Session",
+          "type": "string"
+        }
+      },
+      "required": [
+        "actor",
+        "account",
+        "session",
+        "private_evidence_sha256"
+      ],
+      "title": "Session",
+      "type": "object"
+    },
+    "SetupAuthorization": {
+      "additionalProperties": false,
+      "description": "Versioned test-only grant shape; a model or digest alone grants nothing.",
+      "properties": {
+        "absent_paths": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Absent Paths",
+          "type": "array"
+        },
+        "access_policy_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Access Policy Sha256",
+          "type": "string"
+        },
+        "approved": {
+          "const": "SYNTHETIC_FIXTURE_NOT_OWNER_APPROVAL",
+          "title": "Approved",
+          "type": "string"
+        },
+        "candidate_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Candidate Sha256",
+          "type": "string"
+        },
+        "capabilities": {
+          "additionalProperties": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "title": "Capabilities",
+          "type": "object"
+        },
+        "components": {
+          "additionalProperties": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "title": "Components",
+          "type": "object"
+        },
+        "custody_evidence_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Custody Evidence Sha256",
+          "type": "string"
+        },
+        "evidence_store_id": {
+          "pattern": "^synthetic-[a-z0-9-]+$",
+          "title": "Evidence Store Id",
+          "type": "string"
+        },
+        "existing_root": {
+          "$ref": "#/$defs/Snapshot"
+        },
+        "grant_id": {
+          "pattern": "^synthetic-[a-z0-9-]+$",
+          "title": "Grant Id",
+          "type": "string"
+        },
+        "implementation_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Implementation Sha256",
+          "type": "string"
+        },
+        "label": {
+          "const": "SYNTHETIC_ONLY",
+          "title": "Label",
+          "type": "string"
+        },
+        "namespace": {
+          "pattern": "^synthetic-[a-z0-9-]+$",
+          "title": "Namespace",
+          "type": "string"
+        },
+        "not_after": {
+          "format": "date-time",
+          "title": "Not After",
+          "type": "string"
+        },
+        "not_before": {
+          "format": "date-time",
+          "title": "Not Before",
+          "type": "string"
+        },
+        "observation_max_age_seconds": {
+          "exclusiveMinimum": 0,
+          "title": "Observation Max Age Seconds",
+          "type": "integer"
+        },
+        "operations": {
+          "items": {
+            "enum": [
+              "assert_existing",
+              "create_new",
+              "share",
+              "prepare",
+              "check",
+              "control",
+              "cleanup"
+            ],
+            "type": "string"
+          },
+          "title": "Operations",
+          "type": "array"
+        },
+        "private_binding_evidence": {
+          "additionalProperties": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "title": "Private Binding Evidence",
+          "type": "object"
+        },
+        "request_raw_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Request Raw Sha256",
+          "type": "string"
+        },
+        "root": {
+          "const": "/M2 Private Annotation Execution/m2-02-v1",
+          "title": "Root",
+          "type": "string"
+        },
+        "run_id": {
+          "pattern": "^synthetic-[a-z0-9-]+$",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "sessions": {
+          "items": {
+            "$ref": "#/$defs/Session"
+          },
+          "title": "Sessions",
+          "type": "array"
+        },
+        "use_policy": {
+          "const": "one_run_no_redispatch",
+          "title": "Use Policy",
+          "type": "string"
+        },
+        "version": {
+          "const": "m2-setup-authority-v1",
+          "default": "m2-setup-authority-v1",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "label",
+        "approved",
+        "grant_id",
+        "run_id",
+        "evidence_store_id",
+        "request_raw_sha256",
+        "components",
+        "candidate_sha256",
+        "access_policy_sha256",
+        "implementation_sha256",
+        "root",
+        "namespace",
+        "existing_root",
+        "absent_paths",
+        "sessions",
+        "private_binding_evidence",
+        "custody_evidence_sha256",
+        "capabilities",
+        "operations",
+        "not_before",
+        "not_after",
+        "observation_max_age_seconds",
+        "use_policy"
+      ],
+      "title": "SetupAuthorization",
+      "type": "object"
+    },
+    "Snapshot": {
+      "additionalProperties": false,
+      "properties": {
+        "content_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Content Sha256"
+        },
+        "kind": {
+          "enum": [
+            "directory",
+            "file"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "namespace": {
+          "pattern": "^synthetic-[a-z0-9-]+$",
+          "title": "Namespace",
+          "type": "string"
+        },
+        "owner_run": {
+          "anyOf": [
+            {
+              "pattern": "^synthetic-[a-z0-9-]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Owner Run"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "pattern": "^synthetic-[a-z0-9-]+$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Parent Id"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "resource_id": {
+          "pattern": "^synthetic-[a-z0-9-]+$",
+          "title": "Resource Id",
+          "type": "string"
+        },
+        "version": {
+          "pattern": "^synthetic-[a-z0-9-]+$",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "resource_id",
+        "version",
+        "namespace",
+        "parent_id",
+        "kind"
+      ],
+      "title": "Snapshot",
+      "type": "object"
+    },
+    "WorkOrder": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "enum": [
+            "assert_existing",
+            "create_new",
+            "share",
+            "prepare",
+            "check",
+            "control",
+            "cleanup"
+          ],
+          "title": "Action",
+          "type": "string"
+        },
+        "authority_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Authority Sha256",
+          "type": "string"
+        },
+        "before": {
+          "items": {
+            "$ref": "#/$defs/Snapshot"
+          },
+          "title": "Before",
+          "type": "array"
+        },
+        "capability_evidence": {
+          "additionalProperties": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "title": "Capability Evidence",
+          "type": "object"
+        },
+        "check_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Check Id"
+        },
+        "expected": {
+          "default": "ALLOW",
+          "enum": [
+            "ALLOW",
+            "DENY"
+          ],
+          "title": "Expected",
+          "type": "string"
+        },
+        "issued_at": {
+          "format": "date-time",
+          "title": "Issued At",
+          "type": "string"
+        },
+        "label": {
+          "const": "SYNTHETIC_ONLY",
+          "default": "SYNTHETIC_ONLY",
+          "title": "Label",
+          "type": "string"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "probe_content": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Probe Content"
+        },
+        "probe_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Probe Sha256"
+        },
+        "run_id": {
+          "pattern": "^synthetic-[a-z0-9-]+$",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "sequence": {
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "session": {
+          "$ref": "#/$defs/Session"
+        },
+        "share_mode": {
+          "anyOf": [
+            {
+              "enum": [
+                "viewer",
+                "editor"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Share Mode"
+        },
+        "share_role": {
+          "anyOf": [
+            {
+              "enum": [
+                "annotator-a",
+                "annotator-b",
+                "coordinator"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Share Role"
+        }
+      },
+      "required": [
+        "authority_sha256",
+        "run_id",
+        "sequence",
+        "action",
+        "path",
+        "session",
+        "before",
+        "issued_at",
+        "capability_evidence"
+      ],
+      "title": "WorkOrder",
+      "type": "object"
+    }
+  },
+  "anyOf": [
+    {
+      "$ref": "#/$defs/SetupAuthorization"
+    },
+    {
+      "$ref": "#/$defs/WorkOrder"
+    },
+    {
+      "$ref": "#/$defs/OperationEvidence"
+    },
+    {
+      "$ref": "#/$defs/JournalRecord"
+    }
+  ]
+}
