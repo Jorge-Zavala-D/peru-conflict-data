@@ -89,6 +89,40 @@ tokens and synthetic validation never establish real human eligibility.
 
 ## Bounded external setup and access testing — future authorization only
 
+### Option 2 private-root successor
+
+The owner selected Option 2 and approved
+`/M2 Private Annotation Execution/m2-02-v1` as the planning target only.
+Read-only inspection found neither the top-level parent nor run folder present
+in the connected personal Dropbox namespace. The location is outside the
+publicly linked research hierarchy; this is not evidence of actual A/B isolation.
+The existing research root and its public link must remain untouched.
+
+New local exports use `M2_SETUP_AUTHORIZATION_REQUEST_V3` under
+`setup_request_v3/`. Folder creation proposals, probes, cleanup targets and blank
+issuance paths all use the private root. Only `/` is asserted existing; both new
+ancestors and every resource/probe directory are explicitly enumerated. The
+historical V2 request remains reproducible by explicitly selecting version 2
+in the request builder/validator; it is not accepted by the default V3 validator.
+Historical snapshots and reviewed design identities are not rewritten.
+
+All twelve logical resources, 108 ACL expectations, probe bytes and two separate
+application controls are unchanged. Only the four A/B issue/submission leaves
+may eventually be shared with their respective humans. Structural parents and
+coordinator areas remain coordinator-only. Owner-only membership management,
+effective links/groups and stable provider identities require separately
+authorized setup and verification; Plus is not assumed to prevent recipient
+copying or every recipient-created link. Personnel and exposure records remain
+in separately approved local nonsynchronized custody, not Dropbox; execution
+receipts may contain only permitted opaque references.
+
+The selected path does not approve creation, sharing, access tests, environment,
+issuance or launch. All private bindings remain null and all seven operational
+decisions unresolved. The proposal remains non-executable. No canonical
+`CONFLICT_DATA_ROOT` redirection is permitted.
+
+### Historical V2 request
+
 The `M2_SETUP_AUTHORIZATION_REQUEST_V2` bundle binds PR #16's actual merge,
 design/access authority, candidate canonical-model identity, candidate export raw
 hash, exact topology, 108 checks, probe fixtures and cleanup/containment specification.
@@ -115,7 +149,7 @@ Provider not-found counts as denial only under a separately reviewed concealment
 rule with independently established object existence, exact target, and verified
 account/session/namespace. The classifier tests this rule synthetically only.
 
-Proposed run root: `06_validation/m2_benchmark/annotation_runs/m2-02-v1/`.
+Historical V2 run root: `06_validation/m2_benchmark/annotation_runs/m2-02-v1/`.
 The generated plan includes all twelve approved resource folders and structural
 ancestors, exact coordinator/A/B list/read/write outcomes, inheritance restrictions,
 application controls and rollback conditions. Never share the root or any ancestor

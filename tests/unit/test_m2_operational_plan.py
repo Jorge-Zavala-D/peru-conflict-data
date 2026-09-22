@@ -26,17 +26,79 @@ def test_probe_operations_have_explicit_parents_and_targets() -> None:
         elif row["operation"] == "read":
             assert row["preparation_actor"] == "coordinator"
             assert "verified_existing_object" in row["prerequisites"]
-    assert operations["06_validation"] == "assert_existing"
+    assert operations["/"] == "assert_existing"
 
 
 def test_setup_can_create_absent_m2_ancestors_without_modifying_research_root() -> None:
     c = contract()
-    plan = c.build_operational_plan(c.make_candidate())
+    plan = c.build_operational_plan(c.make_candidate(), setup_version=2)
     operations = {row["path"]: row for row in plan["topology"]["directory_operations"]}
     assert operations["06_validation"]["operation"] == "assert_existing"
     assert operations["06_validation"]["modify_or_reshare"] is False
     assert operations["06_validation/m2_benchmark"]["operation"] == "create_new"
     assert operations["06_validation/m2_benchmark/annotation_runs"]["operation"] == "create_new"
+
+
+def test_private_root_rebinds_every_operation_without_research_paths() -> None:
+    c = contract()
+    candidate = c.make_candidate()
+    plan = c.build_operational_plan(candidate)
+    root = "/M2 Private Annotation Execution/m2-02-v1"
+    assert plan["topology"]["root"] == root
+    assert "06_validation" not in json.dumps(plan)
+    operations = {r["path"]: r for r in plan["topology"]["directory_operations"]}
+    assert operations["/M2 Private Annotation Execution"]["operation"] == "create_new"
+    assert operations["/"]["operation"] == "assert_existing"
+    for row in plan["checks"]:
+        assert row["path"] == f"{root}/{row['resource']}"
+        assert row["cleanup"]["path"].startswith(root + "/")
+    for receipt in c.issuance_templates(candidate):
+        assert receipt["delivery_path"] == f"{root}/{receipt['role']}/issue"
+
+
+def test_successor_preserves_access_semantics_and_historical_components() -> None:
+    c = contract()
+    candidate = c.make_candidate()
+    old, old_parts = c.build_setup_request(candidate, setup_version=2)
+    new, parts = c.build_setup_request(candidate)
+    assert old["kind"] == "M2_SETUP_AUTHORIZATION_REQUEST_V2"
+    assert new["kind"] == "M2_SETUP_AUTHORIZATION_REQUEST_V3"
+    assert old["components"]["topology.json"]["raw_sha256"] == (
+        "9c5a4e487018e379e9cabc17b38b3f56d3aa1cb173df545fb338159fdf011b7d"
+    )
+    assert old["components"]["access_checks.json"]["raw_sha256"] == (
+        "89c310a37297447c9557b66d50b6ca29a2bf31c2b486ec921f21338732ff8f64"
+    )
+    before = json.loads(old_parts["access_checks.json"])
+    after = json.loads(parts["access_checks.json"])
+    assert len(after["checks"]) == 108
+    assert before["application_controls"] == after["application_controls"]
+    for a, b in zip(before["checks"], after["checks"], strict=True):
+        for key in (
+            "check_id",
+            "actor",
+            "resource",
+            "operation",
+            "expected_outcome",
+            "rationale_id",
+            "probe_sha256",
+            "status",
+        ):
+            assert a[key] == b[key]
+    assert new["execution_eligible"] is False
+    assert all(v is None for v in new["private_bindings"].values())
+    with pytest.raises(ValueError):
+        c.validate_setup_request(json.dumps(new).encode(), old_parts, candidate)
+    with pytest.raises(ValueError):
+        c.validate_setup_request(json.dumps(old).encode(), old_parts, candidate)
+    c.validate_setup_request(json.dumps(old).encode(), old_parts, candidate, setup_version=2)
+
+
+@pytest.mark.parametrize("version", [0, 4, True, "3"])
+def test_unreviewed_setup_versions_are_rejected(version: object) -> None:
+    c = contract()
+    with pytest.raises(ValueError):
+        c.build_setup_request(c.make_candidate(), setup_version=version)
 
 
 def test_list_operations_never_request_probe_file_creation_or_cleanup() -> None:
@@ -124,6 +186,9 @@ def test_cache_builder_is_exclusive_and_rejects_external_paths(tmp_path: Path) -
         c.write_operational_proposal(tmp_path, "synthetic")
     files = {p.name for p in output.iterdir()}
     assert "mapped_108_acl_checks.json" in files
+    request = json.loads((output / "setup_request_v3/REQUEST.json").read_bytes())
+    assert request["kind"] == "M2_SETUP_AUTHORIZATION_REQUEST_V3"
+    assert not (output / "setup_request_v2").exists()
     private = json.loads((output / "eligibility_workflow_receipt.json").read_bytes())
     assert private["real_attestation_created"] is False
     assert private["template"]["private_name_and_contact"] is None
