@@ -96,6 +96,15 @@ Receipts bind authority/run/session, ordered intent, operation, exact resource/v
 probe bytes, observations, source evidence and predecessor record. Existing readiness
 `publish_new` provides exclusive, flushed, directory-bound publication. Partial outcome
 capture is not success. Failure receipts remain immutable; no later success overwrites them.
+Returned work orders and retained journal entries use detached deep copies, so mutable
+capability mappings in caller-held orders/evidence cannot rewrite the durable intention
+or its predecessor hashes. Substituted order evidence leaves the original intent UNKNOWN;
+recovery requires evidence for that original order, never automatic redispatch.
+Denial evidence must agree with operation-specific pre/post state: a denied exclusive
+write cannot show a created file, and denied list/read checks cannot substitute the target.
+Contradictory raw receipts are retained and stop normal work. Suspect post-state appears
+under `reconciliation_required`, separately from owned cleanup objects; it supplies no
+deletion authority. This obligation survives resume and prevents complete status.
 The journal assumes one trusted writer and protected local storage. Its hash chain is
 **not rollback protection against malicious administrators or deletion/restoration of the
 whole evidence store**. Independent real authority-use custody/high-water protection is

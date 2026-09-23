@@ -370,3 +370,97 @@ def test_forbidden_successful_write_remains_accounted_after_stop_and_resume(tmp_
     assert resumed.summary()["checks"]["FAIL"] == 1
     with pytest.raises(ValueError, match="stopped"):
         resumed.next(s.NOW)
+
+
+def test_denied_write_with_created_file_cannot_complete_or_authorize_cleanup(
+    tmp_path: Path,
+) -> None:
+    s = bridge()
+    run, provider = s.create_demo(tmp_path / "m2-readiness-contradictory")
+    while True:
+        order = run.next(s.NOW)
+        if order.action == "check" and order.expected == "DENY" and order.probe_content:
+            break
+        run.submit(provider.execute(order), s.NOW)
+    ev = provider.execute(order, fault="unexpected_allow")
+    payload = ev.model_dump(mode="json", exclude={"source_evidence", "source_sha256"})
+    payload["observation"] = "authorization_denied"
+    source = json.dumps(payload)
+    payload.update(source_evidence=source, source_sha256=s.sha256(source.encode()))
+    contradictory = s.OperationEvidence.model_validate_json(json.dumps(payload))
+    result = run.submit(contradictory, s.NOW)
+    if result == "PASS":
+        while (following := run.next(s.NOW)) is not None:
+            run.submit(provider.execute(following), s.NOW)
+    resumed = s.resume_demo(run.root)
+    assert result == "FAIL", (run.summary(), resumed.summary(), provider.objects[order.path])
+    for state in (run, resumed):
+        assert not state.summary()["complete"]
+        assert state.summary()["reconciliation_required"] == 1
+        assert state.reconciliation[order.path] == ev.after
+        assert order.path not in state.owned
+        assert state.records[-1].evidence == contradictory
+        with pytest.raises(ValueError, match="stopped"):
+            state.next(s.NOW)
+    assert provider.objects[order.path] == ev.after
+
+
+def test_outward_work_order_mapping_cannot_change_durable_intent(tmp_path: Path) -> None:
+    s = bridge()
+    run, provider = s.create_demo(tmp_path / "m2-readiness-detached")
+    order = run.next(s.NOW)
+    original = order.model_copy(deep=True)
+    first = run.root / "000001.json"
+    raw = first.read_bytes()
+    intent_hash = s.digest(run.records[0])
+    order.capability_evidence.clear()
+    ev = provider.execute(order)
+    with pytest.raises(ValueError, match="substituted evidence"):
+        run.submit(ev, s.NOW)
+    assert s.digest(run.records[0]) == intent_hash
+    assert first.read_bytes() == raw
+    assert len(run.grant.capabilities) == 6
+    resumed = s.resume_demo(run.root)
+    assert resumed.summary()["pending"] == "UNKNOWN"
+    with pytest.raises(ValueError, match="pending"):
+        resumed.next(s.NOW)
+    # Reconcile evidence for the original order; never redispatch an uncertain action.
+    payload = ev.model_dump(mode="json", exclude={"source_evidence", "source_sha256"})
+    payload["order_sha256"] = s.digest(original)
+    source = json.dumps(payload)
+    payload.update(source_evidence=source, source_sha256=s.sha256(source.encode()))
+    original_evidence = s.OperationEvidence.model_validate_json(json.dumps(payload))
+    assert resumed.submit(original_evidence, s.NOW) == "PASS"
+    original_evidence.capability_evidence.clear()
+    assert s.resume_demo(run.root).next(s.NOW).sequence == 2
+
+
+@pytest.mark.parametrize("operation", ["read", "list"])
+def test_denied_access_with_replaced_target_stops_for_reconciliation(
+    tmp_path: Path, operation: str
+) -> None:
+    s = bridge()
+    run, provider = s.create_demo(tmp_path / "m2-readiness-denied-replaced")
+    while True:
+        order = run.next(s.NOW)
+        if (
+            order.action == "check"
+            and order.expected == "DENY"
+            and order.probe_content is None
+            and bool(order.probe_sha256) == (operation == "read")
+        ):
+            break
+        run.submit(provider.execute(order), s.NOW)
+    ev = provider.execute(order)
+    assert ev.observation == "authorization_denied"
+    payload = ev.model_dump(mode="json", exclude={"source_evidence", "source_sha256"})
+    payload["after"]["resource_id"] = "synthetic-replacement"
+    source = json.dumps(payload)
+    payload.update(source_evidence=source, source_sha256=s.sha256(source.encode()))
+    contradictory = s.OperationEvidence.model_validate_json(json.dumps(payload))
+    assert run.submit(contradictory, s.NOW) == "FAIL"
+    resumed = s.resume_demo(run.root)
+    assert resumed.summary()["reconciliation_required"] == 1
+    assert not resumed.summary()["complete"]
+    with pytest.raises(ValueError, match="stopped"):
+        resumed.next(s.NOW)

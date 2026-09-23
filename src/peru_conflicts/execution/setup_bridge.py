@@ -240,6 +240,7 @@ class SetupBridge:
         self.plan = build_operational_plan(make_candidate())
         self.bound = {"/": grant.existing_root}
         self.owned: dict[str, Snapshot] = {}
+        self.reconciliation: dict[str, Snapshot] = {}
         self.checks: dict[str, Result] = {}
         self.controls: dict[str, Result] = {}
         self.records: list[JournalRecord] = []
@@ -345,7 +346,7 @@ class SetupBridge:
             return None
         self._append("intent", order, None, None, now)
         self.pending = order
-        return order
+        return order.model_copy(deep=True)
 
     def _result(self, order: WorkOrder, ev: OperationEvidence, now: datetime) -> Result:
         if (ev.order_sha256, ev.sequence, ev.run_id) != (
@@ -366,6 +367,19 @@ class SetupBridge:
         if not context:
             return "BLOCKED" if order.action == "cleanup" else "INCONCLUSIVE"
         if order.action == "check":
+            target = next((s for s in order.before if s.path == order.path), None)
+            if ev.observation == "authorization_denied":
+                # Denial cannot substantiate a new/replaced object or changed read bytes.
+                # Missing target evidence remains inconclusive, never proof of denial.
+                if ev.after != target:
+                    return "INCONCLUSIVE" if ev.after is None else "FAIL"
+                if order.probe_content is not None and target is not None:
+                    return "FAIL"  # Exclusive write requires a known-absent target.
+                if order.probe_content is None and (
+                    target is None
+                    or (order.probe_sha256 and target.content_sha256 != order.probe_sha256)
+                ):
+                    return "INCONCLUSIVE"
             # No concealment semantics are installed by the fixed synthetic authority source.
             result = classify_access_observation(
                 order.expected, ev.observation, context_verified=True
@@ -374,9 +388,10 @@ class SetupBridge:
                 return result
             if order.probe_content is not None:
                 return result if self._new_object(order, ev, "file") else "FAIL"
-            target = order.before[-1]
-            if ev.after != target or (
-                order.probe_sha256 and target.content_sha256 != order.probe_sha256
+            if (
+                target is None
+                or ev.after != target
+                or (order.probe_sha256 and target.content_sha256 != order.probe_sha256)
             ):
                 return "FAIL"
             return result
@@ -462,6 +477,14 @@ class SetupBridge:
                 order.action == "prepare" or order.probe_content is not None
             ):
                 self.owned[order.path] = ev.after
+        if (
+            result != "PASS"
+            and order.action == "check"
+            and ev.after is not None
+            and ev.after != self.bound.get(order.path)
+        ):
+            # Untrusted post-state is a reconciliation obligation, NOT cleanup authority.
+            self.reconciliation[order.path] = ev.after
         if result == "PASS" and order.action == "cleanup":
             del self.owned[order.path]
             del self.bound[order.path]
@@ -491,7 +514,7 @@ class SetupBridge:
             f"{record.sequence:06d}.json",
             canonical_json_bytes(record.model_dump(mode="json")) + b"\n",
         )
-        self.records.append(record)
+        self.records.append(record.model_copy(deep=True))
 
     def restore(self) -> None:
         """Revalidate immutable ordered records; an unmatched intent stays pending/UNKNOWN."""
@@ -520,7 +543,7 @@ class SetupBridge:
                     or r.result is not None
                 ):
                     raise ValueError("invalid/replayed intent")
-                self.pending = r.order
+                self.pending = r.order.model_copy(deep=True)
             else:
                 if r.order != self.pending or r.evidence is None:
                     raise ValueError("outcome without exact pending intent")
@@ -538,6 +561,7 @@ class SetupBridge:
             not self.pending
             and not self.stopped
             and not self.owned
+            and not self.reconciliation
             and set(self.checks) == expected
             and set(self.controls) == controls
             and all(v == "PASS" for v in (*self.checks.values(), *self.controls.values()))
@@ -550,6 +574,7 @@ class SetupBridge:
             "application_controls": len(self.controls),
             "pending": "UNKNOWN" if self.pending else None,
             "cleanup_outstanding": len(self.owned),
+            "reconciliation_required": len(self.reconciliation),
             "operational_approvals": 0,
         }
 
