@@ -9,6 +9,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from peru_conflicts.execution.setup_bridge import export_setup_schema
+
 DISCOVERY_V030_TREE_SHA256 = "00cbf40848c24d24eea454e25682061d5725abe01c24c6479ffa6d30fffd821b"
 ACQUISITION_V010_TREE_SHA256 = "b1029c80de6bbb5f293407070ed165936ff892d436018273f5e5b60dd74f2c61"
 ACQUISITION_V020_TREE_SHA256 = "da6f39205d0bc473bfb6b80ff7dab424b7bf8f8d9ce4fa04113813fa4b65b485"
@@ -230,6 +232,7 @@ def test_top_level_schema_check_includes_acquisition(tmp_path: Path) -> None:
     written = acquisition.export_acquisition_schemas(tmp_path)
     manifest.export_manifest_schemas(tmp_path)
     benchmark.export_benchmark_schemas(tmp_path / "benchmark")
+    export_setup_schema(tmp_path)
 
     command = [
         sys.executable,

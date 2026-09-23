@@ -89,6 +89,11 @@ tokens and synthetic validation never establish real human eligibility.
 
 ## Bounded external setup and access testing — future authorization only
 
+The additive [setup-authority bridge](m2_02_setup_bridge.md) provides an offline,
+SYNTHETIC_ONLY manual-assisted work-order/evidence demonstration. It leaves the
+proposal and all real decisions unchanged; production admission has no registered
+real grant and rejects before dispatch. It is not a live Dropbox executor.
+
 ### Option 2 private-root successor
 
 The owner selected Option 2 and approved
