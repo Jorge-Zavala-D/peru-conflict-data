@@ -22,6 +22,12 @@ disposed when this example exits; tests exercise retained stores and interruptio
 It uses no report PDFs, private personnel data or real account sessions. A fake-provider
 conditional guarantee is not proof of equivalent Dropbox behavior.
 
+The command verifies the original system-temporary-directory ancestry with the existing
+directory leases before allocating its disposable child using the canonical spelling.
+This accepts a genuine Windows short-name spelling of the same directory, not junction
+or symlink redirection. Direct `create_demo` callers still supply a new, canonical,
+dedicated temporary child; store identity and resume semantics are unchanged.
+
 ## Minimal offline interface
 
 `create_demo(new_owned_temp_child)` admits a grant from the **fixed synthetic authority

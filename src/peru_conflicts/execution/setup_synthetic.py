@@ -8,9 +8,12 @@ from __future__ import annotations
 
 import json
 import tempfile
+from contextlib import ExitStack
 from datetime import UTC, datetime
 from pathlib import Path, PurePosixPath
 from typing import Any
+
+from peru_conflicts.acquisition.fs_safety import DirectoryLease
 
 from .access_policy import ACCESS_EXPECTATIONS_BY_ID
 from .operational_plan import build_setup_request, make_candidate
@@ -339,7 +342,15 @@ def demonstrate(root: Path) -> dict[str, Any]:
 
 
 def main() -> None:
-    with tempfile.TemporaryDirectory(prefix="m2-readiness-setup-") as temp:
+    with ExitStack() as stack:
+        # Validate original ancestry before using canonical spelling (e.g. Windows 8.3).
+        temporary = Path(tempfile.gettempdir()).absolute()
+        directory = stack.enter_context(DirectoryLease.acquire(Path(temporary.anchor)))
+        for part in temporary.parts[1:]:
+            directory = stack.enter_context(directory.acquire_child(part))
+        temp = stack.enter_context(
+            tempfile.TemporaryDirectory(prefix="m2-readiness-setup-", dir=directory.resolved)
+        )
         root = Path(temp)
         success = demonstrate(root / "success")
         run, provider = create_demo(root / "collision")
