@@ -1,10 +1,11 @@
 """Offline collector uses real codecs/capture/checkpoint and publication primitives."""
 
+from collections.abc import Mapping
 from pathlib import Path, PurePosixPath
 
 import pytest
 
-from peru_conflicts.execution.setup_dropbox import RealWorkOrder
+from peru_conflicts.execution.setup_dropbox import OriginalCapture, RealWorkOrder
 from peru_conflicts.execution.setup_evidence import EvidenceJournal, application_control
 from peru_conflicts.execution.setup_offline import FakeHTTP
 
@@ -711,3 +712,280 @@ def test_retained_schedule_counts_and_order_are_exact() -> None:
     assert len({row["check_id"] for row in rows}) == len(rows) == 108
     assert Counter(row["operation"] for row in rows) == {"list": 36, "read": 36, "write": 36}
     assert Counter(row["expected_outcome"] for row in rows) == {"ALLOW": 46, "DENY": 62}
+
+
+def capture_action(
+    journal: EvidenceJournal, provider: FakeHTTP, action: str
+) -> tuple[RealWorkOrder, OriginalCapture]:
+    if action == "share_status":
+        provider.async_sharing = True
+        launch = drive_until(journal, provider, "share")
+        assert journal.import_capture(provider.execute(launch)).result == "PENDING"
+    order = drive_until(journal, provider, action)
+    return order, OriginalCapture.model_validate_json(provider.execute(order))
+
+
+@pytest.mark.parametrize("action", ["root", "create"])
+@pytest.mark.parametrize("fault", ["unrelated", "duplicate", "reordered"])
+def test_c1_nonpaginated_capture_rejects_extra_exchange(
+    tmp_path: Path, action: str, fault: str
+) -> None:
+    from peru_conflicts.execution.setup_dropbox import classify_capture, encode_request
+
+    _, permit, journal = admitted_journal(tmp_path)
+    try:
+        order, capture = capture_action(journal, FakeHTTP(permit), action)
+        assert classify_capture(order, capture).result == "PASS"
+        first = capture.exchanges[0]
+        extra = first.model_copy(
+            update={
+                "request": encode_request(
+                    "files/delete_v2",
+                    {"path": "id:unrelated", "parent_rev": "offline-rev"},
+                    order.namespace,
+                    order.actor.session_ref,
+                ),
+                "provider_request_id": "offline-extra-exchange",
+            }
+        )
+        exchanges = (first, first) if fault == "duplicate" else (first, extra)
+        if fault == "reordered":
+            exchanges = (extra, first)
+        outcome = classify_capture(order, capture.model_copy(update={"exchanges": exchanges}))
+        assert outcome.result == "INCONCLUSIVE"
+        assert outcome.after is None
+    finally:
+        journal.close()
+
+
+def replace_response(capture: OriginalCapture, body: Mapping[str, object]) -> OriginalCapture:
+    from peru_conflicts.hashing import canonical_json_bytes
+
+    return capture.model_copy(
+        update={
+            "exchanges": (
+                capture.exchanges[0].model_copy(
+                    update={"response_hex": canonical_json_bytes(body).hex()}
+                ),
+            )
+        }
+    )
+
+
+@pytest.mark.parametrize("action", ["share", "share_status"])
+@pytest.mark.parametrize(
+    "variant", ["failed_nested", "unknown_nested", "failed_inline", "untagged", "complete_failed"]
+)
+def test_c2_share_discriminator_controls_completion(
+    tmp_path: Path, action: str, variant: str
+) -> None:
+    import json
+
+    from peru_conflicts.execution.setup_dropbox import classify_capture
+
+    _, permit, journal = admitted_journal(tmp_path)
+    try:
+        order, capture = capture_action(journal, FakeHTTP(permit), action)
+        assert classify_capture(order, capture).result == "PASS"
+        completed = json.loads(bytes.fromhex(capture.exchanges[0].response_hex))["complete"]
+        bodies = {
+            "failed_nested": {".tag": "failed", "failed": {".tag": "other"}, "complete": completed},
+            "unknown_nested": {".tag": "future_unknown_variant", "complete": completed},
+            "failed_inline": {".tag": "failed", **completed},
+            "untagged": completed,
+            "complete_failed": {
+                ".tag": "complete",
+                "complete": completed,
+                "failed": {".tag": "other"},
+            },
+        }
+        result = classify_capture(order, replace_response(capture, bodies[variant]))
+        assert result.result == "INCONCLUSIVE"
+        assert result.shared_folder_id is None
+        assert result.async_job_id is None
+    finally:
+        journal.close()
+
+
+@pytest.mark.parametrize(
+    "fault", ["extra_exchange", "failed_nested", "unknown_nested", "failed_inline"]
+)
+def test_invalid_witnessed_capture_is_retained_and_recovers_stopped(
+    tmp_path: Path, fault: str
+) -> None:
+    import json
+
+    from peru_conflicts.execution import setup_offline
+    from peru_conflicts.execution.references import sha256
+    from peru_conflicts.execution.setup_bridge import digest
+    from peru_conflicts.execution.setup_dropbox import encode_request
+
+    root, permit, journal = admitted_journal(tmp_path)
+    provider = FakeHTTP(permit)
+    try:
+        action = "root" if fault == "extra_exchange" else "share_status"
+        order, capture = capture_action(journal, provider, action)
+        if fault == "extra_exchange":
+            extra = capture.exchanges[0].model_copy(
+                update={
+                    "request": encode_request(
+                        "files/delete_v2",
+                        {"path": "id:unrelated", "parent_rev": "offline-rev"},
+                        order.namespace,
+                        order.actor.session_ref,
+                    ),
+                    "provider_request_id": "offline-extra-exchange",
+                }
+            )
+            capture = capture.model_copy(update={"exchanges": (*capture.exchanges, extra)})
+        else:
+            completed = json.loads(bytes.fromhex(capture.exchanges[0].response_hex))["complete"]
+            body = (
+                {".tag": "failed", **completed}
+                if fault == "failed_inline"
+                else {
+                    ".tag": "failed" if fault == "failed_nested" else "future_unknown_variant",
+                    "complete": completed,
+                }
+            )
+            if fault == "failed_nested":
+                body["failed"] = {".tag": "other"}
+            capture = replace_response(capture, body)
+        raw = capture.model_dump_json().encode()
+        # Separate TEST witness source, not authentication asserted by the document.
+        setup_offline._WITNESSES[permit, digest(order)] = sha256(raw)  # pyright: ignore[reportPrivateUsage]
+        result = journal.import_capture(raw)
+        assert result.result == "INCONCLUSIVE"
+        assert result.shared_folder_id is None and result.after is None
+        assert bytes.fromhex(journal.records[-2]["payload"]["original_hex"]) == raw
+        assert journal.stopped and journal.pending is None
+        with pytest.raises(ValueError, match="stopped"):
+            journal.next()
+        assert not any(
+            call.route in ("files/delete_v2", "sharing/add_folder_member")
+            for call in provider.calls
+        )
+    finally:
+        journal.close()
+    resumed = EvidenceJournal(root / "run", root / "checkpoint", permit, create=False)
+    try:
+        assert resumed.stopped and resumed.pending is None
+        assert bytes.fromhex(resumed.records[-2]["payload"]["original_hex"]) == raw
+        with pytest.raises(ValueError, match="stopped"):
+            resumed.next()
+    finally:
+        resumed.close()
+
+
+@pytest.mark.parametrize(
+    "fault",
+    [
+        "actor",
+        "root",
+        "route",
+        "scope",
+        "api_arg",
+        "cursor",
+        "duplicate",
+        "reordered",
+        "truncated",
+        "cursor_cycle",
+    ],
+)
+def test_c1_pagination_requires_exact_scoped_continuations(tmp_path: Path, fault: str) -> None:
+    import json
+
+    from peru_conflicts.execution.setup_dropbox import classify_capture
+    from peru_conflicts.hashing import canonical_json_bytes
+
+    _, permit, journal = admitted_journal(tmp_path)
+    provider = FakeHTTP(permit)
+    provider.page_size = 1
+    try:
+        order, capture = capture_action(journal, provider, "membership")
+        assert classify_capture(order, capture).result == "PASS"
+        assert len(capture.exchanges) == 2
+        first, second = capture.exchanges
+        mutations = {
+            "actor": {"actor_session_ref": "fixture-session-annotator-b"},
+            "root": {"root_header": '{".tag":"namespace_id","namespace_id":"unrelated"}'},
+            "route": {"route": "files/delete_v2"},
+            "scope": {"scope": "files.content.write"},
+            "api_arg": {"api_arg": "{}"},
+            "cursor": {"body_hex": b'{"cursor":"unrelated"}'.hex()},
+        }
+        exchanges = (first, second)
+        if fault in mutations:
+            exchanges = (
+                first,
+                second.model_copy(
+                    update={
+                        "request": second.request.model_copy(update=mutations[fault]),
+                    }
+                ),
+            )
+        elif fault == "duplicate":
+            exchanges = (first, second, second)
+        elif fault == "reordered":
+            exchanges = (second, first)
+        elif fault == "truncated":
+            exchanges = (first,)
+        else:
+            cursor = json.loads(bytes.fromhex(first.response_hex))["cursor"]
+            empty: dict[str, object] = {"users": [], "groups": [], "invitees": [], "cursor": cursor}
+            middle = second.model_copy(update={"response_hex": canonical_json_bytes(empty).hex()})
+            exchanges = (first, middle, second)
+        assert (
+            classify_capture(order, capture.model_copy(update={"exchanges": exchanges})).result
+            == "INCONCLUSIVE"
+        )
+    finally:
+        journal.close()
+
+
+@pytest.mark.parametrize(
+    "action,state,expected",
+    [
+        ("share", "complete_inline", "PASS"),
+        ("share_status", "complete_inline", "PASS"),
+        ("share", "async_job_id", "PENDING"),
+        ("share_status", "in_progress", "PENDING"),
+        ("share_status", "failed", "INCONCLUSIVE"),
+        ("share", "in_progress", "INCONCLUSIVE"),
+        ("share_status", "async_job_id", "INCONCLUSIVE"),
+        ("share", "contradictory_pending", "INCONCLUSIVE"),
+        ("share_status", "contradictory_pending", "INCONCLUSIVE"),
+    ],
+)
+def test_c2_supported_endpoint_variants(
+    tmp_path: Path, action: str, state: str, expected: str
+) -> None:
+    import json
+
+    from peru_conflicts.execution.setup_dropbox import classify_capture
+
+    _, permit, journal = admitted_journal(tmp_path)
+    try:
+        order, capture = capture_action(journal, FakeHTTP(permit), action)
+        completed = json.loads(bytes.fromhex(capture.exchanges[0].response_hex))["complete"]
+        if state == "complete_inline":
+            body = {".tag": "complete", **completed}
+        elif state == "contradictory_pending":
+            body = {
+                ".tag": "async_job_id" if action == "share" else "in_progress",
+                "complete": completed,
+            }
+            if action == "share":
+                body["async_job_id"] = "offline-job"
+        elif state == "async_job_id":
+            body = {".tag": state, "async_job_id": order.async_job_id or "offline-job"}
+        elif state == "failed":
+            body = {".tag": state, "failed": {".tag": "other"}}
+        else:
+            body = {".tag": state}
+        outcome = classify_capture(order, replace_response(capture, body))
+        assert outcome.result == expected
+        if expected != "PASS":
+            assert outcome.shared_folder_id is None
+    finally:
+        journal.close()

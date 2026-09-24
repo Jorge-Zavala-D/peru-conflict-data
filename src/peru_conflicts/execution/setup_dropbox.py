@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from itertools import pairwise
 from pathlib import PurePosixPath
 from typing import Annotated, Any, Literal, cast
 
@@ -376,6 +377,30 @@ def classify_capture(
     ):
         return inconclusive
     try:
+        continuation = {
+            "list": "files/list_folder/continue",
+            "membership": "sharing/list_folder_members/continue",
+            "links": "sharing/list_shared_links",
+        }.get(order.action)
+        if continuation is None and len(capture.exchanges) != 1:
+            return inconclusive
+        cursors: set[str] = set()
+        # Validate the entire request sequence before any semantic early return,
+        # including successful denials. Supplementary observations belong in
+        # before_hex/after_hex, not additional unapproved exchanges.
+        for previous, exchange in pairwise(capture.exchanges):
+            if continuation is None or previous.status != 200:
+                return inconclusive
+            page = evidence_json(bytes.fromhex(previous.response_hex))
+            cursor = page.get("cursor")
+            more = bool(cursor) if order.action == "membership" else page.get("has_more")
+            if not more or not isinstance(cursor, str) or not cursor or cursor in cursors:
+                return inconclusive
+            cursors.add(cursor)
+            if exchange.request != encode_request(
+                continuation, {"cursor": cursor}, order.namespace, order.actor.session_ref
+            ):
+                return inconclusive
         before, after = _objects(capture.before_hex), _objects(capture.after_hex)
         expected_before = tuple(b.observation for b in order.before)
         if len(before) != len(expected_before) or any(
@@ -525,27 +550,10 @@ def classify_capture(
             )
         elif order.action in ("list", "membership", "links"):
             seen_members: dict[str, str] = {}
-            continuation = {
-                "list": "files/list_folder/continue",
-                "membership": "sharing/list_folder_members/continue",
-                "links": "sharing/list_shared_links",
-            }[order.action]
             for index, exchange in enumerate(capture.exchanges):
                 page = evidence_json(bytes.fromhex(exchange.response_hex))
                 if exchange.status != 200:
                     return inconclusive
-                if index:
-                    previous = evidence_json(
-                        bytes.fromhex(capture.exchanges[index - 1].response_hex)
-                    )
-                    args = evidence_json(bytes.fromhex(exchange.request.body_hex))
-                    if (
-                        exchange.request.route != continuation
-                        or args != {"cursor": previous.get("cursor")}
-                        or exchange.request.actor_session_ref != order.actor.session_ref
-                        or exchange.request.root_header != first.request.root_header
-                    ):
-                        return inconclusive
                 if order.action == "list" and not isinstance(page.get("entries"), list):
                     return inconclusive
                 if order.action == "membership" and (page.get("groups") or page.get("invitees")):
@@ -584,7 +592,12 @@ def classify_capture(
             if order.action == "links" and order.link_coverage != "offline_complete":
                 return inconclusive  # A user-scoped empty page is not universal absence.
         elif order.action in ("share", "share_status"):
-            if obj.get(".tag") in ("async_job_id", "in_progress"):
+            tag = obj.get(".tag")
+            pending_tag = "async_job_id" if order.action == "share" else "in_progress"
+            if tag == pending_tag:
+                fields = {".tag", "async_job_id"} if order.action == "share" else {".tag"}
+                if set(obj) != fields:
+                    return inconclusive
                 job = obj.get("async_job_id") if order.action == "share" else order.async_job_id
                 if not isinstance(job, str) or not job:
                     return inconclusive
@@ -593,6 +606,12 @@ def classify_capture(
                     reason="share conversion pending; never resubmit",
                     async_job_id=job,
                 )
+            if tag != "complete" or any(
+                k in obj for k in ("failed", "async_job_id", "in_progress")
+            ):
+                return inconclusive
+            if "complete" in obj and set(obj) != {".tag", "complete"}:
+                return inconclusive
             completed = obj.get("complete", obj)
             shared = completed.get("shared_folder_id")
             if (
