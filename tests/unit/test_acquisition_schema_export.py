@@ -9,6 +9,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+from peru_conflicts.execution.setup_authority import export_real_schema
 from peru_conflicts.execution.setup_bridge import export_setup_schema
 
 DISCOVERY_V030_TREE_SHA256 = "00cbf40848c24d24eea454e25682061d5725abe01c24c6479ffa6d30fffd821b"
@@ -233,6 +234,7 @@ def test_top_level_schema_check_includes_acquisition(tmp_path: Path) -> None:
     manifest.export_manifest_schemas(tmp_path)
     benchmark.export_benchmark_schemas(tmp_path / "benchmark")
     export_setup_schema(tmp_path)
+    export_real_schema(tmp_path)
 
     command = [
         sys.executable,
