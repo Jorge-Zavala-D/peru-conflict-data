@@ -1,0 +1,1096 @@
+{
+  "$defs": {
+    "ActorBinding": {
+      "additionalProperties": false,
+      "properties": {
+        "account_ref": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "^[a-zA-Z0-9_-]+$",
+          "title": "Account Ref",
+          "type": "string"
+        },
+        "actor": {
+          "enum": [
+            "annotator-a",
+            "annotator-b",
+            "coordinator"
+          ],
+          "title": "Actor",
+          "type": "string"
+        },
+        "binding_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Binding Sha256",
+          "type": "string"
+        },
+        "person_ref": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "^[a-zA-Z0-9_-]+$",
+          "title": "Person Ref",
+          "type": "string"
+        },
+        "session_ref": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "^[a-zA-Z0-9_-]+$",
+          "title": "Session Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "actor",
+        "person_ref",
+        "account_ref",
+        "session_ref",
+        "binding_sha256"
+      ],
+      "title": "ActorBinding",
+      "type": "object"
+    },
+    "BoundObservation": {
+      "additionalProperties": false,
+      "description": "Ledger relationship, explicitly NOT a provider parent ID or folder revision.",
+      "properties": {
+        "ancestor_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Ancestor Ids",
+          "type": "array"
+        },
+        "logical_path": {
+          "title": "Logical Path",
+          "type": "string"
+        },
+        "namespace": {
+          "title": "Namespace",
+          "type": "string"
+        },
+        "observation": {
+          "discriminator": {
+            "mapping": {
+              "file": "#/$defs/FileObservation",
+              "folder": "#/$defs/FolderObservation",
+              "namespace_root": "#/$defs/NamespaceRootObservation"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/NamespaceRootObservation"
+            },
+            {
+              "$ref": "#/$defs/FolderObservation"
+            },
+            {
+              "$ref": "#/$defs/FileObservation"
+            }
+          ],
+          "title": "Observation"
+        },
+        "observed_at": {
+          "format": "date-time",
+          "title": "Observed At",
+          "type": "string"
+        },
+        "original_capture_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Original Capture Sha256",
+          "type": "string"
+        },
+        "relation_source": {
+          "const": "bound_path_observation",
+          "default": "bound_path_observation",
+          "title": "Relation Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "namespace",
+        "logical_path",
+        "observation",
+        "ancestor_ids",
+        "observed_at",
+        "original_capture_sha256"
+      ],
+      "title": "BoundObservation",
+      "type": "object"
+    },
+    "ComponentReceipt": {
+      "additionalProperties": false,
+      "properties": {
+        "control_id": {
+          "enum": [
+            "APP-ACCEPTED-BYTES-A",
+            "APP-ACCEPTED-BYTES-B"
+          ],
+          "title": "Control Id",
+          "type": "string"
+        },
+        "executable_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Executable Sha256",
+          "type": "string"
+        },
+        "executable_version": {
+          "title": "Executable Version",
+          "type": "string"
+        },
+        "isolated_store_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Isolated Store Sha256",
+          "type": "string"
+        },
+        "level": {
+          "const": "COMPONENT",
+          "default": "COMPONENT",
+          "title": "Level",
+          "type": "string"
+        },
+        "live_path_coverage": {
+          "const": "NOT_ESTABLISHED",
+          "default": "NOT_ESTABLISHED",
+          "title": "Live Path Coverage",
+          "type": "string"
+        },
+        "logical_resource": {
+          "title": "Logical Resource",
+          "type": "string"
+        },
+        "original_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Original Sha256",
+          "type": "string"
+        },
+        "preserved_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Preserved Sha256",
+          "type": "string"
+        },
+        "primitive_source_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Primitive Source Sha256",
+          "type": "string"
+        },
+        "procedure_source_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Procedure Source Sha256",
+          "type": "string"
+        },
+        "replacement": {
+          "const": "FileExistsError",
+          "title": "Replacement",
+          "type": "string"
+        },
+        "supersession_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Supersession Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "control_id",
+        "original_sha256",
+        "preserved_sha256",
+        "supersession_sha256",
+        "replacement",
+        "logical_resource",
+        "primitive_source_sha256",
+        "procedure_source_sha256",
+        "executable_sha256",
+        "executable_version",
+        "isolated_store_sha256"
+      ],
+      "title": "ComponentReceipt",
+      "type": "object"
+    },
+    "CooperativeConcurrency": {
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "const": "supervised_cooperative",
+          "default": "supervised_cooperative",
+          "title": "Mode",
+          "type": "string"
+        },
+        "not_after": {
+          "format": "date-time",
+          "title": "Not After",
+          "type": "string"
+        },
+        "not_before": {
+          "format": "date-time",
+          "title": "Not Before",
+          "type": "string"
+        },
+        "policy_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Policy Sha256",
+          "type": "string"
+        },
+        "reviewed_policy_ref": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "^[a-zA-Z0-9_-]+$",
+          "title": "Reviewed Policy Ref",
+          "type": "string"
+        },
+        "scoped_session_ref": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "^[a-zA-Z0-9_-]+$",
+          "title": "Scoped Session Ref",
+          "type": "string"
+        },
+        "session_evidence_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Session Evidence Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "reviewed_policy_ref",
+        "policy_sha256",
+        "scoped_session_ref",
+        "session_evidence_sha256",
+        "not_before",
+        "not_after"
+      ],
+      "title": "CooperativeConcurrency",
+      "type": "object"
+    },
+    "Exchange": {
+      "additionalProperties": false,
+      "properties": {
+        "provider_request_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Provider Request Id"
+        },
+        "request": {
+          "$ref": "#/$defs/PreparedRequest"
+        },
+        "response_hex": {
+          "maxLength": 2097152,
+          "title": "Response Hex",
+          "type": "string"
+        },
+        "result_header": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Result Header"
+        },
+        "status": {
+          "maximum": 599,
+          "minimum": 100,
+          "title": "Status",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "request",
+        "status",
+        "provider_request_id",
+        "response_hex"
+      ],
+      "title": "Exchange",
+      "type": "object"
+    },
+    "FileObservation": {
+      "additionalProperties": false,
+      "properties": {
+        "content_hash": {
+          "title": "Content Hash",
+          "type": "string"
+        },
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "file",
+          "default": "file",
+          "title": "Kind",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "path_display": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Path Display"
+        },
+        "path_lower": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Path Lower"
+        },
+        "rev": {
+          "minLength": 1,
+          "title": "Rev",
+          "type": "string"
+        },
+        "size": {
+          "minimum": 0,
+          "title": "Size",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "rev",
+        "size",
+        "content_hash"
+      ],
+      "title": "FileObservation",
+      "type": "object"
+    },
+    "FolderObservation": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "folder",
+          "default": "folder",
+          "title": "Kind",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "path_display": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Path Display"
+        },
+        "path_lower": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Path Lower"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "title": "FolderObservation",
+      "type": "object"
+    },
+    "NamespaceRootObservation": {
+      "additionalProperties": false,
+      "properties": {
+        "account_id": {
+          "title": "Account Id",
+          "type": "string"
+        },
+        "home_namespace_id": {
+          "title": "Home Namespace Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "namespace_root",
+          "default": "namespace_root",
+          "title": "Kind",
+          "type": "string"
+        },
+        "root_namespace_id": {
+          "title": "Root Namespace Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "account_id",
+        "root_namespace_id",
+        "home_namespace_id"
+      ],
+      "title": "NamespaceRootObservation",
+      "type": "object"
+    },
+    "OriginalCapture": {
+      "additionalProperties": false,
+      "properties": {
+        "actor_session_ref": {
+          "title": "Actor Session Ref",
+          "type": "string"
+        },
+        "after_hex": {
+          "items": {
+            "type": "string"
+          },
+          "title": "After Hex",
+          "type": "array"
+        },
+        "before_hex": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Before Hex",
+          "type": "array"
+        },
+        "ended": {
+          "format": "date-time",
+          "title": "Ended",
+          "type": "string"
+        },
+        "exchanges": {
+          "items": {
+            "$ref": "#/$defs/Exchange"
+          },
+          "maxItems": 200,
+          "minItems": 1,
+          "title": "Exchanges",
+          "type": "array"
+        },
+        "namespace": {
+          "title": "Namespace",
+          "type": "string"
+        },
+        "order_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Order Sha256",
+          "type": "string"
+        },
+        "started": {
+          "format": "date-time",
+          "title": "Started",
+          "type": "string"
+        },
+        "version": {
+          "const": "m2-real-setup-capture-v2",
+          "default": "m2-real-setup-capture-v2",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "order_sha256",
+        "actor_session_ref",
+        "namespace",
+        "started",
+        "ended",
+        "exchanges",
+        "before_hex",
+        "after_hex"
+      ],
+      "title": "OriginalCapture",
+      "type": "object"
+    },
+    "PreparedRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "actor_session_ref": {
+          "title": "Actor Session Ref",
+          "type": "string"
+        },
+        "api_arg": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Api Arg"
+        },
+        "body_hex": {
+          "title": "Body Hex",
+          "type": "string"
+        },
+        "root_header": {
+          "title": "Root Header",
+          "type": "string"
+        },
+        "route": {
+          "title": "Route",
+          "type": "string"
+        },
+        "scope": {
+          "title": "Scope",
+          "type": "string"
+        }
+      },
+      "required": [
+        "route",
+        "scope",
+        "root_header",
+        "api_arg",
+        "body_hex",
+        "actor_session_ref"
+      ],
+      "title": "PreparedRequest",
+      "type": "object"
+    },
+    "RealWorkOrder": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "enum": [
+            "root",
+            "create",
+            "share",
+            "invite",
+            "mount",
+            "mount_verify",
+            "membership",
+            "links",
+            "share_status",
+            "prepare",
+            "list",
+            "read",
+            "write",
+            "cleanup",
+            "cleanup_metadata",
+            "cleanup_read",
+            "control"
+          ],
+          "title": "Action",
+          "type": "string"
+        },
+        "actor": {
+          "$ref": "#/$defs/ActorBinding"
+        },
+        "actor_locator": {
+          "title": "Actor Locator",
+          "type": "string"
+        },
+        "async_job_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Async Job Id"
+        },
+        "authority_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Authority Sha256",
+          "type": "string"
+        },
+        "before": {
+          "items": {
+            "$ref": "#/$defs/BoundObservation"
+          },
+          "title": "Before",
+          "type": "array"
+        },
+        "check_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Check Id"
+        },
+        "control_id": {
+          "anyOf": [
+            {
+              "enum": [
+                "APP-ACCEPTED-BYTES-A",
+                "APP-ACCEPTED-BYTES-B"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Control Id"
+        },
+        "dispatch_not_after": {
+          "format": "date-time",
+          "title": "Dispatch Not After",
+          "type": "string"
+        },
+        "expected": {
+          "default": "ALLOW",
+          "enum": [
+            "ALLOW",
+            "DENY"
+          ],
+          "title": "Expected",
+          "type": "string"
+        },
+        "expected_account_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Account Id"
+        },
+        "expected_member_roles": {
+          "additionalProperties": {
+            "enum": [
+              "owner",
+              "viewer",
+              "editor"
+            ],
+            "type": "string"
+          },
+          "title": "Expected Member Roles",
+          "type": "object"
+        },
+        "issued_at": {
+          "format": "date-time",
+          "title": "Issued At",
+          "type": "string"
+        },
+        "link_coverage": {
+          "default": "not_established",
+          "enum": [
+            "not_established",
+            "offline_complete"
+          ],
+          "title": "Link Coverage",
+          "type": "string"
+        },
+        "logical_path": {
+          "title": "Logical Path",
+          "type": "string"
+        },
+        "namespace": {
+          "title": "Namespace",
+          "type": "string"
+        },
+        "request": {
+          "$ref": "#/$defs/PreparedRequest"
+        },
+        "run_ref": {
+          "title": "Run Ref",
+          "type": "string"
+        },
+        "sequence": {
+          "exclusiveMinimum": 0,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "shared_folder_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Shared Folder Id"
+        },
+        "target": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BoundObservation"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "version": {
+          "const": "m2-real-work-order-v2",
+          "default": "m2-real-work-order-v2",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "authority_sha256",
+        "run_ref",
+        "sequence",
+        "action",
+        "actor",
+        "logical_path",
+        "namespace",
+        "actor_locator",
+        "before",
+        "target",
+        "request",
+        "issued_at",
+        "dispatch_not_after"
+      ],
+      "title": "RealWorkOrder",
+      "type": "object"
+    },
+    "SetupGrantV2": {
+      "additionalProperties": false,
+      "properties": {
+        "access_policy_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Access Policy Sha256",
+          "type": "string"
+        },
+        "candidate_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Candidate Sha256",
+          "type": "string"
+        },
+        "capability_sha256": {
+          "additionalProperties": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "title": "Capability Sha256",
+          "type": "object"
+        },
+        "checkpoint_ref": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "^[a-zA-Z0-9_-]+$",
+          "title": "Checkpoint Ref",
+          "type": "string"
+        },
+        "cleanup_scope": {
+          "enum": [
+            "receipt_owned_files_only",
+            "prohibited"
+          ],
+          "title": "Cleanup Scope",
+          "type": "string"
+        },
+        "component_sha256": {
+          "additionalProperties": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "title": "Component Sha256",
+          "type": "object"
+        },
+        "concurrency": {
+          "discriminator": {
+            "mapping": {
+              "provider_atomic": "#/$defs/StrictConcurrency",
+              "supervised_cooperative": "#/$defs/CooperativeConcurrency"
+            },
+            "propertyName": "mode"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/StrictConcurrency"
+            },
+            {
+              "$ref": "#/$defs/CooperativeConcurrency"
+            }
+          ],
+          "title": "Concurrency"
+        },
+        "freshness_seconds": {
+          "exclusiveMinimum": 0,
+          "title": "Freshness Seconds",
+          "type": "integer"
+        },
+        "grant_ref": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "^[a-zA-Z0-9_-]+$",
+          "title": "Grant Ref",
+          "type": "string"
+        },
+        "implementation_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Implementation Sha256",
+          "type": "string"
+        },
+        "not_after": {
+          "format": "date-time",
+          "title": "Not After",
+          "type": "string"
+        },
+        "not_before": {
+          "format": "date-time",
+          "title": "Not Before",
+          "type": "string"
+        },
+        "owner_authority_ref": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "^[a-zA-Z0-9_-]+$",
+          "title": "Owner Authority Ref",
+          "type": "string"
+        },
+        "private_bindings_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Private Bindings Sha256",
+          "type": "string"
+        },
+        "proposal_raw_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Proposal Raw Sha256",
+          "type": "string"
+        },
+        "run_ref": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "^[a-zA-Z0-9_-]+$",
+          "title": "Run Ref",
+          "type": "string"
+        },
+        "schedule_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Schedule Sha256",
+          "type": "string"
+        },
+        "sessions": {
+          "items": {
+            "$ref": "#/$defs/ActorBinding"
+          },
+          "title": "Sessions",
+          "type": "array"
+        },
+        "sink_ref": {
+          "maxLength": 200,
+          "minLength": 1,
+          "pattern": "^[a-zA-Z0-9_-]+$",
+          "title": "Sink Ref",
+          "type": "string"
+        },
+        "use_policy": {
+          "const": "one_run_no_redispatch",
+          "title": "Use Policy",
+          "type": "string"
+        },
+        "version": {
+          "const": "m2-real-setup-authorization-v2",
+          "default": "m2-real-setup-authorization-v2",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "grant_ref",
+        "run_ref",
+        "proposal_raw_sha256",
+        "component_sha256",
+        "candidate_sha256",
+        "access_policy_sha256",
+        "implementation_sha256",
+        "schedule_sha256",
+        "private_bindings_sha256",
+        "capability_sha256",
+        "sink_ref",
+        "checkpoint_ref",
+        "owner_authority_ref",
+        "sessions",
+        "concurrency",
+        "not_before",
+        "not_after",
+        "freshness_seconds",
+        "use_policy",
+        "cleanup_scope"
+      ],
+      "title": "SetupGrantV2",
+      "type": "object"
+    },
+    "StrictConcurrency": {
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "const": "provider_atomic",
+          "default": "provider_atomic",
+          "title": "Mode",
+          "type": "string"
+        },
+        "required_guarantee": {
+          "const": "parent_identity_CAS",
+          "default": "parent_identity_CAS",
+          "title": "Required Guarantee",
+          "type": "string"
+        }
+      },
+      "title": "StrictConcurrency",
+      "type": "object"
+    },
+    "ValidatedOutcome": {
+      "additionalProperties": false,
+      "properties": {
+        "after": {
+          "anyOf": [
+            {
+              "discriminator": {
+                "mapping": {
+                  "file": "#/$defs/FileObservation",
+                  "folder": "#/$defs/FolderObservation",
+                  "namespace_root": "#/$defs/NamespaceRootObservation"
+                },
+                "propertyName": "kind"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/NamespaceRootObservation"
+                },
+                {
+                  "$ref": "#/$defs/FolderObservation"
+                },
+                {
+                  "$ref": "#/$defs/FileObservation"
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "After"
+        },
+        "async_job_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Async Job Id"
+        },
+        "component_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Component Sha256"
+        },
+        "mount_locator": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mount Locator"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        },
+        "reconciliation_required": {
+          "default": false,
+          "title": "Reconciliation Required",
+          "type": "boolean"
+        },
+        "result": {
+          "enum": [
+            "PASS",
+            "FAIL",
+            "INCONCLUSIVE",
+            "BLOCKED",
+            "PENDING"
+          ],
+          "title": "Result",
+          "type": "string"
+        },
+        "shared_folder_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Shared Folder Id"
+        }
+      },
+      "required": [
+        "result",
+        "reason"
+      ],
+      "title": "ValidatedOutcome",
+      "type": "object"
+    }
+  },
+  "anyOf": [
+    {
+      "$ref": "#/$defs/SetupGrantV2"
+    },
+    {
+      "$ref": "#/$defs/RealWorkOrder"
+    },
+    {
+      "$ref": "#/$defs/OriginalCapture"
+    },
+    {
+      "$ref": "#/$defs/ValidatedOutcome"
+    },
+    {
+      "$ref": "#/$defs/ComponentReceipt"
+    }
+  ]
+}
