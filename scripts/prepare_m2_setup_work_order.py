@@ -2,25 +2,19 @@
 
 from __future__ import annotations
 
-import argparse
-
-from peru_conflicts.execution.setup_authority import admit
-from peru_conflicts.execution.setup_offline import main as offline_main
+import sys
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("operation", choices=("offline-demo", "admit", "next", "import", "status"))
-    args = parser.parse_args()
-    if args.operation == "offline-demo":
+    if sys.argv[1:] == ["offline-demo"]:
+        from peru_conflicts.execution.setup_offline import main as offline_main
+
         offline_main()
         return
     # Real authority is checked before private-path or credential lookup. There is
     # deliberately no grant-registry, token, endpoint or enable-live CLI parameter.
-    try:
-        admit(b"", lambda: None)
-    except ValueError as error:
-        parser.exit(2, str(error) + "\n")
+    print("M2 operator rejected: use the prescribed verified startup", file=sys.stderr)
+    raise SystemExit(2)
 
 
 if __name__ == "__main__":

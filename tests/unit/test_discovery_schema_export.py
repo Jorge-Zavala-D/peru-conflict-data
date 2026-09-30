@@ -16,6 +16,7 @@ from peru_conflicts.discovery.schema_export import (
 )
 from peru_conflicts.execution.setup_authority import export_real_schema
 from peru_conflicts.execution.setup_bridge import export_setup_schema
+from peru_conflicts.execution.setup_deployment import export_installation_schema
 from peru_conflicts.manifest.schema_export import export_manifest_schemas
 from peru_conflicts.schema_export import export_json_schemas
 
@@ -243,6 +244,7 @@ def test_existing_schema_check_gate_includes_discovery_drift(tmp_path: Path) -> 
     export_benchmark_schemas(tmp_path / "benchmark")
     export_setup_schema(tmp_path)
     export_real_schema(tmp_path)
+    export_installation_schema(tmp_path)
     command = [
         sys.executable,
         "scripts/export_schemas.py",

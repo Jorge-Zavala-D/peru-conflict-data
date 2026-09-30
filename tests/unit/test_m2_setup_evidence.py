@@ -237,14 +237,18 @@ def test_witnessed_malformed_original_is_retained_before_parsing(
         raw = FakeHTTP(permit).execute(journal.next(), fault=fault)
         result = journal.import_capture(raw)
         assert result.result == "INCONCLUSIVE"
-        assert bytes.fromhex(journal.records[1]["payload"]["original_hex"]) == raw
+        captures = [r for r in journal.records if r["kind"] == "capture"]
+        assert len(captures) == 1
+        assert bytes.fromhex(captures[0]["payload"]["original_hex"]) == raw
         assert journal.stopped
     finally:
         journal.close()
     resumed = EvidenceJournal(root / "run", root / "checkpoint", permit, create=False)
     try:
         assert resumed.stopped
-        assert bytes.fromhex(resumed.records[1]["payload"]["original_hex"]) == raw
+        captures = [r for r in resumed.records if r["kind"] == "capture"]
+        assert len(captures) == 1
+        assert bytes.fromhex(captures[0]["payload"]["original_hex"]) == raw
         with pytest.raises(ValueError, match="stopped"):
             resumed.next()
     finally:
@@ -262,7 +266,7 @@ def test_unwitnessed_or_substituted_original_cannot_write(tmp_path: Path) -> Non
         raw = FakeHTTP(permit).execute(order)
         with pytest.raises(ValueError, match="witness"):
             journal.import_capture(raw + b" ")
-        assert len(journal.records) == 1
+        assert [r["kind"] for r in journal.records] == ["intent", "dispatch"]
         assert journal.pending == order
     finally:
         journal.close()

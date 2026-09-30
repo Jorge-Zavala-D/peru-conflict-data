@@ -1,0 +1,183 @@
+{
+  "$defs": {
+    "StorePin": {
+      "additionalProperties": false,
+      "properties": {
+        "access_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Access Sha256",
+          "type": "string"
+        },
+        "device": {
+          "title": "Device",
+          "type": "integer"
+        },
+        "inode": {
+          "title": "Inode",
+          "type": "integer"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "device",
+        "inode",
+        "access_sha256"
+      ],
+      "title": "StorePin",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Private independently pinned installation; contains no tokens.",
+  "properties": {
+    "binding_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Binding Sha256",
+      "type": "string"
+    },
+    "capability_sha256": {
+      "additionalProperties": {
+        "pattern": "^[a-f0-9]{64}$",
+        "type": "string"
+      },
+      "title": "Capability Sha256",
+      "type": "object"
+    },
+    "checkpoint": {
+      "$ref": "#/$defs/StorePin"
+    },
+    "component_store": {
+      "$ref": "#/$defs/StorePin"
+    },
+    "credential_refs": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "Credential Refs",
+      "type": "object"
+    },
+    "forbidden_roots": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Forbidden Roots",
+      "type": "array"
+    },
+    "grant_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Grant Sha256",
+      "type": "string"
+    },
+    "kind": {
+      "enum": [
+        "production",
+        "synthetic_test"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "policy_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Policy Sha256",
+      "type": "string"
+    },
+    "python_environment_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Python Environment Sha256",
+      "type": "string"
+    },
+    "revoked": {
+      "default": false,
+      "title": "Revoked",
+      "type": "boolean"
+    },
+    "runtime_files": {
+      "additionalProperties": {
+        "pattern": "^[a-f0-9]{64}$",
+        "type": "string"
+      },
+      "title": "Runtime Files",
+      "type": "object"
+    },
+    "scopes": {
+      "additionalProperties": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      },
+      "title": "Scopes",
+      "type": "object"
+    },
+    "source_files": {
+      "additionalProperties": {
+        "pattern": "^[a-f0-9]{64}$",
+        "type": "string"
+      },
+      "title": "Source Files",
+      "type": "object"
+    },
+    "source_root": {
+      "title": "Source Root",
+      "type": "string"
+    },
+    "store": {
+      "$ref": "#/$defs/StorePin"
+    },
+    "test_service_evidence": {
+      "anyOf": [
+        {
+          "const": "complete_synthetic_service",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Test Service Evidence"
+    },
+    "transport_profile": {
+      "default": "native_required_guarantees",
+      "enum": [
+        "native_required_guarantees",
+        "simulated_application_only"
+      ],
+      "title": "Transport Profile",
+      "type": "string"
+    },
+    "validity_end": {
+      "format": "date-time",
+      "title": "Validity End",
+      "type": "string"
+    },
+    "witness_store": {
+      "$ref": "#/$defs/StorePin"
+    }
+  },
+  "required": [
+    "grant_sha256",
+    "source_root",
+    "source_files",
+    "runtime_files",
+    "python_environment_sha256",
+    "binding_sha256",
+    "policy_sha256",
+    "capability_sha256",
+    "store",
+    "checkpoint",
+    "witness_store",
+    "component_store",
+    "forbidden_roots",
+    "validity_end",
+    "kind",
+    "credential_refs",
+    "scopes"
+  ],
+  "title": "Installation",
+  "type": "object"
+}

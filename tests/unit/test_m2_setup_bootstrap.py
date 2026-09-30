@@ -1,0 +1,330 @@
+"""Fresh isolated processes; trust lives in the test launcher, not the input document."""
+
+import hashlib
+import json
+import os
+import py_compile
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+from typing import Any
+
+import pytest
+from test_m2_setup_deployment import installation_fixture
+
+from peru_conflicts.execution.python_environment_policy import capture_document
+from peru_conflicts.execution.setup_deployment import Installation
+from peru_conflicts.hashing import canonical_json_bytes
+
+ROOT = Path(__file__).resolve().parents[2]
+BOOTSTRAP = ROOT / "src/peru_conflicts/execution/setup_bootstrap.py"
+
+
+def sha(raw: bytes) -> str:
+    return hashlib.sha256(raw).hexdigest()
+
+
+@pytest.fixture(scope="module")
+def admitted_files(tmp_path_factory: pytest.TempPathFactory):
+    root, grant, installation, bindings = installation_fixture(
+        tmp_path_factory.mktemp("bootstrap-admission")
+    )
+    pin = json.loads(installation)
+    environment = capture_document(sha(canonical_json_bytes(pin["runtime_files"])))
+    return root, grant, installation, bindings, canonical_json_bytes(environment)
+
+
+def launch(
+    tmp_path: Path,
+    files: tuple[Path, bytes, bytes, bytes, bytes],
+    fault: str = "none",
+) -> subprocess.CompletedProcess[str]:
+    _, grant, installation, bindings, environment = files
+    pin = json.loads(installation)
+    code_prefix = ""
+    if fault == "source":
+        pin["source_files"]["src/peru_conflicts/__init__.py"] = "0" * 64
+    elif fault == "runtime":
+        pin["runtime_files"][str(Path(sys.executable).resolve())] = "0" * 64
+    elif fault == "expired":
+        pin["validity_end"] = "2026-09-23T12:00:00Z"
+    elif fault == "revoked":
+        pin["revoked"] = True
+    elif fault == "proposal":
+        data = json.loads(grant)
+        data["proposal_raw_sha256"] = "0" * 64
+        grant = canonical_json_bytes(data)
+        pin["grant_sha256"] = sha(grant)
+    elif fault in {"origin", "bytecode", "native_source"}:
+        copied = tmp_path / "source"
+        for name in ("src", "scripts", "config", "docs", "schemas"):
+            shutil.copytree(
+                ROOT / name, copied / name, ignore=shutil.ignore_patterns("__pycache__")
+            )
+        for name in ("uv.lock", "pyproject.toml"):
+            shutil.copyfile(ROOT / name, copied / name)
+        pin["source_root"] = str(copied)
+        if fault == "origin":
+            canary = copied / "src/pydantic.py"
+            canary.write_text("raise RuntimeError('SYNTHETIC-PRIVATE-CANARY')", encoding="utf-8")
+            pin["source_files"]["src/pydantic.py"] = sha(canary.read_bytes())
+        elif fault == "native_source":
+            extension = copied / "src/peru_conflicts/execution/setup_deployment.pyd"
+            extension.write_bytes(b"SYNTHETIC-NOT-A-NATIVE-LIBRARY")
+        else:
+            target = copied / "src/peru_conflicts/__init__.py"
+            original = target.read_bytes()
+            target.write_text(
+                f"from pathlib import Path; Path({str(tmp_path / 'bytecode-executed')!r}).touch()",
+                encoding="utf-8",
+            )
+            py_compile.compile(
+                str(target), invalidation_mode=py_compile.PycInvalidationMode.UNCHECKED_HASH
+            )
+            target.write_bytes(original)
+    installation = (
+        Installation.model_validate_json(canonical_json_bytes(pin)).model_dump_json().encode()
+    )
+    registry = canonical_json_bytes(
+        {
+            "version": "m2-real-registry-v2",
+            "grants": [
+                {
+                    "grant_sha256": sha(grant),
+                    "installation_sha256": sha(installation),
+                    "revoked": False,
+                }
+            ],
+        }
+    )
+    for name, value in (
+        ("installation", installation),
+        ("registry", registry),
+        ("grant", grant),
+        ("environment", environment),
+        ("bindings", bindings),
+    ):
+        (tmp_path / f"{name}.json").write_bytes(value)
+    # Independent launcher pins held OUTSIDE all uploaded documents. No public
+    # application selector installs them; a synthetic subprocess owns this trust.
+    anchor: dict[str, Any] = {
+        "bootstrap_sha256": sha(BOOTSTRAP.read_bytes()),
+        "installation_path": str(tmp_path / "installation.json"),
+        "installation_sha256": sha(installation),
+        "registry_path": str(tmp_path / "registry.json"),
+        "registry_sha256": sha(registry),
+        "grant_path": str(tmp_path / "grant.json"),
+        "environment_path": str(tmp_path / "environment.json"),
+        "environment_sha256": sha(environment),
+        "executable": str(Path(sys.executable).resolve()),
+        "initial_paths": [],
+    }
+    if fault in {"installation_pin", "registry_pin", "environment_pin", "bootstrap_pin"}:
+        anchor[fault.replace("_pin", "_sha256")] = "0" * 64
+    if fault == "installation_bytes":
+        (tmp_path / "installation.json").write_bytes(installation + b" ")
+    if fault == "search":
+        code_prefix = f"sys.path.insert(0, {str(tmp_path)!r})"
+        (tmp_path / "typing.py").write_text(
+            f"from pathlib import Path; Path({str(tmp_path / 'search-executed')!r}).touch()",
+            encoding="utf-8",
+        )
+    if fault == "preimport":
+        code_prefix = "sys.modules['pydantic'] = object()"
+    if fault == "preimport_dependency":
+        code_prefix = "sys.modules['typing_extensions'] = types.ModuleType('typing_extensions')"
+    if fault == "import_hook":
+        code_prefix = "sys.meta_path.insert(0, object())"
+    code = f"""
+import sys, os, hashlib, types
+from pathlib import Path
+from datetime import datetime
+def deny(event, args):
+    if event.startswith('socket.') and event != 'socket.gethostname':
+        raise AssertionError('NETWORK_FORBIDDEN')
+sys.addaudithook(deny)
+# Process-local test controls are not trust inputs; never process site hooks.
+for key in tuple(os.environ):
+    if key.lower().startswith(('python', 'pytest')):
+        del os.environ[key]
+anchor = {anchor!r}
+anchor['initial_paths'] = list(sys.path)
+{code_prefix}
+original = Path({str(BOOTSTRAP)!r}).read_bytes()
+if hashlib.sha256(original).hexdigest() != anchor['bootstrap_sha256']:
+    print('REJECT:BOOTSTRAP:0'); raise SystemExit(0)
+entry_path = Path({str(ROOT / "scripts/start_m2_setup.py")!r})
+entry_raw = entry_path.read_bytes()
+expected_entry = {sha((ROOT / "scripts/start_m2_setup.py").read_bytes())!r}
+assert hashlib.sha256(entry_raw).hexdigest() == expected_entry
+entry = types.ModuleType('_trusted_test_entry')
+entry.__file__ = str(entry_path)
+exec(compile(entry_raw, str(entry_path), 'exec'), entry.__dict__)
+calls = []
+def bindings():
+    calls.append('private')
+    if {fault == "private_error"!r}:
+        raise RuntimeError('SYNTHETIC-PRIVATE-CANARY')
+    return Path({str(tmp_path / "bindings.json")!r}).read_bytes()
+try:
+    context = entry.launch(anchor, bindings,
+        clock=lambda: datetime.fromisoformat('2026-09-23T12:00:00+00:00'))
+except ValueError as error:
+    assert error.__context__ is None and error.__cause__ is None
+    assert 'peru_conflicts.execution.setup_transport' not in sys.modules
+    print('REJECT:' + str(error) + ':' + str(len(calls)))
+else:
+    assert 'peru_conflicts.execution.setup_offline' not in sys.modules
+    assert 'peru_conflicts.execution.setup_transport' not in sys.modules
+    assert type(context).__name__ == 'AdmittedContext'
+    grant = context.check(Path({pin["store"]["path"]!r}), Path({pin["checkpoint"]["path"]!r}))
+    assert grant.run_ref == 'test-installed-run'
+    print('ADMITTED:' + str(len(calls)))
+"""
+    process = subprocess.run(
+        [sys.executable, "-I", "-S", "-B", "-c", code],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        check=False,
+        timeout=240,
+    )
+    assert "SYNTHETIC-PRIVATE-CANARY" not in process.stdout + process.stderr
+    assert not (tmp_path / "search-executed").exists()
+    return process
+
+
+def test_verified_startup_reaches_existing_context(tmp_path: Path, admitted_files: Any):
+    result = launch(tmp_path, admitted_files)
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == "ADMITTED:1"
+
+
+def test_unverified_bytecode_cannot_replace_verified_source(tmp_path: Path, admitted_files: Any):
+    result = launch(tmp_path, admitted_files, "bytecode")
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == "ADMITTED:1"
+    assert not (tmp_path / "bytecode-executed").exists()
+
+
+@pytest.mark.parametrize(
+    ("fault", "stage", "private_calls"),
+    [
+        ("bootstrap_pin", "BOOTSTRAP", 0),
+        ("installation_pin", "REGISTRY", 0),
+        ("installation_bytes", "INSTALLATION", 0),
+        ("registry_pin", "REGISTRY", 0),
+        ("expired", "INSTALLATION", 0),
+        ("revoked", "INSTALLATION", 0),
+        ("source", "SOURCE", 0),
+        ("native_source", "SOURCE", 0),
+        ("runtime", "RUNTIME", 0),
+        ("environment_pin", "ENVIRONMENT", 0),
+        ("origin", "ORIGIN", 0),
+        ("search", "STARTUP", 0),
+        ("preimport", "STARTUP", 0),
+        ("preimport_dependency", "STARTUP", 0),
+        ("import_hook", "STARTUP", 0),
+        ("proposal", "ADMISSION", 0),
+        ("private_error", "ADMISSION", 1),
+    ],
+)
+def test_preimport_rejection_stage(
+    tmp_path: Path,
+    admitted_files: Any,
+    fault: str,
+    stage: str,
+    private_calls: int,
+):
+    result = launch(tmp_path, admitted_files, fault)
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == f"REJECT:{stage}:{private_calls}"
+
+
+@pytest.mark.parametrize("flags", [[], ["-I"], ["-I", "-S"]])
+def test_startup_requires_all_isolation_flags(tmp_path: Path, flags: list[str]):
+    result = subprocess.run(
+        [sys.executable, *flags, str(ROOT / "scripts/start_m2_setup.py")],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        check=False,
+        timeout=30,
+        env={k: v for k, v in os.environ.items() if not k.lower().startswith(("python", "pytest"))},
+    )
+    assert result.returncode == 2
+    assert result.stderr.strip() == "M2 startup rejected: STARTUP"
+
+
+@pytest.mark.parametrize("override", ["argument", "environment", "pythonpath"])
+def test_public_entry_cannot_select_trust(tmp_path: Path, override: str):
+    environment = {
+        k: v for k, v in os.environ.items() if not k.lower().startswith(("python", "pytest"))
+    }
+    arguments: list[str] = []
+    if override == "argument":
+        arguments = ["--registry", "SYNTHETIC-PRIVATE-CANARY"]
+    else:
+        environment["M2_INSTALLATION" if override == "environment" else "PYTHONPATH"] = str(
+            tmp_path
+        )
+    canary = tmp_path / "imported"
+    (tmp_path / "peru_conflicts.py").write_text(
+        f"from pathlib import Path; Path({str(canary)!r}).touch()", encoding="utf-8"
+    )
+    result = subprocess.run(
+        [sys.executable, "-I", "-S", "-B", str(ROOT / "scripts/start_m2_setup.py"), *arguments],
+        cwd=tmp_path,
+        env=environment,
+        capture_output=True,
+        text=True,
+        check=False,
+        timeout=30,
+    )
+    assert result.returncode == 2
+    stage = "ARGUMENTS" if override == "argument" else "STARTUP"
+    assert result.stderr.strip() == f"M2 startup rejected: {stage}"
+    assert not canary.exists()
+
+
+def test_entry_rejects_substituted_bootstrap_before_execution(tmp_path: Path):
+    script = tmp_path / "scripts/start_m2_setup.py"
+    script.parent.mkdir()
+    script.write_bytes((ROOT / "scripts/start_m2_setup.py").read_bytes())
+    bootstrap = tmp_path / "src/peru_conflicts/execution/setup_bootstrap.py"
+    bootstrap.parent.mkdir(parents=True)
+    marker = tmp_path / "unverified-executed"
+    bootstrap.write_text(
+        f"from pathlib import Path; Path({str(marker)!r}).touch()", encoding="utf-8"
+    )
+    result = subprocess.run(
+        [sys.executable, "-I", "-S", "-B", str(script)],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        check=False,
+        timeout=30,
+    )
+    assert result.returncode == 2
+    assert result.stderr.strip() == "M2 startup rejected: BOOTSTRAP"
+    assert not marker.exists()
+
+
+def test_distributed_bootstrap_closed_before_project_import(tmp_path: Path):
+    script = Path(__file__).resolve().parents[2] / "scripts/start_m2_setup.py"
+    canary = tmp_path / "imported"
+    (tmp_path / "peru_conflicts.py").write_text(
+        f"from pathlib import Path; Path({str(canary)!r}).touch()", encoding="utf-8"
+    )
+    result = subprocess.run(
+        [sys.executable, "-I", "-S", "-B", str(script)],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        check=False,
+        timeout=30,
+    )
+    assert result.returncode == 2
+    assert result.stderr.strip() == "M2 startup rejected: CLOSED"
+    assert not canary.exists()
