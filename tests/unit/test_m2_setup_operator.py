@@ -11,7 +11,7 @@ from collections.abc import Callable
 from pathlib import Path
 
 import pytest
-from test_m2_setup_deployment import installation_fixture
+from test_m2_setup_deployment import clean_startup_environment, installation_fixture
 
 from peru_conflicts.execution.python_environment_policy import capture_document
 from peru_conflicts.execution.setup_deployment import Installation
@@ -33,6 +33,7 @@ def test_public_operator_is_closed(operation: str):
         text=True,
         check=False,
         timeout=60,
+        env=clean_startup_environment(),
     )
     assert result.returncode == 2
     assert result.stderr.strip() == "M2 startup rejected: CLOSED"
@@ -271,6 +272,7 @@ print(json.dumps({{'result': result, 'counts': counts}}))
         text=True,
         check=False,
         timeout=21600 if sharing == "complete" else 900 if sharing.endswith("prefix") else 240,
+        env=clean_startup_environment(),
     )
     assert "SYNTHETIC-SECRET-CANARY" not in result.stdout + result.stderr
     assert result.returncode == 0, result.stderr

@@ -2,7 +2,6 @@
 
 import hashlib
 import json
-import os
 import py_compile
 import shutil
 import subprocess
@@ -11,7 +10,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from test_m2_setup_deployment import installation_fixture
+from test_m2_setup_deployment import clean_startup_environment, installation_fixture
 
 from peru_conflicts.execution.python_environment_policy import capture_document
 from peru_conflicts.execution.setup_deployment import Installation
@@ -136,6 +135,8 @@ def launch(
         code_prefix = "sys.modules['typing_extensions'] = types.ModuleType('typing_extensions')"
     if fault == "import_hook":
         code_prefix = "sys.meta_path.insert(0, object())"
+    if fault == "loader_override":
+        code_prefix = "os.environ['LD_LIBRARY_PATH'] = 'SYNTHETIC-OVERRIDE'"
     code = f"""
 import sys, os, hashlib, types
 from pathlib import Path
@@ -189,6 +190,7 @@ else:
         text=True,
         check=False,
         timeout=240,
+        env=clean_startup_environment(),
     )
     assert "SYNTHETIC-PRIVATE-CANARY" not in process.stdout + process.stderr
     assert not (tmp_path / "search-executed").exists()
@@ -196,6 +198,18 @@ else:
 
 
 def test_verified_startup_reaches_existing_context(tmp_path: Path, admitted_files: Any):
+    result = launch(tmp_path, admitted_files)
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == "ADMITTED:1"
+
+
+@pytest.mark.parametrize("override", ["LD_LIBRARY_PATH", "OPENSSL_CONF", "DYLD_LIBRARY_PATH"])
+def test_synthetic_launcher_does_not_inherit_startup_overrides(
+    tmp_path: Path, admitted_files: Any, monkeypatch: pytest.MonkeyPatch, override: str
+):
+    # The trusted synthetic launcher must establish its own clean environment;
+    # production must still refuse these overrides, not inherit test-parent state.
+    monkeypatch.setenv(override, "SYNTHETIC-OVERRIDE")
     result = launch(tmp_path, admitted_files)
     assert result.returncode == 0, result.stderr
     assert result.stdout.strip() == "ADMITTED:1"
@@ -226,6 +240,7 @@ def test_unverified_bytecode_cannot_replace_verified_source(tmp_path: Path, admi
         ("preimport", "STARTUP", 0),
         ("preimport_dependency", "STARTUP", 0),
         ("import_hook", "STARTUP", 0),
+        ("loader_override", "STARTUP", 0),
         ("proposal", "ADMISSION", 0),
         ("private_error", "ADMISSION", 1),
     ],
@@ -251,7 +266,7 @@ def test_startup_requires_all_isolation_flags(tmp_path: Path, flags: list[str]):
         text=True,
         check=False,
         timeout=30,
-        env={k: v for k, v in os.environ.items() if not k.lower().startswith(("python", "pytest"))},
+        env=clean_startup_environment(),
     )
     assert result.returncode == 2
     assert result.stderr.strip() == "M2 startup rejected: STARTUP"
@@ -259,9 +274,7 @@ def test_startup_requires_all_isolation_flags(tmp_path: Path, flags: list[str]):
 
 @pytest.mark.parametrize("override", ["argument", "environment", "pythonpath"])
 def test_public_entry_cannot_select_trust(tmp_path: Path, override: str):
-    environment = {
-        k: v for k, v in os.environ.items() if not k.lower().startswith(("python", "pytest"))
-    }
+    environment = clean_startup_environment()
     arguments: list[str] = []
     if override == "argument":
         arguments = ["--registry", "SYNTHETIC-PRIVATE-CANARY"]
@@ -305,6 +318,7 @@ def test_entry_rejects_substituted_bootstrap_before_execution(tmp_path: Path):
         text=True,
         check=False,
         timeout=30,
+        env=clean_startup_environment(),
     )
     assert result.returncode == 2
     assert result.stderr.strip() == "M2 startup rejected: BOOTSTRAP"
@@ -324,7 +338,75 @@ def test_distributed_bootstrap_closed_before_project_import(tmp_path: Path):
         text=True,
         check=False,
         timeout=30,
+        env=clean_startup_environment(),
     )
     assert result.returncode == 2
     assert result.stderr.strip() == "M2 startup rejected: CLOSED"
     assert not canary.exists()
+
+
+def test_clean_subprocess_reports_initial_startup_boundary(capsys: pytest.CaptureFixture[str]):
+    """Expose the exact pre-import predicate if a host refuses legitimate startup."""
+    import os
+
+    code = f"""
+import sys, os, types, json
+from pathlib import Path
+from datetime import datetime
+def deny(event, args):
+    if event.startswith('socket.') and event != 'socket.gethostname':
+        raise AssertionError('NETWORK_FORBIDDEN')
+sys.addaudithook(deny)
+raw = Path({str(BOOTSTRAP)!r}).read_bytes()
+bootstrap = types.ModuleType('_startup_probe')
+bootstrap.__file__ = {str(BOOTSTRAP)!r}
+exec(compile(raw, bootstrap.__file__, 'exec'), bootstrap.__dict__)
+try:
+    bootstrap._startup()
+except ValueError as error:
+    predicate = str(error)
+else:
+    predicate = 'VALID'
+base = Path(sys.base_prefix).resolve()
+foreign = []
+for name, module in tuple(sys.modules.items()):
+    if name == '__main__' or name in ('typing.io', 'typing.re'):
+        continue
+    spec = getattr(module, '__spec__', None)
+    if spec is not None and spec.origin in ('built-in', 'frozen'):
+        continue
+    origin = getattr(module, '__file__', None)
+    if origin is None or not Path(origin).resolve().is_relative_to(base):
+        foreign.append([name, origin])
+print(json.dumps({{'predicate': predicate, 'executable': sys.executable,
+    'base_prefix': sys.base_prefix, 'initial_paths': sys.path,
+    'resolved_paths': [str(Path(p).resolve()) for p in sys.path],
+    'isolated': sys.flags.isolated, 'no_site': sys.flags.no_site,
+    'dont_write_bytecode': sys.flags.dont_write_bytecode,
+    'override_names': [k for k in os.environ if k.lower().startswith(
+        ('python', 'openssl_', 'ld_', 'dyld_', 'm2_'))],
+    'foreign_modules': foreign}}))
+"""
+    legacy_environment = {
+        key: value
+        for key, value in os.environ.items()
+        if not key.lower().startswith(("python", "pytest"))
+    }
+    for label, environment in (
+        ("legacy-inherited", legacy_environment),
+        ("clean-test-launcher", clean_startup_environment()),
+    ):
+        result = subprocess.run(
+            [sys.executable, "-I", "-S", "-B", "-c", code],
+            env=environment,
+            capture_output=True,
+            text=True,
+            check=False,
+            timeout=30,
+        )
+        assert result.returncode == 0, result.stderr
+        observed = json.loads(result.stdout)
+        with capsys.disabled():
+            print("M2_STARTUP_PROFILE " + label + " " + json.dumps(observed), flush=True)
+        if label == "clean-test-launcher":
+            assert observed["predicate"] == "VALID", observed

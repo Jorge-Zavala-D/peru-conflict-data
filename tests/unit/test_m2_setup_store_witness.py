@@ -1,11 +1,13 @@
 """Installed resource and transferred-file boundaries, using disposable local stores."""
 
+import errno
 import json
 import os
 import re
 import shutil
 import subprocess
 import sys
+import sysconfig
 import traceback
 from collections.abc import Callable, Iterator
 from datetime import timedelta
@@ -161,7 +163,7 @@ def child_reopen(rig: Rig, expected: str) -> str:
     for name, raw in (("grant", rig.grant), ("pin", rig.pin), ("bindings", rig.bindings)):
         (rig.root / (name + ".json")).write_bytes(raw)
     imports = [
-        str(Path(sys.prefix) / "Lib/site-packages"),
+        sysconfig.get_path("purelib"),
         str(Path(__file__).resolve().parents[2] / "src"),
     ]
     code = f"""
@@ -330,7 +332,7 @@ def test_installed_store_admission(tmp_path: Path, fault: str):
         changes["checkpoint"] = pin.store
     elif fault == "nested":
         nested = rig.root / "run" / "nested"
-        nested.mkdir()
+        nested.mkdir(mode=0o700)
         changes["checkpoint"] = store_pin(nested)
     elif fault == "forbidden":
         changes["forbidden_roots"] = (*pin.forbidden_roots, str(rig.root))
@@ -570,10 +572,19 @@ def test_installed_store_directory_alias_is_rejected(tmp_path: Path):
     else:
         alias.symlink_to(rig.root / "run", target_is_directory=True)
     # Measurement itself rejects the reparse path; never authorize its resolved target.
-    with pytest.raises(DirectoryLeaseError):
-        store_pin(alias)
-    with pytest.raises((ValueError, DirectoryLeaseError)):
+    if os.name == "nt":
+        with pytest.raises(DirectoryLeaseError):
+            store_pin(alias)
+    else:
+        # O_DIRECTORY|O_NOFOLLOW can refuse a symlink with ENOTDIR or ELOOP
+        # before a lease exists. That native refusal is not successful admission.
+        with pytest.raises(OSError) as rejected:
+            store_pin(alias)
+        assert rejected.value.errno in {errno.ENOTDIR, errno.ELOOP}
+    with pytest.raises((ValueError, DirectoryLeaseError, OSError)) as rejected_history:
         EvidenceJournal(alias, rig.root / "checkpoint", rig.context(), create=True)
+    if isinstance(rejected_history.value, OSError):
+        assert rejected_history.value.errno in {errno.ENOTDIR, errno.ELOOP}
     assert files(rig.root / "run") == {}
 
 

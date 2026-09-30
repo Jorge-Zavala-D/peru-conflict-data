@@ -1,5 +1,6 @@
 """Independently arranged test installation; never installs a real grant."""
 
+import os
 import subprocess
 import sys
 from functools import lru_cache
@@ -10,6 +11,19 @@ import pytest
 
 from peru_conflicts.execution import setup_authority
 from peru_conflicts.hashing import canonical_json_bytes
+
+
+def clean_startup_environment() -> dict[str, str]:
+    """Test-owned launcher environment, established before spawning Python.
+
+    Production continues to reject these controls; synthetic admission must not
+    accidentally inherit the parent runner's loader/TLS/import configuration.
+    """
+    return {
+        key: value
+        for key, value in os.environ.items()
+        if not key.lower().startswith(("python", "pytest", "openssl_", "ld_", "dyld_", "m2_"))
+    }
 
 
 def test_deployment_loader_exists_beyond_empty_registry(monkeypatch: pytest.MonkeyPatch):
