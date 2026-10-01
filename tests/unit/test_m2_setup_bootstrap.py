@@ -38,6 +38,8 @@ def launch(
     tmp_path: Path,
     files: tuple[Path, bytes, bytes, bytes, bytes],
     fault: str = "none",
+    *,
+    diagnostic: bool = False,
 ) -> subprocess.CompletedProcess[str]:
     _, grant, installation, bindings, environment = files
     pin = json.loads(installation)
@@ -168,6 +170,7 @@ def bindings():
     if {fault == "private_error"!r}:
         raise RuntimeError('SYNTHETIC-PRIVATE-CANARY')
     return Path({str(tmp_path / "bindings.json")!r}).read_bytes()
+{runtime_observer() if diagnostic else ""}
 try:
     context = entry.launch(anchor, bindings,
         clock=lambda: datetime.fromisoformat('2026-09-23T12:00:00+00:00'))
@@ -182,6 +185,8 @@ else:
     grant = context.check(Path({pin["store"]["path"]!r}), Path({pin["checkpoint"]["path"]!r}))
     assert grant.run_ref == 'test-installed-run'
     print('ADMITTED:' + str(len(calls)))
+finally:
+    {"report_runtime()" if diagnostic else "pass"}
 """
     process = subprocess.run(
         [sys.executable, "-I", "-S", "-B", "-c", code],
@@ -197,13 +202,112 @@ else:
     return process
 
 
-def test_verified_startup_reaches_existing_context(tmp_path: Path, admitted_files: Any):
-    result = launch(tmp_path, admitted_files)
+def runtime_observer() -> str:
+    """Observe unchanged bootstrap locals; never initialize sysconfig before it does."""
+    return r"""
+import json
+observed = {}
+stages = []
+def observe(frame, event, arg):
+    if frame.f_code.co_filename != str(entry_path.parent.parent /
+            'src/peru_conflicts/execution/setup_bootstrap.py') or frame.f_code.co_name != 'start':
+        return None
+    state = frame.f_locals
+    stage = state.get('stage')
+    if stage and (not stages or stages[-1]['stage'] != stage):
+        config = sys.modules.get('sysconfig')
+        stages.append({'stage': stage, 'prefix': sys.prefix, 'exec_prefix': sys.exec_prefix,
+            'sysconfig_loaded': config is not None,
+            'sysconfig_cached': config is not None and
+                getattr(config, '_CONFIG_VARS', None) is not None})
+    if event == 'return':
+        observed.update(state)
+    if event == 'exception':
+        message = str(arg[1])
+        if message in {'runtime inventory', 'aliased input', 'unmeasured dependency executable',
+                'environment identity', 'runtime import prefix', 'module origin'}:
+            observed['predicate'] = message
+    return observe
+def report_runtime():
+    sys.settrace(None)
+    import sysconfig
+    executable = Path(sys.executable)
+    venv = executable.parent.parent
+    roots = [(venv, '<venv>'), (Path(sys.base_prefix), '<base>'),
+        (entry_path.parent.parent, '<source>')]
+    def label(value):
+        path = Path(value)
+        for root, name in roots:
+            if path.is_relative_to(root):
+                return name + '/' + path.relative_to(root).as_posix()
+        return '<outside>:' + hashlib.sha256(str(path).encode()).hexdigest()[:12]
+    links = []
+    cursor = executable
+    for _ in range(8):
+        if not cursor.is_symlink():
+            break
+        target = cursor.readlink()
+        cursor = target if target.is_absolute() else cursor.parent / target
+        links.append(label(cursor))
+    config_path = venv / 'pyvenv.cfg'
+    config = config_path.read_bytes() if config_path.is_file() else b''
+    expected = observed.get('pin', {}).get('runtime_files', {})
+    actual = observed.get('runtime', {})
+    missing = sorted(set(expected) - set(actual))
+    extra = sorted(set(actual) - set(expected))
+    different = sorted(p for p in set(actual) & set(expected) if actual[p] != expected[p])
+    def sample(paths):
+        return [{'path': label(p), 'expected': expected.get(p), 'actual': actual.get(p)}
+            for p in paths[:8]]
+    for stage in stages:
+        stage['prefix'] = label(stage['prefix'])
+        stage['exec_prefix'] = label(stage['exec_prefix'])
+    report = {'lexical_executable': label(executable),
+        'resolved_executable': label(executable.resolve()), 'link_chain': links,
+        'base_executable': label(sys._base_executable), 'base_prefix': label(sys.base_prefix),
+        'version': sys.version, 'flags': [sys.flags.isolated, sys.flags.no_site,
+            sys.flags.dont_write_bytecode],
+        'configuration_present': bool(config),
+        'configuration_sha256': hashlib.sha256(config).hexdigest(),
+        'stages': stages, 'predicate': observed.get('predicate'),
+        'parent_purelib': PARENT_PURELIB,
+        'child_purelib_after': label(sysconfig.get_path('purelib')),
+        'child_platlib_after': label(sysconfig.get_path('platlib')),
+        'observed_site': label(observed['site']) if 'site' in observed else None,
+        'runtime_counts': {'expected': len(expected), 'actual': len(actual),
+            'missing': len(missing), 'extra': len(extra), 'different': len(different)},
+        'missing_sample': sample(missing), 'extra_sample': sample(extra),
+        'different_sample': sample(different), 'private_calls': len(calls),
+        'project_imported': 'peru_conflicts' in sys.modules,
+        'provider_imported': 'peru_conflicts.execution.setup_transport' in sys.modules}
+    print('M2_RUNTIME_PROFILE ' + json.dumps(report, sort_keys=True), file=sys.stderr, flush=True)
+sys.settrace(observe)
+""".replace("PARENT_PURELIB", repr(_parent_package_root()))
+
+
+def _parent_package_root() -> str:
+    import sysconfig
+
+    site = Path(sysconfig.get_path("purelib"))
+    venv = Path(sys.executable).parent.parent
+    if site.is_relative_to(venv):
+        return "<venv>/" + site.relative_to(venv).as_posix()
+    return "<outside>"
+
+
+def test_verified_startup_reaches_existing_context(
+    tmp_path: Path, admitted_files: Any, capsys: pytest.CaptureFixture[str]
+):
+    result = launch(tmp_path, admitted_files, diagnostic=True)
+    with capsys.disabled():
+        print(result.stderr, end="", flush=True)
     assert result.returncode == 0, result.stderr
     assert result.stdout.strip() == "ADMITTED:1"
 
 
-@pytest.mark.parametrize("override", ["LD_LIBRARY_PATH", "OPENSSL_CONF", "DYLD_LIBRARY_PATH"])
+@pytest.mark.parametrize(
+    "override", ["LD_LIBRARY_PATH", "OPENSSL_CONF", "DYLD_LIBRARY_PATH", "M2_REPO"]
+)
 def test_synthetic_launcher_does_not_inherit_startup_overrides(
     tmp_path: Path, admitted_files: Any, monkeypatch: pytest.MonkeyPatch, override: str
 ):
@@ -213,6 +317,44 @@ def test_synthetic_launcher_does_not_inherit_startup_overrides(
     result = launch(tmp_path, admitted_files)
     assert result.returncode == 0, result.stderr
     assert result.stdout.strip() == "ADMITTED:1"
+
+
+def test_m2_repo_override_rejected_and_restored(monkeypatch: pytest.MonkeyPatch):
+    import os
+
+    before = os.environ.get("M2_REPO")
+    code = f"""
+import sys, types
+from pathlib import Path
+bootstrap = types.ModuleType('_startup_probe')
+bootstrap.__file__ = {str(BOOTSTRAP)!r}
+exec(compile(Path(bootstrap.__file__).read_bytes(), bootstrap.__file__, 'exec'),
+    bootstrap.__dict__)
+try:
+    bootstrap._startup()
+except ValueError as error:
+    print(str(error))
+else:
+    print('VALID')
+assert 'peru_conflicts' not in sys.modules
+"""
+    with monkeypatch.context() as scoped:
+        scoped.setenv("M2_REPO", "SYNTHETIC-OVERRIDE")
+        clean = clean_startup_environment()
+        inherited = dict(clean, M2_REPO="SYNTHETIC-OVERRIDE")
+        for environment, expected in ((inherited, "startup override"), (clean, "VALID")):
+            result = subprocess.run(
+                [sys.executable, "-I", "-S", "-B", "-c", code],
+                env=environment,
+                capture_output=True,
+                text=True,
+                check=False,
+                timeout=30,
+            )
+            assert result.returncode == 0, result.stderr
+            assert result.stdout.strip() == expected
+        assert os.environ["M2_REPO"] == "SYNTHETIC-OVERRIDE"
+    assert os.environ.get("M2_REPO") == before
 
 
 def test_unverified_bytecode_cannot_replace_verified_source(tmp_path: Path, admitted_files: Any):

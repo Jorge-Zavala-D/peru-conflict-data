@@ -9,7 +9,51 @@ permissions:
   contents: read
 
 jobs:
+  native-admission:
+    name: Native admitted startup (${{ matrix.os }}, ${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python-version: "3.12"
+          - os: ubuntu-latest
+            python-version: "3.13"
+          - os: windows-latest
+            python-version: "3.12"
+    env:
+      UV_PYTHON: ${{ matrix.python-version }}
+      EXPECTED_PYTHON: ${{ matrix.python-version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: "0.11.28"
+          enable-cache: true
+      - run: uv sync --frozen --group dev
+      - name: Actual admitted-path runtime diagnostic
+        timeout-minutes: 20
+        run: >-
+          uv run pytest
+          tests/unit/test_m2_setup_bootstrap.py::test_verified_startup_reaches_existing_context
+          -vv --junitxml=native-admission.xml
+      - name: Retain synthetic native diagnostic
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: native-admission-${{ matrix.os }}-${{ matrix.python-version }}
+          if-no-files-found: error
+          retention-days: 14
+          path: native-admission.xml
+
   quality:
+    needs: native-admission
+    if: always()
     runs-on: ubuntu-latest
     env:
       UV_PYTHON: ${{ matrix.python-version }}
@@ -19,6 +63,11 @@ jobs:
       matrix:
         python-version: ["3.12", "3.13"]
     steps:
+      - name: Require every native admitted startup to pass
+        shell: bash
+        env:
+          NATIVE_ADMISSION_RESULT: ${{ needs.native-admission.result }}
+        run: test "$NATIVE_ADMISSION_RESULT" = success
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
@@ -38,17 +87,24 @@ jobs:
       - run: uv run ruff check .
       - run: uv run pyright --pythonversion ${{ matrix.python-version }} --pythonplatform Windows
       - run: uv run pyright --pythonversion ${{ matrix.python-version }} --pythonplatform Linux
-      - run: uv run pytest
       - run: uv run python scripts/export_schemas.py --check
       - run: uv run python scripts/check_git_data_policy.py
+      - run: uv run pytest
 
   windows-acquisition-safety:
+    needs: native-admission
+    if: always()
     name: windows-acquisition-safety
     runs-on: windows-latest
     env:
       UV_PYTHON: "3.12"
       EXPECTED_PYTHON: "3.12"
     steps:
+      - name: Require every native admitted startup to pass
+        shell: bash
+        env:
+          NATIVE_ADMISSION_RESULT: ${{ needs.native-admission.result }}
+        run: test "$NATIVE_ADMISSION_RESULT" = success
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
@@ -64,6 +120,8 @@ jobs:
           actual = f'{sys.version_info.major}.{sys.version_info.minor}';
           print(f'Expected Python {expected}; active Python {actual}; executable={sys.executable}');
           raise SystemExit(0 if actual == expected else 1)"
+      - run: uv run python scripts/export_schemas.py --check
+      - run: uv run python scripts/check_git_data_policy.py
       - name: Run native Windows handle smoke tests
         run: uv run pytest tests/unit/test_acquisition_windows_native.py -vv
       - name: Run acquisition safety tests
@@ -91,5 +149,3 @@ jobs:
           -vv
       - name: Run complete test suite on Windows
         run: uv run pytest
-      - run: uv run python scripts/export_schemas.py --check
-      - run: uv run python scripts/check_git_data_policy.py
