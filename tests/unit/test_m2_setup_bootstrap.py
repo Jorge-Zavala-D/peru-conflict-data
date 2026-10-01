@@ -7,7 +7,7 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import pytest
 from test_m2_setup_deployment import clean_startup_environment, installation_fixture
@@ -40,9 +40,11 @@ def launch(
     fault: str = "none",
     *,
     diagnostic: bool = False,
+    executable: Path | None = None,
 ) -> subprocess.CompletedProcess[str]:
     _, grant, installation, bindings, environment = files
     pin = json.loads(installation)
+    executable = executable or Path(sys.executable)
     code_prefix = ""
     if fault == "source":
         pin["source_files"]["src/peru_conflicts/__init__.py"] = "0" * 64
@@ -118,7 +120,7 @@ def launch(
         "grant_path": str(tmp_path / "grant.json"),
         "environment_path": str(tmp_path / "environment.json"),
         "environment_sha256": sha(environment),
-        "executable": str(Path(sys.executable).resolve()),
+        "executable": str(executable.resolve()),
         "initial_paths": [],
     }
     if fault in {"installation_pin", "registry_pin", "environment_pin", "bootstrap_pin"}:
@@ -139,6 +141,17 @@ def launch(
         code_prefix = "sys.meta_path.insert(0, object())"
     if fault == "loader_override":
         code_prefix = "os.environ['LD_LIBRARY_PATH'] = 'SYNTHETIC-OVERRIDE'"
+    if fault == "base_relationship":
+        code_prefix = f"sys._base_executable = {str(tmp_path / 'unapproved-base/python')!r}"
+    if fault == "early_sysconfig":
+        code_prefix = "import sysconfig; sysconfig.get_paths()"
+    if fault in {"sysconfig_purelib", "sysconfig_platlib"}:
+        field = fault.removeprefix("sysconfig_")
+        code_prefix = (
+            "import sysconfig; sysconfig.get_paths(); "
+            f"sysconfig._INSTALL_SCHEMES[sysconfig.get_default_scheme()][{field!r}] = "
+            f"{str(tmp_path / 'unapproved-package-root')!r}"
+        )
     code = f"""
 import sys, os, hashlib, types
 from pathlib import Path
@@ -189,7 +202,7 @@ finally:
     {"report_runtime()" if diagnostic else "pass"}
 """
     process = subprocess.run(
-        [sys.executable, "-I", "-S", "-B", "-c", code],
+        [str(executable), "-I", "-S", "-B", "-c", code],
         cwd=tmp_path,
         capture_output=True,
         text=True,
@@ -225,7 +238,10 @@ def observe(frame, event, arg):
     if event == 'exception':
         message = str(arg[1])
         if message in {'runtime inventory', 'aliased input', 'unmeasured dependency executable',
-                'environment identity', 'runtime import prefix', 'module origin'}:
+                'environment identity', 'runtime import prefix', 'module origin',
+                'unsupported interpreter layout', 'interpreter base relationship',
+                'virtualenv configuration relationship', 'unapproved interpreter link',
+                'copied interpreter differs from base', 'runtime package layout differs'}:
             observed['predicate'] = message
     return observe
 def report_runtime():
@@ -251,6 +267,8 @@ def report_runtime():
         links.append(label(cursor))
     config_path = venv / 'pyvenv.cfg'
     config = config_path.read_bytes() if config_path.is_file() else b''
+    configuration = dict((key.strip(), value.strip()) for line in config.decode().splitlines()
+        for key, separator, value in [line.partition('=')] if separator)
     expected = observed.get('pin', {}).get('runtime_files', {})
     actual = observed.get('runtime', {})
     missing = sorted(set(expected) - set(actual))
@@ -269,6 +287,9 @@ def report_runtime():
             sys.flags.dont_write_bytecode],
         'configuration_present': bool(config),
         'configuration_sha256': hashlib.sha256(config).hexdigest(),
+        'configuration_home': label(configuration['home']) if 'home' in configuration else None,
+        'configuration_versions': [configuration[k] for k in ('version', 'version_info')
+            if k in configuration],
         'stages': stages, 'predicate': observed.get('predicate'),
         'parent_purelib': PARENT_PURELIB,
         'child_purelib_after': label(sysconfig.get_path('purelib')),
@@ -303,6 +324,73 @@ def test_verified_startup_reaches_existing_context(
         print(result.stderr, end="", flush=True)
     assert result.returncode == 0, result.stderr
     assert result.stdout.strip() == "ADMITTED:1"
+
+
+def test_trusted_sysconfig_prewarm_reaches_existing_context(tmp_path: Path, admitted_files: Any):
+    # Trusted CPython refreshes its cached configuration when the verified prefix
+    # changes. Prewarming alone is not a substituted dependency-root assertion.
+    result = launch(tmp_path, admitted_files, "early_sysconfig")
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == "ADMITTED:1"
+
+
+@pytest.fixture(scope="module")
+def copied_runtime(admitted_files: Any, tmp_path_factory: pytest.TempPathFactory):
+    """Copy disposable dependency bytes; expected pins come from the original inventory."""
+    import sysconfig
+
+    root, grant, installation, bindings, _ = admitted_files
+    pin = json.loads(installation)
+    original = Path(sys.executable).parent.parent
+    original_site = Path(sysconfig.get_path("purelib"))
+    copied = tmp_path_factory.mktemp("copied-venv")
+    site = copied / original_site.relative_to(original)
+    shutil.copytree(original_site, site, ignore=shutil.ignore_patterns("__pycache__"))
+    # CPython uses home / basename(executable) for a copied interpreter. Preserve
+    # the independently known base identity instead of inheriting a launch alias.
+    base_name = Path(cast(str, vars(sys)["_base_executable"])).name
+    executable = copied / Path(sys.executable).parent.relative_to(original) / base_name
+    executable.parent.mkdir(parents=True, exist_ok=True)
+    executable.write_bytes(Path(sys.executable).read_bytes())
+    executable.chmod(0o700)
+    config = copied / "pyvenv.cfg"
+    config.write_bytes((original / "pyvenv.cfg").read_bytes())
+    # Preserve base pins; readdress the independently measured copied packages.
+    runtime: dict[str, str] = {}
+    for name, value in pin["runtime_files"].items():
+        path = Path(name)
+        if path.is_relative_to(original_site):
+            runtime[str(site / path.relative_to(original_site))] = value
+        elif not path.is_relative_to(original):
+            runtime[name] = value
+    runtime[str(executable)] = sha(executable.read_bytes())
+    runtime[str(config)] = sha(config.read_bytes())
+    environment = capture_document(sha(canonical_json_bytes(runtime)))
+    pin["runtime_files"] = runtime
+    pin["python_environment_sha256"] = environment["python_environment_sha256"]
+    files = root, grant, canonical_json_bytes(pin), bindings, canonical_json_bytes(environment)
+    return files, executable, config, site / "pydantic/__init__.py"
+
+
+@pytest.mark.parametrize("fault", ["none", "configuration", "dependency"])
+def test_copied_runtime_admission_and_byte_substitution(
+    tmp_path: Path, copied_runtime: Any, fault: str
+):
+    files, executable, config, dependency = copied_runtime
+    changed = config if fault == "configuration" else dependency
+    original = changed.read_bytes()
+    try:
+        if fault == "configuration":
+            changed.write_bytes(original + b"\n")
+        elif fault == "dependency":
+            changed.write_bytes(original + b"\nraise AssertionError('UNVERIFIED-DEPENDENCY')\n")
+        result = launch(tmp_path, files, executable=executable)
+    finally:
+        if fault != "none":
+            changed.write_bytes(original)
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == ("ADMITTED:1" if fault == "none" else "REJECT:RUNTIME:0")
+    assert "UNVERIFIED-DEPENDENCY" not in result.stdout + result.stderr
 
 
 @pytest.mark.parametrize(
@@ -376,8 +464,11 @@ def test_unverified_bytecode_cannot_replace_verified_source(tmp_path: Path, admi
         ("source", "SOURCE", 0),
         ("native_source", "SOURCE", 0),
         ("runtime", "RUNTIME", 0),
+        ("base_relationship", "RUNTIME", 0),
         ("environment_pin", "ENVIRONMENT", 0),
         ("origin", "ORIGIN", 0),
+        ("sysconfig_purelib", "ORIGIN", 0),
+        ("sysconfig_platlib", "ORIGIN", 0),
         ("search", "STARTUP", 0),
         ("preimport", "STARTUP", 0),
         ("preimport_dependency", "STARTUP", 0),

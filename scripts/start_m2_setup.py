@@ -2,7 +2,7 @@
 
 import sys
 
-_BOOTSTRAP_SHA256 = "64a6a65f6f60304a9eddd9b134ec7e3606b79115d5ea730a75d3861b7ac75563"
+_BOOTSTRAP_SHA256 = "e817eda5098f7432062f9c92935eeb61141d78fbf6e754d926b7f73834a43221"
 
 
 def launch(anchor: dict[str, object] | None, private_reader: object, clock: object) -> object:

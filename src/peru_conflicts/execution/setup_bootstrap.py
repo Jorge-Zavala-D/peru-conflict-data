@@ -44,14 +44,101 @@ def _json(raw: bytes) -> dict[str, Any]:
     return cast(dict[str, Any], value)
 
 
-def _direct(path: Path) -> bytes:
+def _unalias(path: Path) -> None:
     for item in (path, *path.parents):
         details = item.lstat()
         if item.is_symlink() or getattr(details, "st_file_attributes", 0) & 0x400:
             raise ValueError("aliased input")
+
+
+def _direct(path: Path) -> bytes:
+    _unalias(path)
     if not path.is_file():
         raise ValueError("file required")
     return path.read_bytes()
+
+
+def runtime_layout() -> tuple[Path, Path, dict[str, str]]:
+    """Measure a direct venv and its base relationship; pins confer authority.
+
+    Interpreter-link entries hash the link text, not just the target bytes. Only
+    conventional interpreter names in the venv/base bin directories may link;
+    dependency, configuration, and directory aliases remain prohibited.
+    """
+    version = f"{sys.version_info.major}.{sys.version_info.minor}"
+    if version not in {"3.12", "3.13"}:
+        raise ValueError("unsupported interpreter version")
+    executable = Path(sys.executable)
+    configured_base = Path(getattr(sys, "_base_executable", sys.executable))
+    # The already trusted base may use a distribution-manager version alias.
+    # Match environment_policy's base canonicalization, never apply it to venvs.
+    base = configured_base.parent.resolve(strict=True) / configured_base.name
+    base_prefix = Path(sys.base_prefix).resolve(strict=True)
+    names = {"python.exe"} if os.name == "nt" else {"python", "python3", f"python{version}"}
+    if (
+        not executable.is_absolute()
+        or not configured_base.is_absolute()
+        or executable.name not in names
+        or base.name not in names
+        or executable.parent.name != ("Scripts" if os.name == "nt" else "bin")
+    ):
+        raise ValueError("unsupported interpreter layout")
+    venv = executable.parent.parent
+    for directory in (executable.parent, base.parent, base_prefix):
+        _unalias(directory)
+        if not directory.is_dir():
+            raise ValueError("runtime directory required")
+    if not base.is_relative_to(base_prefix) or venv == base_prefix:
+        raise ValueError("interpreter base relationship")
+    config = venv / "pyvenv.cfg"
+    if config.stat().st_size > 65536:
+        raise ValueError("configuration exceeds bound")
+    raw = _direct(config)
+    settings: dict[str, str] = {}
+    for line in raw.decode("utf-8").splitlines():
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        key, separator, value = line.partition("=")
+        key = key.strip().lower()
+        if not separator or not key or key in settings:
+            raise ValueError("ambiguous virtualenv configuration")
+        settings[key] = value.strip()
+    versions = [settings[key] for key in ("version", "version_info") if key in settings]
+    if (
+        Path(settings.get("home", "")) != configured_base.parent
+        or Path(settings["home"]).resolve(strict=True) != base.parent
+        or settings.get("include-system-site-packages", "").lower() != "false"
+        or not versions
+        or any(value.split(".")[:2] != version.split(".") for value in versions)
+    ):
+        raise ValueError("virtualenv configuration relationship")
+    inventory = {str(config): _hash(raw)}
+    allowed = {directory / name for directory in (executable.parent, base.parent) for name in names}
+
+    def interpreter(path: Path) -> str:
+        seen: set[Path] = set()
+        while path.is_symlink():
+            if os.name == "nt" or path not in allowed or path in seen:
+                raise ValueError("unapproved interpreter link")
+            seen.add(path)
+            target = os.readlink(path)
+            inventory[str(path)] = _hash(os.fsencode(target))
+            path = Path(os.path.abspath(path.parent / target))
+            if path not in allowed:
+                raise ValueError("unapproved interpreter link")
+        value = _hash(_direct(path))
+        inventory[str(path)] = value
+        return value
+
+    base_hash = interpreter(base)
+    executable_hash = interpreter(executable)
+    if os.name != "nt" and executable_hash != base_hash:
+        raise ValueError("copied interpreter differs from base")
+    site = venv / ("Lib/site-packages" if os.name == "nt" else f"lib/python{version}/site-packages")
+    _unalias(site)
+    if not site.is_dir():
+        raise ValueError("dependency directory required")
+    return venv, site, inventory
 
 
 def _pinned(path: str, expected: str) -> bytes:
@@ -179,24 +266,18 @@ def start(
         ]:
             raise ValueError("source inventory")
         stage = "RUNTIME"
-        executable = Path(sys.executable).resolve()
-        venv = executable.parent.parent
-        site = (
-            venv / "Lib/site-packages"
-            if os.name == "nt"
-            else venv / f"lib/python{sys.version_info.major}.{sys.version_info.minor}/site-packages"
-        )
+        venv, site, runtime = runtime_layout()
         if any("__pycache__" not in p.parts for p in site.rglob("*.pyc")):
             raise ValueError("unmeasured dependency executable")
-        files = [
-            p
-            for p in site.rglob("*")
-            if p.is_file() and "__pycache__" not in p.parts and p.suffix != ".pyc"
-        ]
-        runtime = {
-            str(executable): _hash(_direct(executable)),
-            **{str(p): _hash(_direct(p)) for p in files},
-        }
+        for path in site.rglob("*"):
+            if "__pycache__" in path.parts:
+                continue
+            if path.is_file():
+                runtime[str(path)] = _hash(_direct(path))
+            else:
+                _unalias(path)
+                if not path.is_dir():
+                    raise ValueError("nonregular dependency")
         if runtime != pin["runtime_files"]:
             raise ValueError("runtime inventory")
         stage = "ENVIRONMENT"
@@ -249,7 +330,7 @@ def start(
         import sysconfig
 
         sysconfig.get_paths()  # populated before verification below, not authority
-        if Path(sysconfig.get_path("purelib")).resolve() != site.resolve():
+        if any(Path(sysconfig.get_path(name)) != site for name in ("purelib", "platlib")):
             raise ValueError("runtime import prefix")
         os.environ["PYDANTIC_DISABLE_PLUGINS"] = "__all__"
         stage = "ADMISSION"

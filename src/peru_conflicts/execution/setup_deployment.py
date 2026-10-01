@@ -95,16 +95,25 @@ def source_inventory(root: Path) -> dict[str, str]:
 
 
 def runtime_inventory() -> dict[str, str]:
-    """Exact interpreter and installed dependency bytes; stdlib pin is separate."""
+    """Exact venv config, interpreter/link and dependency bytes; stdlib pin is separate."""
     import sysconfig
 
-    site = Path(sysconfig.get_path("purelib")).resolve(strict=True)
-    result = {str(Path(sys.executable).resolve()): sha256(Path(sys.executable).read_bytes())}
+    from .setup_bootstrap import runtime_layout
+
+    _, site, result = runtime_layout()
+    if any(Path(sysconfig.get_path(name)) != site for name in ("purelib", "platlib")):
+        raise ValueError("runtime package layout differs")
     for path in sorted(site.rglob("*")):
-        if path.is_file() and "__pycache__" not in path.parts and path.suffix != ".pyc":
-            if path.is_symlink() or not path.resolve().is_relative_to(site):
-                raise ValueError("aliased dependency")
+        if "__pycache__" in path.parts:
+            continue
+        if path.is_symlink() or getattr(path.lstat(), "st_file_attributes", 0) & 0x400:
+            raise ValueError("aliased dependency")
+        if path.suffix == ".pyc":
+            raise ValueError("unmeasured dependency executable")
+        if path.is_file():
             result[str(path)] = sha256(path.read_bytes())
+        elif not path.is_dir():
+            raise ValueError("nonregular dependency")
     return result
 
 

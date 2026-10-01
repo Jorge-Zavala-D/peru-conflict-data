@@ -12,7 +12,7 @@ jobs:
   native-admission:
     name: Native admitted startup (${{ matrix.os }}, ${{ matrix.python-version }})
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 30
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:
@@ -36,12 +36,9 @@ jobs:
           version: "0.11.28"
           enable-cache: true
       - run: uv sync --frozen --group dev
-      - name: Actual admitted-path runtime diagnostic
-        timeout-minutes: 20
-        run: >-
-          uv run pytest
-          tests/unit/test_m2_setup_bootstrap.py::test_verified_startup_reaches_existing_context
-          -vv --junitxml=native-admission.xml
+      - name: Native startup, trust-boundary and reporting regression gate
+        timeout-minutes: 60
+        run: uv run python scripts/ci_m2_gate.py run native-gate
       - name: Retain synthetic native diagnostic
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -49,12 +46,18 @@ jobs:
           name: native-admission-${{ matrix.os }}-${{ matrix.python-version }}
           if-no-files-found: error
           retention-days: 14
-          path: native-admission.xml
+          path: |
+            ci-evidence/native-gate/manifest.json
+            ci-evidence/native-gate/metadata.json
+            ci-evidence/native-gate/events.jsonl
+            ci-evidence/native-gate/result.json
+            ci-evidence/native-gate/result.xml
 
   quality:
     needs: native-admission
     if: always()
     runs-on: ubuntu-latest
+    timeout-minutes: 330
     env:
       UV_PYTHON: ${{ matrix.python-version }}
       EXPECTED_PYTHON: ${{ matrix.python-version }}
@@ -64,7 +67,6 @@ jobs:
         python-version: ["3.12", "3.13"]
     steps:
       - name: Require every native admitted startup to pass
-        shell: bash
         env:
           NATIVE_ADMISSION_RESULT: ${{ needs.native-admission.result }}
         run: test "$NATIVE_ADMISSION_RESULT" = success
@@ -77,34 +79,37 @@ jobs:
           version: "0.11.28"
           enable-cache: true
       - run: uv sync --frozen --group dev
-      - name: Assert active Python ${{ matrix.python-version }}
-        run: >-
-          uv run python -c "import os, sys; expected = os.environ['EXPECTED_PYTHON'];
-          actual = f'{sys.version_info.major}.{sys.version_info.minor}';
-          print(f'Expected Python {expected}; active Python {actual}; executable={sys.executable}');
-          raise SystemExit(0 if actual == expected else 1)"
       - run: uv run ruff format --check .
       - run: uv run ruff check .
       - run: uv run pyright --pythonversion ${{ matrix.python-version }} --pythonplatform Windows
       - run: uv run pyright --pythonversion ${{ matrix.python-version }} --pythonplatform Linux
       - run: uv run python scripts/export_schemas.py --check
       - run: uv run python scripts/check_git_data_policy.py
-      - run: uv run pytest
+      - name: Complete canonical selection with phase and JUnit receipts
+        run: uv run python scripts/ci_m2_gate.py run all
+        timeout-minutes: 300
+      - name: Retain synthetic execution evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: m2-linux-${{ matrix.python-version }}
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            ci-evidence/all/manifest.json
+            ci-evidence/all/metadata.json
+            ci-evidence/all/events.jsonl
+            ci-evidence/all/result.json
+            ci-evidence/all/result.xml
 
-  windows-acquisition-safety:
+  windows-preflight:
     needs: native-admission
-    if: always()
-    name: windows-acquisition-safety
     runs-on: windows-latest
+    timeout-minutes: 90
     env:
       UV_PYTHON: "3.12"
       EXPECTED_PYTHON: "3.12"
     steps:
-      - name: Require every native admitted startup to pass
-        shell: bash
-        env:
-          NATIVE_ADMISSION_RESULT: ${{ needs.native-admission.result }}
-        run: test "$NATIVE_ADMISSION_RESULT" = success
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
@@ -114,38 +119,107 @@ jobs:
           version: "0.11.28"
           enable-cache: true
       - run: uv sync --frozen --group dev
-      - name: Assert active Python 3.12
-        run: >-
-          uv run python -c "import os, sys; expected = os.environ['EXPECTED_PYTHON'];
-          actual = f'{sys.version_info.major}.{sys.version_info.minor}';
-          print(f'Expected Python {expected}; active Python {actual}; executable={sys.executable}');
-          raise SystemExit(0 if actual == expected else 1)"
       - run: uv run python scripts/export_schemas.py --check
       - run: uv run python scripts/check_git_data_policy.py
-      - name: Run native Windows handle smoke tests
-        run: uv run pytest tests/unit/test_acquisition_windows_native.py -vv
-      - name: Run acquisition safety tests
-        run: >-
-          uv run pytest
-          tests/unit/test_acquisition_engine.py
-          tests/unit/test_acquisition_ledger.py
-          tests/unit/test_acquisition_plan.py
-          tests/unit/test_acquisition_policy.py
-          tests/unit/test_acquisition_preflight.py
-          tests/unit/test_acquisition_schema_export.py
-          tests/unit/test_acquisition_storage.py
-          tests/unit/test_acquisition_attempt_transport_v2.py
-          tests/unit/test_acquisition_authorization_v2.py
-          tests/unit/test_acquisition_compare_runner_v2.py
-          tests/unit/test_acquisition_landing_v2.py
-          tests/unit/test_acquisition_live_compare_v2.py
-          tests/unit/test_acquisition_persistent_ledger_v2.py
-          tests/unit/test_acquisition_temp_recovery_v2.py
-          tests/unit/test_acquisition_transport_v2.py
-          tests/unit/test_acquisition_v2_models.py
-          tests/integration/test_acquisition_dry_run.py
-          tests/integration/test_acquisition_live_bootstrap.py
-          tests/integration/test_acquisition_live_compare_blocked.py
-          -vv
-      - name: Run complete test suite on Windows
-        run: uv run pytest
+      - name: Native Windows handle smoke tests (separate coverage)
+        run: uv run python scripts/ci_m2_gate.py run smoke
+      - name: Acquisition safety tests (separate coverage)
+        run: uv run python scripts/ci_m2_gate.py run acquisition
+      - name: Canonical current default pytest selection
+        run: uv run python scripts/ci_m2_gate.py collect
+      - name: Retain canonical plan
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: m2-win-plan
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            ci-evidence/plan/manifest.json
+            ci-evidence/plan/metadata.json
+            ci-evidence/plan/events.jsonl
+      - name: Retain synthetic preflight diagnostics
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: m2-windows-preflight
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            ci-evidence/smoke/manifest.json
+            ci-evidence/smoke/metadata.json
+            ci-evidence/smoke/events.jsonl
+            ci-evidence/smoke/result.json
+            ci-evidence/smoke/result.xml
+            ci-evidence/acquisition/manifest.json
+            ci-evidence/acquisition/metadata.json
+            ci-evidence/acquisition/events.jsonl
+            ci-evidence/acquisition/result.json
+            ci-evidence/acquisition/result.xml
+
+  windows-tests:
+    name: Windows full suite (${{ matrix.shard }})
+    needs: windows-preflight
+    runs-on: windows-latest
+    # A five-hour step budget leaves 30 minutes for setup and always() receipts.
+    timeout-minutes: 330
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [operator, cleanup-0, cleanup-1, cleanup-2, remainder]
+    env:
+      UV_PYTHON: "3.12"
+      EXPECTED_PYTHON: "3.12"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: "0.11.28"
+          enable-cache: true
+      - run: uv sync --frozen --group dev
+      - name: Execute whole tests from the canonical selection
+        run: uv run python scripts/ci_m2_gate.py run ${{ matrix.shard }}
+        timeout-minutes: 300
+      - name: Retain synthetic shard evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: m2-win-${{ matrix.shard }}
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            ci-evidence/${{ matrix.shard }}/manifest.json
+            ci-evidence/${{ matrix.shard }}/metadata.json
+            ci-evidence/${{ matrix.shard }}/events.jsonl
+            ci-evidence/${{ matrix.shard }}/result.json
+            ci-evidence/${{ matrix.shard }}/result.xml
+
+  windows-acquisition-safety:
+    name: windows-acquisition-safety
+    if: always()
+    needs: [windows-preflight, windows-tests]
+    runs-on: windows-latest
+    timeout-minutes: 20
+    env:
+      UV_PYTHON: "3.12"
+      EXPECTED_PYTHON: "3.12"
+      CI_NEEDS: ${{ toJSON(needs) }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+        with:
+          version: "0.11.28"
+          enable-cache: true
+      - run: uv sync --frozen --group dev
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          pattern: m2-win-*
+          path: ci-artifacts
+      - name: Reject incomplete dependencies and reconcile exact coverage
+        run: uv run python scripts/ci_m2_gate.py aggregate ci-artifacts

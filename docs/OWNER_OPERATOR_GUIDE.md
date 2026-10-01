@@ -25,6 +25,20 @@ artifact precede bootstrap verification; this is not interpreter self-authentica
 Only after source/runtime/registry/installation verification does the entry import
 the command dispatcher and use the existing installed context.
 
+The runtime pin distinguishes the lexical virtualenv launch location from the
+trusted base interpreter. It includes `pyvenv.cfg`, canonical base and launch
+executable bytes, and installed dependency bytes. On POSIX, conventional
+interpreter-link entries in `runtime_files` hash their raw link text using
+`os.fsencode`; resolved target bytes are pinned separately. The trusted base may
+use the same distribution-manager version alias accepted by the Python environment
+policy. Virtualenv, configuration, dependency, and source directory aliases remain
+prohibited. Configuration home/version, package roots, exact inventory equality,
+and module origins must agree before private admission. Python 3.12/3.13 prefixes
+are established before sysconfig package-root verification; the verified roots
+must match even if trusted sysconfig was prewarmed. Site hooks are never processed.
+Changed source, configuration, or runtime bytes require fresh independently
+reviewed pins. These checks do not issue production authority.
+
 | Operation | Admitted behavior | Evidence/provider effects |
 |---|---|---|
 | `admit` | Explicitly initialize a new admitted run | Existing immutable run/checkpoint claims; never reset a used run |
