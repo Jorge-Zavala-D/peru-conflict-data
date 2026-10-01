@@ -11,6 +11,7 @@ from pathlib import Path
 
 from peru_conflicts.execution.setup_authority import export_real_schema
 from peru_conflicts.execution.setup_bridge import export_setup_schema
+from peru_conflicts.execution.setup_deployment import export_installation_schema
 
 DISCOVERY_V030_TREE_SHA256 = "00cbf40848c24d24eea454e25682061d5725abe01c24c6479ffa6d30fffd821b"
 ACQUISITION_V010_TREE_SHA256 = "b1029c80de6bbb5f293407070ed165936ff892d436018273f5e5b60dd74f2c61"
@@ -235,6 +236,7 @@ def test_top_level_schema_check_includes_acquisition(tmp_path: Path) -> None:
     benchmark.export_benchmark_schemas(tmp_path / "benchmark")
     export_setup_schema(tmp_path)
     export_real_schema(tmp_path)
+    export_installation_schema(tmp_path)
 
     command = [
         sys.executable,

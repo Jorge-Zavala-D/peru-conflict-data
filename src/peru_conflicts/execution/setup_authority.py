@@ -12,7 +12,7 @@ import json
 from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
-from typing import Annotated, Literal
+from typing import TYPE_CHECKING, Annotated, Literal
 
 from pydantic import AwareDatetime, Field, TypeAdapter, model_validator
 
@@ -22,6 +22,12 @@ from peru_conflicts.models.common import Sha256, StrictModel
 from .access_policy import ACCESS_POLICY_V2_SHA256, AccessActor
 from .operational_plan import build_operational_plan, evidence_json, make_candidate
 from .references import sha256
+
+if TYPE_CHECKING:
+    from .setup_context import AdmittedContext
+
+# Separately reviewed installation selects this fixed path. No CLI/env selector.
+_INSTALLATION_PATH: Path | None = None
 
 _REGISTRY = b'{"grants":[],"version":"m2-real-registry-v2"}\n'
 # Empty by construction; no loader argument, environment or CLI selects a registry.
@@ -46,10 +52,53 @@ def registry_bytes() -> bytes:
     return _REGISTRY
 
 
-def admit(raw: bytes, private_binding_reader: Callable[[], object]) -> None:
-    """Reject before parsing untrusted grants or looking up credentials/private state."""
-    registry_bytes()
-    raise ValueError("production setup closed: no registered real grant")
+def admit(raw: bytes, private_binding_reader: Callable[[], object]) -> AdmittedContext:
+    """Empty registry rejects before private lookup; callers cannot choose trust."""
+    return load_installed_context(raw, private_binding_reader)
+
+
+def load_installed_context(
+    raw: bytes, private_binding_reader: Callable[[], object]
+) -> AdmittedContext:
+    registry = evidence_json(registry_bytes())
+    if not registry.get("grants"):
+        raise ValueError("production setup closed: no registered real grant")
+    if _INSTALLATION_PATH is None:
+        raise ValueError("no independently pinned installation")
+    matches = [e for e in registry["grants"] if e.get("grant_sha256") == sha256(raw)]
+    if (
+        len(matches) != 1
+        or set(matches[0]) != {"grant_sha256", "installation_sha256", "revoked"}
+        or matches[0]["revoked"] is not False
+    ):
+        raise ValueError("unregistered/revoked registry entry")
+    from .setup_deployment import (
+        Installation,
+        _load_verified,  # pyright: ignore[reportPrivateUsage]
+    )
+
+    installation_raw = _INSTALLATION_PATH.read_bytes()
+    if sha256(installation_raw) != matches[0]["installation_sha256"]:
+        raise ValueError("installation pin mismatch")
+    if Installation.model_validate_json(installation_raw).kind != "production":
+        raise ValueError("fixture installation cannot enter production")
+
+    def bindings() -> bytes:
+        result = private_binding_reader()
+        if not isinstance(result, bytes):
+            raise ValueError("private binding reader must return original bytes")
+        return result
+
+    path = _INSTALLATION_PATH
+
+    def revalidate() -> bytes:
+        if evidence_json(registry_bytes()) != registry:
+            raise ValueError("authority registry changed/revoked")
+        return path.read_bytes()
+
+    return _load_verified(
+        raw, installation_raw, matches[0]["installation_sha256"], bindings, revalidate
+    )
 
 
 class StrictConcurrency(StrictModel):

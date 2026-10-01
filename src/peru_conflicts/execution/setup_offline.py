@@ -11,7 +11,7 @@ import tempfile
 from contextlib import ExitStack
 from datetime import UTC, datetime
 from pathlib import Path, PurePosixPath
-from typing import Any, cast
+from typing import Any, Literal, cast
 
 from peru_conflicts.acquisition.fs_safety import DirectoryLease
 from peru_conflicts.hashing import canonical_json_bytes
@@ -29,6 +29,11 @@ from .setup_authority import (
     validate_grant,
 )
 from .setup_bridge import digest
+from .setup_context import (
+    AdmittedContext,
+    _issue_context,  # pyright: ignore[reportPrivateUsage]
+    require_context,
+)
 from .setup_dropbox import (
     Exchange,
     FileObservation,
@@ -49,8 +54,6 @@ _WITNESSES: dict[tuple[object, str], str] = {}
 _CLOCKS: dict[object, datetime] = {}
 _POLICIES: dict[object, str] = {}
 _CAPABILITIES: dict[object, dict[str, str]] = {}
-_RELEASED: dict[tuple[object, str], bytes] = {}
-_DISPATCHED: set[tuple[object, str]] = set()
 _FIXTURE_BINDINGS = {
     "fixture-account-coordinator": ("dbid:offline-coordinator", "offline-coordinator-home"),
     "fixture-account-annotator-a": ("dbid:offline-annotator-a", "offline-a-home"),
@@ -80,7 +83,38 @@ def fixture_actor_context(permit: object, binding: ActorBinding) -> tuple[str, s
     return _FIXTURE_BINDINGS[binding.account_ref]
 
 
-def admit_fixture(root: Path) -> object:
+class _OfflineSource:
+    """Test adapter only; production context never imports this module."""
+
+    permit: object
+
+    def check(self, root: Path, checkpoint: Path) -> SetupGrantV2:
+        return require_fixture_admission(self.permit, root, checkpoint)
+
+    def now(self) -> datetime:
+        return fixture_clock(self.permit)
+
+    def actor(self, binding: ActorBinding) -> tuple[str, str]:
+        return fixture_actor_context(self.permit, binding)
+
+    def validate_store(self, root: Path, checkpoint: Path) -> None:
+        require_offline_root(root)
+        require_offline_root(checkpoint)
+
+    def witness(self, order: RealWorkOrder) -> str:
+        return witnessed_digest(self.permit, order)
+
+    def concealment(self) -> bool:
+        return True  # TEST service contract only, never native provider default.
+
+    def link_coverage(self) -> Literal["offline_complete"]:
+        return "offline_complete"
+
+    def component_store(self) -> Path:
+        return Path(_ADMISSIONS[self.permit][1]).parent / "components"
+
+
+def admit_fixture(root: Path) -> AdmittedContext:
     """Fixed TEST source; not reachable through production admission or CLI grants."""
     require_offline_root(root)
     identity = "offline-" + sha256(str(root.resolve()).encode())
@@ -88,7 +122,9 @@ def admit_fixture(root: Path) -> object:
     raw = grant.model_dump_json().encode()
     request, components = proposal()
     validate_grant(raw, request, components, implementation_digest(), NOW)
-    permit = object()
+    source = _OfflineSource()
+    permit = _issue_context(source)
+    source.permit = permit
     _ADMISSIONS[permit] = (raw, str((root / "run").resolve()), str((root / "checkpoint").resolve()))
     _CLOCKS[permit] = NOW
     # Independent fixed fixture policy source, not a digest supplied to the journal.
@@ -98,7 +134,7 @@ def admit_fixture(root: Path) -> object:
 
 
 def require_fixture_admission(permit: object, root: Path, checkpoint: Path) -> SetupGrantV2:
-    registered = _ADMISSIONS.get(permit) if type(permit) is object else None
+    registered = _ADMISSIONS.get(permit) if type(permit) is AdmittedContext else None
     if registered is None or registered[1:] != (str(root.resolve()), str(checkpoint.resolve())):
         raise ValueError("independent source admission required before sink access")
     # These immutable source-owned bytes passed full proposal validation at admission.
@@ -140,33 +176,9 @@ def witnessed_digest(permit: object, order: RealWorkOrder) -> str:
     return value
 
 
-def _record_fixture_release(permit: object, order: RealWorkOrder) -> None:  # pyright: ignore[reportUnusedFunction]
-    """Internal source seam, called only after durable admitted intent publication."""
-    key = (permit, digest(order))
-    if key in _RELEASED:
-        raise ValueError("already released; no redispatch")
-    _RELEASED[key] = order.model_dump_json().encode()
-
-
-def _close_fixture_dispatch(permit: object) -> None:  # pyright: ignore[reportUnusedFunction]
-    """Invalidate outstanding request handles when their active writer closes."""
-    for key in tuple(_RELEASED):
-        if key[0] is permit:
-            del _RELEASED[key]
-
-
 def _consume_fixture_request(permit: object, order: RealWorkOrder) -> None:
-    """One active, exact, durably released request; shared by HTTP and local controls."""
-    registered = _ADMISSIONS.get(permit)
-    if registered is None:
-        raise ValueError("independent source admission required")
-    require_fixture_admission(permit, Path(registered[1]), Path(registered[2]))
-    if not order.issued_at <= fixture_clock(permit) < order.dispatch_not_after:
-        raise ValueError("released request expired; fresh prerequisites required")
-    key = (permit, digest(order))
-    if _RELEASED.get(key) != order.model_dump_json().encode() or key in _DISPATCHED:
-        raise ValueError("request was not released or was already dispatched")
-    _DISPATCHED.add(key)
+    """Fake HTTP uses the same durable consumption boundary as native transport."""
+    require_context(permit).consume(order)
 
 
 def implementation_digest() -> str:
@@ -238,8 +250,10 @@ def _metadata(obj: FolderObservation | FileObservation) -> dict[str, Any]:
 class FakeHTTP:
     """Synthetic service state; the HTTP responder never receives an order/expected result."""
 
-    def __init__(self, permit: object) -> None:
-        if permit not in _ADMISSIONS:
+    def __init__(self, permit: object | None = None) -> None:
+        # None exposes only the independent response state to a fake HTTP boundary.
+        # execute() still requires an admitted, released journal intent.
+        if permit is not None and permit not in _ADMISSIONS:
             raise ValueError("fixture provider requires independent admission")
         self._permit = permit
         self.objects: dict[str, FolderObservation | FileObservation] = {}

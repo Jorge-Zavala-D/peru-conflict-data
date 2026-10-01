@@ -21,7 +21,9 @@ from peru_conflicts.hashing import canonical_json_bytes
 from peru_conflicts.models.common import Sha256, StrictModel
 
 from .references import sha256
+from .setup_authority import SetupGrantV2
 from .setup_bridge import digest
+from .setup_context import require_context
 from .setup_dropbox import (
     PROBE,
     BoundObservation,
@@ -193,16 +195,14 @@ class EvidenceJournal:
             _KernelLock,  # pyright: ignore[reportPrivateUsage]
         )
 
-        from .setup_offline import require_fixture_admission
-
-        # This is the only currently installed admission source, explicitly TEST-only.
-        # Validate before acquiring directories, opening locks, or publishing claims.
-        grant = require_fixture_admission(admission, root, checkpoint)
+        # Validate independent admission before acquiring any private directory.
+        context = require_context(admission)
+        grant = context.check(root, checkpoint)
         from .operational_plan import build_operational_plan, make_candidate
 
         # Immutable per-admission source snapshot, not caller-supplied procedure state.
         self._plan_bytes = canonical_json_bytes(build_operational_plan(make_candidate()))
-        self._admission = admission
+        self._admission = context
         self._closed = False
         self._root, self._checkpoint = root, checkpoint
         self._grant_bytes = grant.model_dump_json().encode()
@@ -214,12 +214,15 @@ class EvidenceJournal:
             or checkpoint in root.parents
         ):
             raise ValueError("checkpoint must be independent of replaceable run store")
-        require_offline_root(root)
-        require_offline_root(checkpoint)
+        context.validate_store(root, checkpoint)
         self._stack = ExitStack()
         try:
             self._store = self._stack.enter_context(DirectoryLease.acquire(root))
             self._index = self._stack.enter_context(DirectoryLease.acquire(checkpoint))
+            # Pin validation before acquisition cannot authenticate a later replacement.
+            context.validate_store(root, checkpoint)
+            self._store.require_bound()
+            self._index.require_bound()
             stream = self._stack.enter_context(self._index.open_child_append("writer.lock"))
             lock = _KernelLock(stream)
             lock.acquire()
@@ -228,6 +231,8 @@ class EvidenceJournal:
             self._records: list[dict[str, Any]] = []
             self._outcomes: list[tuple[RealWorkOrder, ValidatedOutcome, str, datetime]] = []
             self._pending: RealWorkOrder | None = None
+            self._consumed: set[str] = set()
+            self._released: str | None = None
             self._stopped = False
             claim = canonical_json_bytes(
                 {
@@ -268,18 +273,17 @@ class EvidenceJournal:
                     or raw != canonical_json_bytes(record)
                 ):
                     raise ValueError("journal chain mismatch")
-                self._apply(record)
+                self._apply(record, replay_grant=grant)
                 self._records.append(record)
             self._check_admission()
+            context.attach(self.consume)
         except BaseException:
             self._stack.close()
             raise
 
     def close(self) -> None:
-        from .setup_offline import _close_fixture_dispatch  # pyright: ignore[reportPrivateUsage]
-
         self._closed = True
-        _close_fixture_dispatch(self._admission)
+        self._admission.detach()
         self._stack.close()
 
     @property
@@ -287,28 +291,22 @@ class EvidenceJournal:
         return self._authority_sha256
 
     def _check_admission(self):
-        from .setup_offline import require_fixture_admission
-
         if self._closed:
             raise ValueError("admitted writer is closed")
-        grant = require_fixture_admission(self._admission, self._root, self._checkpoint)
+        grant = self._admission.check(self._root, self._checkpoint)
         if grant.model_dump_json().encode() != self._grant_bytes:
             raise ValueError("admission changed during active run")
         return grant
 
     def preview(self) -> RealWorkOrder:
         """Detached non-dispatchable proposal. Only next/release publishes intent."""
-        from .setup_offline import fixture_clock
+        grant = self._check_admission()
+        return self._propose(self._admission.now(), grant)
 
-        self._check_admission()
-        return self._propose(fixture_clock(self._admission))
-
-    def _propose(self, now: datetime) -> RealWorkOrder:
+    def _propose(self, now: datetime, grant: SetupGrantV2) -> RealWorkOrder:
         from .access_policy import ACCESS_POLICY_V2
         from .operational_plan import PRIVATE_EXECUTION_ROOT
-        from .setup_offline import fixture_actor_context
 
-        grant = self._check_admission()
         if self._pending or self._stopped:
             raise ValueError("UNKNOWN/stopped: no redispatch")
         if not grant.not_before <= now < grant.not_after:
@@ -450,7 +448,7 @@ class EvidenceJournal:
             action, path, actor, check_id, expected = steps[cursor]
             job = None
         binding = next(s for s in grant.sessions if s.actor == actor)
-        expected_account, namespace = fixture_actor_context(self._admission, binding)
+        expected_account, namespace = self._admission.actor(binding)
         if action != "root" and (
             actor not in roots or (now - roots[actor]).total_seconds() > grant.freshness_seconds
         ):
@@ -493,11 +491,11 @@ class EvidenceJournal:
         shared = shares.get(path)
         member_actor = PurePosixPath(path).parent.name
         coordinator = next(s for s in grant.sessions if s.actor == "coordinator")
-        owner_account = fixture_actor_context(self._admission, coordinator)[0]
+        owner_account = self._admission.actor(coordinator)[0]
         expected_members = {owner_account: "owner"}
         if member_actor in ("annotator-a", "annotator-b"):
             member_binding = next(s for s in grant.sessions if s.actor == member_actor)
-            member_account = fixture_actor_context(self._admission, member_binding)[0]
+            member_account = self._admission.actor(member_binding)[0]
             expected_members[member_account] = "viewer" if path.endswith("/issue") else "editor"
         if action == "mount_verify":
             locator = proposed_mounts.get((actor, path), "")
@@ -564,7 +562,7 @@ class EvidenceJournal:
                 raise ValueError("share identity unresolved")
             if action == "invite":
                 member_binding = next(s for s in grant.sessions if s.actor == member_actor)
-                member_account = fixture_actor_context(self._admission, member_binding)[0]
+                member_account = self._admission.actor(member_binding)[0]
                 route, args = (
                     "sharing/add_folder_member",
                     {
@@ -634,7 +632,9 @@ class EvidenceJournal:
                 async_job_id=job,
                 expected_member_roles=expected_members if action in ("mount", "membership") else {},
                 # Complete TEST service index, not native Dropbox universal visibility.
-                link_coverage="offline_complete" if action == "links" else "not_established",
+                link_coverage=self._admission.link_coverage()
+                if action == "links"
+                else "not_established",
                 control_id=next(
                     (
                         c.control_id
@@ -654,14 +654,12 @@ class EvidenceJournal:
 
     def run_component(self) -> ValidatedOutcome:
         """Execute only the admitted pending local control; no imported PASS or provider call."""
-        from .setup_offline import _consume_fixture_request  # pyright: ignore[reportPrivateUsage]
-
         self._check_admission()
         order = self._pending
         if order is None or order.action != "control" or not order.control_id:
             raise ValueError("no admitted local component intent")
-        _consume_fixture_request(self._admission, order)
-        receipt = application_control(self._root.parent / "components", order.control_id)
+        self.consume(order)
+        receipt = application_control(self._admission.component_store(), order.control_id)
         raw = receipt.model_dump_json().encode()
         self._append(
             "capture", order, {"original_hex": raw.hex(), "source": "local_publication_primitive"}
@@ -684,17 +682,29 @@ class EvidenceJournal:
     def records(self) -> list[dict[str, Any]]:
         return json.loads(json.dumps(self._records))
 
-    def _apply(self, record: dict[str, Any]) -> None:
+    def _apply(self, record: dict[str, Any], *, replay_grant: SetupGrantV2 | None = None) -> None:
         order = RealWorkOrder.model_validate_json(json.dumps(record["order"]))
         if record["kind"] == "intent":
             if self._pending or self._stopped or order.authority_sha256 != self.authority_sha256:
                 raise ValueError("invalid/replayed intent")
-            if order != self._propose(order.issued_at):
+            # Historical orders use the grant verified before acquisition/replay.
+            # Construction rechecks live authority after replay, before attaching
+            # the consumer; current release/consume checks are never memoized.
+            grant = replay_grant if replay_grant is not None else self._check_admission()
+            if order != self._propose(order.issued_at, grant):
                 raise ValueError("durable intent does not match admitted procedure")
             self._pending = order
+        elif record["kind"] == "dispatch":
+            identity = digest(order)
+            if order != self._pending or identity in self._consumed:
+                raise ValueError("request not released or already dispatched")
+            self._consumed.add(identity)
         elif record["kind"] == "capture":
             if order != self._pending:
                 raise ValueError("capture without protected original intent")
+        elif record["kind"] in ("native_exchange", "native_observation", "native_interruption"):
+            if order != self._pending or digest(order) not in self._consumed:
+                raise ValueError("native exchange without consumed intent")
         elif record["kind"] == "outcome":
             if (
                 order != self._pending
@@ -719,6 +729,8 @@ class EvidenceJournal:
             raise ValueError("unknown record kind")
 
     def _append(self, kind: str, order: RealWorkOrder, payload: dict[str, Any]) -> None:
+        if self._stopped:
+            raise ValueError("UNKNOWN/stopped: no further publication")
         record = {
             "authority": self.authority_sha256,
             "kind": kind,
@@ -728,22 +740,62 @@ class EvidenceJournal:
         }
         raw = canonical_json_bytes(record)
         name = f"{len(self._records) + 1:06d}.json"
-        publish(self._store, name, raw)
-        publish(self._index, name, sha256(raw).encode())
+        try:
+            publish(self._store, name, raw)
+            publish(self._index, name, sha256(raw).encode())
+        except Exception:
+            self._stopped = True
+        if self._stopped:
+            # Keep every partial file; do not expose persistence exception chains.
+            raise ValueError("evidence publication interrupted; UNKNOWN; reopen for reconciliation")
         self._apply(record)
         self._records.append(json.loads(raw))
 
     def release(self, order: RealWorkOrder) -> RealWorkOrder:
-        from .setup_offline import _record_fixture_release  # pyright: ignore[reportPrivateUsage]
-
         if self._pending or self._stopped:
             raise ValueError("UNKNOWN/stopped: no redispatch")
         detached = RealWorkOrder.model_validate_json(order.model_dump_json())
         if detached != self.preview():
             raise ValueError("request does not equal the admitted next order")
         self._append("intent", detached, {})
-        _record_fixture_release(self._admission, detached)
+        self._released = digest(detached)
         return detached.model_copy(deep=True)
+
+    def consume(self, order: RealWorkOrder) -> None:
+        """Durably spend one exact released intent before any credential/send operation."""
+        self._check_admission()
+        if not order.issued_at <= self._admission.now() < order.dispatch_not_after:
+            raise ValueError("released request expired; fresh prerequisites required")
+        identity = digest(order)
+        if order != self._pending or identity != self._released or identity in self._consumed:
+            raise ValueError("request not released or already dispatched; UNKNOWN cannot retry")
+        self._append("dispatch", order, {})
+
+    def import_capture_file(self) -> ValidatedOutcome:
+        """Read only the installed witness source's fixed, digest-addressed original.
+
+        No caller path or uploaded locator selects a file. Admission precedes reads;
+        retention of an already consumed response does not renew dispatch authority.
+        """
+        from .setup_deployment import installed_source
+
+        grant = self._check_admission()
+        order = self._pending
+        if order is None or digest(order) not in self._consumed:
+            raise ValueError("transferred capture requires consumed original intent")
+        if any(
+            r["kind"] == "capture" and r["order"] == order.model_dump(mode="json")
+            for r in self._records
+        ):
+            raise ValueError("replayed capture; UNKNOWN requires reconciliation")
+        source = installed_source(self._admission)
+        witness = source.witness(order)
+        raw = source.capture_original(witness)
+        if len(raw) > 8388608 or sha256(raw) != witness:
+            raise ValueError("altered/substituted or oversized transferred capture")
+        reject_credential_fields(raw)
+        self._require_native_retention(order)
+        return self._retain_capture(raw, order, witness, grant, self._admission.now())
 
     def import_capture(
         self,
@@ -754,11 +806,8 @@ class EvidenceJournal:
         It is NOT read from uploaded capture JSON. Public live entry cannot reach
         this consistency layer because its registry is empty.
         """
-        from .operational_plan import evidence_json
-        from .setup_offline import fixture_clock, witnessed_digest
-
         grant = self._check_admission()
-        now = fixture_clock(self._admission)
+        now = self._admission.now()
 
         order = self._pending
         if order is None or any(
@@ -766,21 +815,111 @@ class EvidenceJournal:
             for r in self._records
         ):
             raise ValueError("missing intent/replayed capture; UNKNOWN requires reconciliation")
-        expected_witness_sha256 = witnessed_digest(self._admission, order)
+        expected_witness_sha256 = self._admission.witness(order)
         if len(raw) > 8388608 or sha256(raw) != expected_witness_sha256:
             raise ValueError("missing independent witness or altered/substituted capture")
         reject_credential_fields(raw)
-        # The only admitted ingress currently is the secret-free fixed offline
-        # capture source. A live ingress is not installed. Authentication/size
-        # checks above precede storage; semantic parsing must follow retention.
-        self._append(
-            "capture", order, {"original_hex": raw.hex(), "witness_sha256": expected_witness_sha256}
+        return self._retain_capture(raw, order, expected_witness_sha256, grant, now)
+
+    def _native_exchange(
+        self,
+        order: RealWorkOrder,
+        exchange: dict[str, Any],
+        *,
+        interrupted_phase: str | None = None,
+        complete: bool = False,
+    ) -> None:
+        """Collector-owned original retention, before response JSON interpretation."""
+        self._require_native_retention(order)
+        reject_credential_fields(canonical_json_bytes(exchange))
+        if interrupted_phase is not None:
+            if interrupted_phase not in ("operation", "actor", "before", "after"):
+                raise ValueError("invalid observation phase")
+            self._append(
+                "native_interruption",
+                order,
+                {
+                    "phase": interrupted_phase,
+                    "exchange": exchange,
+                    "complete": complete,
+                    "state": "UNKNOWN_NO_REDISPATCH",
+                },
+            )
+        else:
+            self._append("native_exchange", order, exchange)
+
+    def _require_native_retention(self, order: RealWorkOrder) -> None:
+        # Retention is not another dispatch authorization. A response received after
+        # expiry still belongs to the consumed intent and its already-held sink.
+        if self._closed or order != self._pending or digest(order) not in self._consumed:
+            raise ValueError("native capture requires consumed original intent")
+        self._store.require_bound()
+        self._index.require_bound()
+
+    def _native_capture(self, raw: bytes) -> ValidatedOutcome:
+        """Internal ingress from direct capture, not an uploaded self-authenticated digest."""
+        grant = self._check_admission()
+        order = self._pending
+        if order is None or digest(order) not in self._consumed or len(raw) > 8388608:
+            raise ValueError("native capture requires bounded consumed intent")
+        reject_credential_fields(raw)
+        # The trusted collector already retained each exchange before normalization.
+        # Compare the assembled envelope against those originals; imported envelopes
+        # must continue through the independently witnessed public ingress instead.
+        capture = OriginalCapture.model_validate_json(raw)
+        retained = [
+            r["payload"]
+            for r in self._records
+            if r["kind"] == "native_exchange" and r["order"] == order.model_dump(mode="json")
+        ]
+        if retained != [e.model_dump(mode="json") for e in capture.exchanges]:
+            raise ValueError("native capture differs from retained exchanges")
+        for phase, originals in (("before", capture.before_hex), ("after", capture.after_hex)):
+            observed = tuple(
+                r["payload"]["exchange"]["response_hex"]
+                for r in self._records
+                if r["kind"] == "native_observation"
+                and r["order"] == order.model_dump(mode="json")
+                and r["payload"]["phase"] == phase
+                and r["payload"]["exchange"]["status"] == 200
+            )
+            if observed != originals:
+                raise ValueError("native observation envelope differs from retained originals")
+        return self._retain_capture(raw, order, None, grant, self._admission.now())
+
+    def _native_observation(
+        self, order: RealWorkOrder, phase: str, exchange: dict[str, Any]
+    ) -> None:
+        """Supplementary originals are not extra action exchanges (C1)."""
+        self._require_native_retention(order)
+        if phase not in ("actor", "before", "after"):
+            raise ValueError("observation requires protected consumed intent")
+        reject_credential_fields(canonical_json_bytes(exchange))
+        self._append("native_observation", order, {"phase": phase, "exchange": exchange})
+
+    def _retain_capture(
+        self,
+        raw: bytes,
+        order: RealWorkOrder,
+        witness: str | None,
+        grant: SetupGrantV2,
+        now: datetime,
+    ) -> ValidatedOutcome:
+        from .operational_plan import evidence_json
+
+        provenance = (
+            {"source": "independent_witness", "witness_sha256": witness}
+            if witness is not None
+            else {"source": "native_collector", "original_sha256": sha256(raw)}
         )
+        self._append("capture", order, {"original_hex": raw.hex(), **provenance})
         try:
             evidence_json(raw)
             capture = OriginalCapture.model_validate_json(raw)
             # Fixed test source assumption only; no real concealment policy is admitted.
-            outcome = classify_capture(order, capture, concealment_admitted=True)
+            outcome = classify_capture(
+                order, capture, concealment_admitted=self._admission.concealment()
+            )
             if not 0 <= (now - capture.ended).total_seconds() <= grant.freshness_seconds:
                 outcome = ValidatedOutcome(result="INCONCLUSIVE", reason="stale/future capture")
         except (ValueError, TypeError, KeyError):
