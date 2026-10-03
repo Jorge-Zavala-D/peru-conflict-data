@@ -7,6 +7,7 @@ import importlib.util
 import json
 import subprocess
 import sys
+import tempfile
 from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -256,7 +257,8 @@ def exercise_synthetic_manual_controls(
     admission = component_admission(binding, packages, persons)
     controls: list[Any] = []
     for role in ("annotator-a", "annotator-b"):
-        root, checkpoint = tmp_path / f"control-{role}", tmp_path / f"control-index-{role}"
+        root = tmp_path / f"m2-readiness-control-{role}"
+        checkpoint = tmp_path / f"m2-readiness-control-index-{role}"
         root.mkdir()
         checkpoint.mkdir()
         m.initialize_manual_store(root, checkpoint, admission)
@@ -700,7 +702,7 @@ def test_original_intake_and_separately_confirmed_publication_are_connected(
     assert launch.synthetic_ready and not launch.real_launch_authorized
     admission = launch.storage
     assert admission is not None
-    root, checkpoint = tmp_path / "originals", tmp_path / "checkpoint"
+    root, checkpoint = tmp_path / "m2-readiness-originals", tmp_path / "m2-readiness-checkpoint"
     root.mkdir()
     checkpoint.mkdir()
     m.initialize_manual_store(root, checkpoint, admission)
@@ -820,6 +822,25 @@ def test_current_consumer_source_drift_rejects_before_store_initialization(tmp_p
     assert list(checkpoint.iterdir()) == []
 
 
+@pytest.mark.parametrize("adverse", ["store", "checkpoint"])
+def test_manual_store_rejects_unmarked_offline_paths(adverse: str) -> None:
+    m = api()
+    binding, _, _ = fixture()
+    admission = component_admission(binding, (blank("annotator-a"), blank("annotator-b")), people())
+    # Independent unmarked parent: a marked pytest basetemp must not mask this control.
+    with tempfile.TemporaryDirectory(prefix="oma-unmarked-") as temporary:
+        root = Path(temporary) / ("ordinary-store" if adverse == "store" else "m2-readiness-store")
+        checkpoint = Path(temporary) / (
+            "ordinary-index" if adverse == "checkpoint" else "m2-readiness-index"
+        )
+        root.mkdir()
+        checkpoint.mkdir()
+        with pytest.raises(ValueError, match="dedicated OFFLINE temporary child required"):
+            m.initialize_manual_store(root, checkpoint, admission)
+        assert list(root.iterdir()) == []
+        assert list(checkpoint.iterdir()) == []
+
+
 @pytest.mark.parametrize("check_id", [r.check_id for r in ACCESS_POLICY_V2.acl_expectations])
 def test_every_changed_mapping_rejects_even_with_matching_witness(check_id: str) -> None:
     m = api()
@@ -927,7 +948,10 @@ def store_fixture(tmp_path: Path) -> tuple[Any, Path, Path, dict[str, bytes], An
     m = api()
     binding, _, _ = fixture()
     admission = component_admission(binding, (blank("annotator-a"), blank("annotator-b")), people())
-    root, checkpoint = tmp_path / "consumer", tmp_path / "independent-index"
+    root, checkpoint = (
+        tmp_path / "m2-readiness-consumer",
+        tmp_path / "m2-readiness-independent-index",
+    )
     root.mkdir()
     checkpoint.mkdir()
     m.initialize_manual_store(root, checkpoint, admission)
