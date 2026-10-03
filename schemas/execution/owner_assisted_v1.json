@@ -1,0 +1,1900 @@
+{
+  "$defs": {
+    "AccessExpectation": {
+      "additionalProperties": false,
+      "description": "One ACL outcome that a future real-account test must observe.",
+      "properties": {
+        "actor": {
+          "enum": [
+            "annotator-a",
+            "annotator-b",
+            "coordinator"
+          ],
+          "title": "Actor",
+          "type": "string"
+        },
+        "check_id": {
+          "pattern": "^[a-z0-9][a-z0-9/-]*$",
+          "title": "Check Id",
+          "type": "string"
+        },
+        "control_layer": {
+          "const": "ACL",
+          "default": "ACL",
+          "title": "Control Layer",
+          "type": "string"
+        },
+        "expected_outcome": {
+          "enum": [
+            "ALLOW",
+            "DENY"
+          ],
+          "title": "Expected Outcome",
+          "type": "string"
+        },
+        "operation": {
+          "enum": [
+            "list",
+            "read",
+            "write"
+          ],
+          "title": "Operation",
+          "type": "string"
+        },
+        "rationale_id": {
+          "pattern": "^ACL-[A-Z0-9-]+$",
+          "title": "Rationale Id",
+          "type": "string"
+        },
+        "resource": {
+          "enum": [
+            "annotator-a/issue",
+            "annotator-a/submission",
+            "annotator-b/issue",
+            "annotator-b/submission",
+            "coordinator/custody",
+            "coordinator/comparison",
+            "coordinator/adjudication",
+            "coordinator/held-out-sealed",
+            "coordinator/receipts",
+            "coordinator/locked/annotator-a",
+            "coordinator/locked/annotator-b",
+            "coordinator/supersession"
+          ],
+          "title": "Resource",
+          "type": "string"
+        }
+      },
+      "required": [
+        "check_id",
+        "actor",
+        "resource",
+        "operation",
+        "expected_outcome",
+        "rationale_id"
+      ],
+      "title": "AccessExpectation",
+      "type": "object"
+    },
+    "AnnotationContractIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "benchmark_schema_digest": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Benchmark Schema Digest",
+          "type": "string"
+        },
+        "benchmark_schema_version": {
+          "const": "0.1.1",
+          "title": "Benchmark Schema Version",
+          "type": "string"
+        },
+        "critical_field_set_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Critical Field Set Sha256",
+          "type": "string"
+        },
+        "date_correction_approval_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Date Correction Approval Sha256",
+          "type": "string"
+        },
+        "date_pair_interpretation_approval_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Date Pair Interpretation Approval Sha256",
+          "type": "string"
+        },
+        "date_pair_interpretation_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Date Pair Interpretation Sha256",
+          "type": "string"
+        },
+        "discovery_policy_approval_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Discovery Policy Approval Sha256",
+          "type": "string"
+        },
+        "evaluator_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Evaluator Sha256",
+          "type": "string"
+        },
+        "metric_contract_version": {
+          "const": "0.1.1",
+          "title": "Metric Contract Version",
+          "type": "string"
+        },
+        "owner_readiness_approval_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Owner Readiness Approval Sha256",
+          "type": "string"
+        },
+        "scientific_schema_digest": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Scientific Schema Digest",
+          "type": "string"
+        },
+        "scientific_schema_version": {
+          "const": "0.3.1",
+          "title": "Scientific Schema Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "scientific_schema_version",
+        "scientific_schema_digest",
+        "benchmark_schema_version",
+        "benchmark_schema_digest",
+        "metric_contract_version",
+        "evaluator_sha256",
+        "critical_field_set_sha256",
+        "date_correction_approval_sha256",
+        "discovery_policy_approval_sha256",
+        "date_pair_interpretation_sha256",
+        "date_pair_interpretation_approval_sha256",
+        "owner_readiness_approval_sha256"
+      ],
+      "title": "AnnotationContractIdentity",
+      "type": "object"
+    },
+    "EligibilityBinding": {
+      "additionalProperties": false,
+      "description": "Coordinator-only; opaque token digests are private, never annotator material.",
+      "properties": {
+        "annotation_launch_approved": {
+          "const": false,
+          "default": false,
+          "title": "Annotation Launch Approved",
+          "type": "boolean"
+        },
+        "attestation_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Attestation Sha256",
+          "type": "string"
+        },
+        "binding_id": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Binding Id",
+          "type": "string"
+        },
+        "identity": {
+          "$ref": "#/$defs/IssuedPackageIdentity"
+        },
+        "kind": {
+          "const": "COORDINATOR_ONLY_ELIGIBILITY_BINDING",
+          "default": "COORDINATOR_ONLY_ELIGIBILITY_BINDING",
+          "title": "Kind",
+          "type": "string"
+        },
+        "owner_readiness_approved": {
+          "const": false,
+          "default": false,
+          "title": "Owner Readiness Approved",
+          "type": "boolean"
+        },
+        "private_person_token_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Private Person Token Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "binding_id",
+        "identity",
+        "attestation_sha256",
+        "private_person_token_sha256"
+      ],
+      "title": "EligibilityBinding",
+      "type": "object"
+    },
+    "IssuedPackageIdentity": {
+      "additionalProperties": false,
+      "description": "Neutral source/protocol identity; contains neither personnel nor partition labels.",
+      "properties": {
+        "contract_identity": {
+          "$ref": "#/$defs/AnnotationContractIdentity"
+        },
+        "execution_policy_version": {
+          "const": "m2-02-execution-policy-v1",
+          "default": "m2-02-execution-policy-v1",
+          "title": "Execution Policy Version",
+          "type": "string"
+        },
+        "file_set_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "File Set Sha256",
+          "type": "string"
+        },
+        "manifest_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Manifest Sha256",
+          "type": "string"
+        },
+        "neutral_reader_contract": {
+          "const": "m2-neutral-reader-contract-v1",
+          "default": "m2-neutral-reader-contract-v1",
+          "title": "Neutral Reader Contract",
+          "type": "string"
+        },
+        "package_id": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Package Id",
+          "type": "string"
+        },
+        "reference_aggregate_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Reference Aggregate Sha256",
+          "type": "string"
+        },
+        "reference_policy_sha256s": {
+          "items": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "title": "Reference Policy Sha256S",
+          "type": "array"
+        },
+        "role": {
+          "enum": [
+            "annotator-a",
+            "annotator-b"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "run_id": {
+          "enum": [
+            "m2-02-v1",
+            "synthetic-run"
+          ],
+          "title": "Run Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "run_id",
+        "role",
+        "package_id",
+        "contract_identity",
+        "manifest_sha256",
+        "reference_aggregate_sha256",
+        "file_set_sha256",
+        "reference_policy_sha256s"
+      ],
+      "title": "IssuedPackageIdentity",
+      "type": "object"
+    },
+    "ManualAcceptedOriginal": {
+      "additionalProperties": false,
+      "properties": {
+        "admission_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Admission Sha256",
+          "type": "string"
+        },
+        "completion_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Completion Sha256",
+          "type": "string"
+        },
+        "confirmation_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Confirmation Sha256",
+          "type": "string"
+        },
+        "evidence_label": {
+          "const": "SYNTHETIC_NOT_HUMAN_SUBMISSION",
+          "default": "SYNTHETIC_NOT_HUMAN_SUBMISSION",
+          "title": "Evidence Label",
+          "type": "string"
+        },
+        "gold": {
+          "const": false,
+          "default": false,
+          "title": "Gold",
+          "type": "boolean"
+        },
+        "kind": {
+          "const": "MANUAL_ACCEPTED_ORIGINAL_V1",
+          "default": "MANUAL_ACCEPTED_ORIGINAL_V1",
+          "title": "Kind",
+          "type": "string"
+        },
+        "original_intake_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Original Intake Sha256",
+          "type": "string"
+        },
+        "permission_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Permission Sha256",
+          "type": "string"
+        },
+        "previous_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Previous Sha256"
+        },
+        "publication_evidence": {
+          "items": {
+            "$ref": "#/$defs/PinnedManualPublicationEvidence"
+          },
+          "maxItems": 3,
+          "minItems": 3,
+          "title": "Publication Evidence",
+          "type": "array"
+        },
+        "role": {
+          "enum": [
+            "annotator-a",
+            "annotator-b"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "sequence": {
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "supersedes": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Supersedes"
+        }
+      },
+      "required": [
+        "admission_sha256",
+        "role",
+        "sequence",
+        "original_intake_sha256",
+        "previous_sha256",
+        "supersedes",
+        "permission_sha256",
+        "completion_sha256",
+        "confirmation_sha256",
+        "publication_evidence"
+      ],
+      "title": "ManualAcceptedOriginal",
+      "type": "object"
+    },
+    "ManualActionEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "action_ref": {
+          "minLength": 1,
+          "title": "Action Ref",
+          "type": "string"
+        },
+        "actor": {
+          "enum": [
+            "annotator-a",
+            "annotator-b",
+            "coordinator"
+          ],
+          "title": "Actor",
+          "type": "string"
+        },
+        "at": {
+          "format": "date-time",
+          "title": "At",
+          "type": "string"
+        },
+        "binding_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Binding Sha256",
+          "type": "string"
+        },
+        "evidence_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Evidence Sha256",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "mutation",
+            "reconcile"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "namespace": {
+          "title": "Namespace",
+          "type": "string"
+        },
+        "resource": {
+          "enum": [
+            "annotator-a/issue",
+            "annotator-a/submission",
+            "annotator-b/issue",
+            "annotator-b/submission",
+            "coordinator/custody",
+            "coordinator/comparison",
+            "coordinator/adjudication",
+            "coordinator/held-out-sealed",
+            "coordinator/receipts",
+            "coordinator/locked/annotator-a",
+            "coordinator/locked/annotator-b",
+            "coordinator/supersession"
+          ],
+          "title": "Resource",
+          "type": "string"
+        },
+        "sequence": {
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "session_ref": {
+          "title": "Session Ref",
+          "type": "string"
+        },
+        "state": {
+          "enum": [
+            "STARTED",
+            "ACKNOWLEDGED_ASYNC",
+            "COMPLETED",
+            "UNKNOWN"
+          ],
+          "title": "State",
+          "type": "string"
+        },
+        "target_id": {
+          "title": "Target Id",
+          "type": "string"
+        },
+        "witness_ref": {
+          "title": "Witness Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "sequence",
+        "action_ref",
+        "kind",
+        "state",
+        "at",
+        "binding_sha256",
+        "actor",
+        "resource",
+        "session_ref",
+        "namespace",
+        "target_id",
+        "witness_ref",
+        "evidence_sha256"
+      ],
+      "title": "ManualActionEvent",
+      "type": "object"
+    },
+    "ManualApplicationControl": {
+      "additionalProperties": false,
+      "properties": {
+        "binding_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Binding Sha256",
+          "type": "string"
+        },
+        "checkpoint_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Checkpoint Sha256",
+          "type": "string"
+        },
+        "completed_at": {
+          "format": "date-time",
+          "title": "Completed At",
+          "type": "string"
+        },
+        "consumer_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Consumer Sha256",
+          "type": "string"
+        },
+        "control_id": {
+          "enum": [
+            "APP-ACCEPTED-BYTES-A",
+            "APP-ACCEPTED-BYTES-B"
+          ],
+          "title": "Control Id",
+          "type": "string"
+        },
+        "kind": {
+          "const": "SYNTHETIC_MANUAL_CONSUMER_CONTROL_V1",
+          "default": "SYNTHETIC_MANUAL_CONSUMER_CONTROL_V1",
+          "title": "Kind",
+          "type": "string"
+        },
+        "original_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Original Sha256",
+          "type": "string"
+        },
+        "overwrite_error": {
+          "const": "FileExistsError",
+          "title": "Overwrite Error",
+          "type": "string"
+        },
+        "preserved_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Preserved Sha256",
+          "type": "string"
+        },
+        "role": {
+          "enum": [
+            "annotator-a",
+            "annotator-b"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "started_at": {
+          "format": "date-time",
+          "title": "Started At",
+          "type": "string"
+        },
+        "store_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Store Sha256",
+          "type": "string"
+        },
+        "supersession_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Supersession Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "control_id",
+        "role",
+        "binding_sha256",
+        "consumer_sha256",
+        "store_sha256",
+        "original_sha256",
+        "preserved_sha256",
+        "checkpoint_sha256",
+        "overwrite_error",
+        "supersession_sha256",
+        "started_at",
+        "completed_at"
+      ],
+      "title": "ManualApplicationControl",
+      "type": "object"
+    },
+    "ManualBinding": {
+      "additionalProperties": false,
+      "properties": {
+        "concealment": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ManualConcealmentRule"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "coordinator_ref": {
+          "minLength": 1,
+          "title": "Coordinator Ref",
+          "type": "string"
+        },
+        "mode": {
+          "enum": [
+            "SYNTHETIC",
+            "MANUALLY_WITNESSED"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "not_after": {
+          "format": "date-time",
+          "title": "Not After",
+          "type": "string"
+        },
+        "not_before": {
+          "format": "date-time",
+          "title": "Not Before",
+          "type": "string"
+        },
+        "owner_ref": {
+          "minLength": 1,
+          "title": "Owner Ref",
+          "type": "string"
+        },
+        "policy_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Policy Sha256",
+          "type": "string"
+        },
+        "profile": {
+          "const": "M2-02-OWNER-ASSISTED-EVIDENCE-V1",
+          "default": "M2-02-OWNER-ASSISTED-EVIDENCE-V1",
+          "title": "Profile",
+          "type": "string"
+        },
+        "run_id": {
+          "enum": [
+            "m2-02-v1",
+            "synthetic-run"
+          ],
+          "title": "Run Id",
+          "type": "string"
+        },
+        "source_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Source Sha256",
+          "type": "string"
+        },
+        "targets": {
+          "items": {
+            "$ref": "#/$defs/ManualTarget"
+          },
+          "title": "Targets",
+          "type": "array"
+        },
+        "witness_ref": {
+          "minLength": 1,
+          "title": "Witness Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "run_id",
+        "mode",
+        "source_sha256",
+        "policy_sha256",
+        "coordinator_ref",
+        "witness_ref",
+        "owner_ref",
+        "not_before",
+        "not_after",
+        "targets"
+      ],
+      "title": "ManualBinding",
+      "type": "object"
+    },
+    "ManualConcealmentRule": {
+      "additionalProperties": false,
+      "description": "Independently approved, provider-grounded context; never a capture boolean.",
+      "properties": {
+        "approval_ref": {
+          "minLength": 1,
+          "title": "Approval Ref",
+          "type": "string"
+        },
+        "provider_document_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Provider Document Sha256",
+          "type": "string"
+        },
+        "target_context_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Target Context Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "provider_document_sha256",
+        "approval_ref",
+        "target_context_sha256"
+      ],
+      "title": "ManualConcealmentRule",
+      "type": "object"
+    },
+    "ManualDecisionOriginal": {
+      "additionalProperties": false,
+      "properties": {
+        "binding_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Binding Sha256"
+        },
+        "eligibility_pair_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Eligibility Pair Sha256",
+          "type": "string"
+        },
+        "isolation_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Isolation Sha256"
+        },
+        "issuer_ref": {
+          "title": "Issuer Ref",
+          "type": "string"
+        },
+        "kind": {
+          "const": "MANUAL_SCOPED_DECISION_ORIGINAL_V1",
+          "default": "MANUAL_SCOPED_DECISION_ORIGINAL_V1",
+          "title": "Kind",
+          "type": "string"
+        },
+        "material_pair_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Material Pair Sha256",
+          "type": "string"
+        },
+        "mode": {
+          "enum": [
+            "SYNTHETIC",
+            "MANUALLY_WITNESSED"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "predecessor_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Predecessor Sha256"
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "title": "Recorded At",
+          "type": "string"
+        },
+        "setup_scope_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Setup Scope Sha256"
+        },
+        "stage": {
+          "enum": [
+            "SETUP_PERMISSION",
+            "ISOLATION_ACCEPTANCE",
+            "ENVIRONMENT_CUSTODY_APPROVAL",
+            "DELIVERY_PERMISSION",
+            "DELIVERY_ACCEPTANCE",
+            "ANNOTATION_LAUNCH_PERMISSION"
+          ],
+          "title": "Stage",
+          "type": "string"
+        },
+        "state": {
+          "enum": [
+            "PROSPECTIVE_PERMISSION",
+            "ACTUAL_ACCEPTANCE"
+          ],
+          "title": "State",
+          "type": "string"
+        },
+        "witness_ref": {
+          "title": "Witness Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage",
+        "state",
+        "mode",
+        "binding_sha256",
+        "material_pair_sha256",
+        "eligibility_pair_sha256",
+        "isolation_sha256",
+        "issuer_ref",
+        "witness_ref",
+        "predecessor_sha256",
+        "recorded_at"
+      ],
+      "title": "ManualDecisionOriginal",
+      "type": "object"
+    },
+    "ManualIsolationReport": {
+      "additionalProperties": false,
+      "properties": {
+        "binding_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Binding Sha256",
+          "type": "string"
+        },
+        "complete_consistency": {
+          "title": "Complete Consistency",
+          "type": "boolean"
+        },
+        "completed_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Completed At"
+        },
+        "controls": {
+          "items": {
+            "$ref": "#/$defs/ManualApplicationControl"
+          },
+          "title": "Controls",
+          "type": "array"
+        },
+        "first_action_at": {
+          "format": "date-time",
+          "title": "First Action At",
+          "type": "string"
+        },
+        "kind": {
+          "const": "MANUAL_TECHNICAL_CONSISTENCY_NOT_OWNER_ACCEPTANCE_V1",
+          "default": "MANUAL_TECHNICAL_CONSISTENCY_NOT_OWNER_ACCEPTANCE_V1",
+          "title": "Kind",
+          "type": "string"
+        },
+        "outcomes": {
+          "items": {
+            "$ref": "#/$defs/ManualOutcome"
+          },
+          "title": "Outcomes",
+          "type": "array"
+        },
+        "real_isolation_approved": {
+          "const": false,
+          "default": false,
+          "title": "Real Isolation Approved",
+          "type": "boolean"
+        },
+        "unresolved_action_refs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Unresolved Action Refs",
+          "type": "array"
+        },
+        "witness_index_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Witness Index Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "binding_sha256",
+        "witness_index_sha256",
+        "outcomes",
+        "controls",
+        "unresolved_action_refs",
+        "first_action_at",
+        "completed_at",
+        "complete_consistency"
+      ],
+      "title": "ManualIsolationReport",
+      "type": "object"
+    },
+    "ManualLaunchVerification": {
+      "additionalProperties": false,
+      "properties": {
+        "binding_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Binding Sha256",
+          "type": "string"
+        },
+        "decision_sha256s": {
+          "items": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "title": "Decision Sha256S",
+          "type": "array"
+        },
+        "kind": {
+          "const": "MANUAL_LINKAGE_NOT_REAL_LAUNCH_AUTHORITY_V1",
+          "default": "MANUAL_LINKAGE_NOT_REAL_LAUNCH_AUTHORITY_V1",
+          "title": "Kind",
+          "type": "string"
+        },
+        "material_pair_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Material Pair Sha256",
+          "type": "string"
+        },
+        "real_launch_authorized": {
+          "const": false,
+          "default": false,
+          "title": "Real Launch Authorized",
+          "type": "boolean"
+        },
+        "storage": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ManualStoreAdmission"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "synthetic_ready": {
+          "title": "Synthetic Ready",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "binding_sha256",
+        "material_pair_sha256",
+        "decision_sha256s",
+        "synthetic_ready"
+      ],
+      "title": "ManualLaunchVerification",
+      "type": "object"
+    },
+    "ManualMaterialIdentity": {
+      "additionalProperties": false,
+      "description": "Versioned manual relationship; historical originals/views remain unissued.",
+      "properties": {
+        "field_registry_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Field Registry Sha256",
+          "type": "string"
+        },
+        "official_report_sha256s": {
+          "items": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "title": "Official Report Sha256S",
+          "type": "array"
+        },
+        "original": {
+          "$ref": "#/$defs/IssuedPackageIdentity"
+        },
+        "surface": {
+          "const": "NON_EXECUTABLE_VIEWER_UTF8_EDITOR",
+          "default": "NON_EXECUTABLE_VIEWER_UTF8_EDITOR",
+          "title": "Surface",
+          "type": "string"
+        },
+        "view": {
+          "$ref": "#/$defs/NeutralViewIdentity"
+        }
+      },
+      "required": [
+        "original",
+        "view",
+        "field_registry_sha256",
+        "official_report_sha256s"
+      ],
+      "title": "ManualMaterialIdentity",
+      "type": "object"
+    },
+    "ManualObservation": {
+      "additionalProperties": false,
+      "properties": {
+        "actor": {
+          "enum": [
+            "annotator-a",
+            "annotator-b",
+            "coordinator"
+          ],
+          "title": "Actor",
+          "type": "string"
+        },
+        "binding_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Binding Sha256",
+          "type": "string"
+        },
+        "check_id": {
+          "title": "Check Id",
+          "type": "string"
+        },
+        "completed_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Completed At"
+        },
+        "kind": {
+          "const": "INDEPENDENTLY_WITNESSED_MANUAL_OBSERVATION_V1",
+          "default": "INDEPENDENTLY_WITNESSED_MANUAL_OBSERVATION_V1",
+          "title": "Kind",
+          "type": "string"
+        },
+        "operation": {
+          "enum": [
+            "list",
+            "read",
+            "write"
+          ],
+          "title": "Operation",
+          "type": "string"
+        },
+        "original_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Original Sha256",
+          "type": "string"
+        },
+        "resource": {
+          "enum": [
+            "annotator-a/issue",
+            "annotator-a/submission",
+            "annotator-b/issue",
+            "annotator-b/submission",
+            "coordinator/custody",
+            "coordinator/comparison",
+            "coordinator/adjudication",
+            "coordinator/held-out-sealed",
+            "coordinator/receipts",
+            "coordinator/locked/annotator-a",
+            "coordinator/locked/annotator-b",
+            "coordinator/supersession"
+          ],
+          "title": "Resource",
+          "type": "string"
+        },
+        "sequence": {
+          "minimum": 1,
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "started_at": {
+          "format": "date-time",
+          "title": "Started At",
+          "type": "string"
+        },
+        "state": {
+          "enum": [
+            "STARTED",
+            "ACKNOWLEDGED_ASYNC",
+            "COMPLETED",
+            "UNKNOWN"
+          ],
+          "title": "State",
+          "type": "string"
+        }
+      },
+      "required": [
+        "binding_sha256",
+        "sequence",
+        "check_id",
+        "actor",
+        "resource",
+        "operation",
+        "started_at",
+        "completed_at",
+        "state",
+        "original_sha256"
+      ],
+      "title": "ManualObservation",
+      "type": "object"
+    },
+    "ManualOperationOriginal": {
+      "additionalProperties": false,
+      "description": "Secret-free retained result/export description; independent witness required.",
+      "properties": {
+        "actor": {
+          "enum": [
+            "annotator-a",
+            "annotator-b",
+            "coordinator"
+          ],
+          "title": "Actor",
+          "type": "string"
+        },
+        "after_exists": {
+          "title": "After Exists",
+          "type": "boolean"
+        },
+        "autorenamed": {
+          "default": false,
+          "title": "Autorenamed",
+          "type": "boolean"
+        },
+        "before_exists": {
+          "title": "Before Exists",
+          "type": "boolean"
+        },
+        "cleanup": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ManualProbeCleanup"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "entry_ids": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Entry Ids",
+          "type": "array"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "enum": [
+                "no_write_permission",
+                "not_found",
+                "authentication",
+                "restricted_content",
+                "ambiguous"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Error"
+        },
+        "kind": {
+          "const": "MANUAL_OPERATION_ORIGINAL_V1",
+          "default": "MANUAL_OPERATION_ORIGINAL_V1",
+          "title": "Kind",
+          "type": "string"
+        },
+        "listing_complete": {
+          "default": false,
+          "title": "Listing Complete",
+          "type": "boolean"
+        },
+        "locator": {
+          "title": "Locator",
+          "type": "string"
+        },
+        "namespace": {
+          "title": "Namespace",
+          "type": "string"
+        },
+        "observed_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Observed Id"
+        },
+        "operation": {
+          "enum": [
+            "list",
+            "read",
+            "write"
+          ],
+          "title": "Operation",
+          "type": "string"
+        },
+        "parent_id": {
+          "title": "Parent Id",
+          "type": "string"
+        },
+        "read_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Read Sha256"
+        },
+        "returned_locator": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Returned Locator"
+        },
+        "scope_complete": {
+          "title": "Scope Complete",
+          "type": "boolean"
+        },
+        "session_ref": {
+          "title": "Session Ref",
+          "type": "string"
+        },
+        "status": {
+          "maximum": 599,
+          "minimum": 100,
+          "title": "Status",
+          "type": "integer"
+        },
+        "target_id": {
+          "title": "Target Id",
+          "type": "string"
+        },
+        "write_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Write Sha256"
+        }
+      },
+      "required": [
+        "actor",
+        "session_ref",
+        "namespace",
+        "locator",
+        "operation",
+        "scope_complete",
+        "target_id",
+        "parent_id",
+        "before_exists",
+        "after_exists",
+        "status",
+        "error"
+      ],
+      "title": "ManualOperationOriginal",
+      "type": "object"
+    },
+    "ManualOriginalIntake": {
+      "additionalProperties": false,
+      "properties": {
+        "admission_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Admission Sha256",
+          "type": "string"
+        },
+        "at": {
+          "format": "date-time",
+          "title": "At",
+          "type": "string"
+        },
+        "evidence_label": {
+          "const": "SYNTHETIC_NOT_HUMAN_SUBMISSION",
+          "default": "SYNTHETIC_NOT_HUMAN_SUBMISSION",
+          "title": "Evidence Label",
+          "type": "string"
+        },
+        "form_sha256s": {
+          "additionalProperties": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "title": "Form Sha256S",
+          "type": "object"
+        },
+        "identity": {
+          "$ref": "#/$defs/IssuedPackageIdentity"
+        },
+        "kind": {
+          "const": "MANUAL_ORIGINAL_INTAKE_V1",
+          "default": "MANUAL_ORIGINAL_INTAKE_V1",
+          "title": "Kind",
+          "type": "string"
+        },
+        "mechanically_complete": {
+          "title": "Mechanically Complete",
+          "type": "boolean"
+        },
+        "validation_error": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Validation Error"
+        }
+      },
+      "required": [
+        "admission_sha256",
+        "identity",
+        "at",
+        "form_sha256s",
+        "mechanically_complete",
+        "validation_error"
+      ],
+      "title": "ManualOriginalIntake",
+      "type": "object"
+    },
+    "ManualOutcome": {
+      "additionalProperties": false,
+      "properties": {
+        "check": {
+          "$ref": "#/$defs/AccessExpectation"
+        },
+        "original_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Original Sha256",
+          "type": "string"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        },
+        "result": {
+          "enum": [
+            "PASS",
+            "FAIL",
+            "INCONCLUSIVE"
+          ],
+          "title": "Result",
+          "type": "string"
+        }
+      },
+      "required": [
+        "check",
+        "result",
+        "reason",
+        "original_sha256"
+      ],
+      "title": "ManualOutcome",
+      "type": "object"
+    },
+    "ManualProbeCleanup": {
+      "additionalProperties": false,
+      "description": "Observed cooperative probe cleanup, NOT provider CAS or retry certification.",
+      "properties": {
+        "after_absent": {
+          "title": "After Absent",
+          "type": "boolean"
+        },
+        "before_observed": {
+          "title": "Before Observed",
+          "type": "boolean"
+        },
+        "completed_at": {
+          "format": "date-time",
+          "title": "Completed At",
+          "type": "string"
+        },
+        "ownership_ref": {
+          "title": "Ownership Ref",
+          "type": "string"
+        },
+        "probe_id": {
+          "title": "Probe Id",
+          "type": "string"
+        },
+        "probe_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Probe Sha256",
+          "type": "string"
+        },
+        "target_id": {
+          "title": "Target Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "ownership_ref",
+        "probe_id",
+        "probe_sha256",
+        "target_id",
+        "before_observed",
+        "after_absent",
+        "completed_at"
+      ],
+      "title": "ManualProbeCleanup",
+      "type": "object"
+    },
+    "ManualPublicationEvidence": {
+      "additionalProperties": false,
+      "properties": {
+        "actor_ref": {
+          "title": "Actor Ref",
+          "type": "string"
+        },
+        "admission_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Admission Sha256",
+          "type": "string"
+        },
+        "intake_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Intake Sha256",
+          "type": "string"
+        },
+        "kind": {
+          "const": "SYNTHETIC_MANUAL_PUBLICATION_EVIDENCE_V1",
+          "default": "SYNTHETIC_MANUAL_PUBLICATION_EVIDENCE_V1",
+          "title": "Kind",
+          "type": "string"
+        },
+        "predecessor_evidence_sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Predecessor Evidence Sha256"
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "title": "Recorded At",
+          "type": "string"
+        },
+        "role": {
+          "enum": [
+            "annotator-a",
+            "annotator-b"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "stage": {
+          "enum": [
+            "PUBLICATION_PERMISSION",
+            "HUMAN_COMPLETION_REQUEST",
+            "COORDINATOR_CONFIRMATION"
+          ],
+          "title": "Stage",
+          "type": "string"
+        },
+        "witness_ref": {
+          "title": "Witness Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage",
+        "admission_sha256",
+        "intake_sha256",
+        "role",
+        "actor_ref",
+        "witness_ref",
+        "recorded_at",
+        "predecessor_evidence_sha256"
+      ],
+      "title": "ManualPublicationEvidence",
+      "type": "object"
+    },
+    "ManualStoreAdmission": {
+      "additionalProperties": false,
+      "description": "Explicit fake authority for disposable component/launch stores, never real grants.",
+      "properties": {
+        "binding_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Binding Sha256",
+          "type": "string"
+        },
+        "coordinator_ref": {
+          "title": "Coordinator Ref",
+          "type": "string"
+        },
+        "decision_sha256s": {
+          "default": [],
+          "items": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "title": "Decision Sha256S",
+          "type": "array"
+        },
+        "eligibility": {
+          "items": {
+            "$ref": "#/$defs/EligibilityBinding"
+          },
+          "title": "Eligibility",
+          "type": "array"
+        },
+        "kind": {
+          "const": "SYNTHETIC_MANUAL_STORE_ADMISSION_V1",
+          "default": "SYNTHETIC_MANUAL_STORE_ADMISSION_V1",
+          "title": "Kind",
+          "type": "string"
+        },
+        "material_pair_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Material Pair Sha256",
+          "type": "string"
+        },
+        "mode": {
+          "const": "SYNTHETIC",
+          "default": "SYNTHETIC",
+          "title": "Mode",
+          "type": "string"
+        },
+        "not_after": {
+          "format": "date-time",
+          "title": "Not After",
+          "type": "string"
+        },
+        "not_before": {
+          "format": "date-time",
+          "title": "Not Before",
+          "type": "string"
+        },
+        "owner_ref": {
+          "title": "Owner Ref",
+          "type": "string"
+        },
+        "profile": {
+          "const": "M2-02-OWNER-ASSISTED-EVIDENCE-V1",
+          "default": "M2-02-OWNER-ASSISTED-EVIDENCE-V1",
+          "title": "Profile",
+          "type": "string"
+        },
+        "purpose": {
+          "enum": [
+            "COMPONENT_CONTROL",
+            "OFFLINE_LAUNCH_PROOF"
+          ],
+          "title": "Purpose",
+          "type": "string"
+        },
+        "real_launch_authorized": {
+          "const": false,
+          "default": false,
+          "title": "Real Launch Authorized",
+          "type": "boolean"
+        },
+        "run_id": {
+          "const": "synthetic-run",
+          "default": "synthetic-run",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "source_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Source Sha256",
+          "type": "string"
+        },
+        "witness_ref": {
+          "title": "Witness Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "purpose",
+        "binding_sha256",
+        "source_sha256",
+        "owner_ref",
+        "coordinator_ref",
+        "witness_ref",
+        "not_before",
+        "not_after",
+        "eligibility",
+        "material_pair_sha256"
+      ],
+      "title": "ManualStoreAdmission",
+      "type": "object"
+    },
+    "ManualTarget": {
+      "additionalProperties": false,
+      "properties": {
+        "actor": {
+          "enum": [
+            "annotator-a",
+            "annotator-b",
+            "coordinator"
+          ],
+          "title": "Actor",
+          "type": "string"
+        },
+        "locator": {
+          "minLength": 1,
+          "title": "Locator",
+          "type": "string"
+        },
+        "namespace": {
+          "minLength": 1,
+          "title": "Namespace",
+          "type": "string"
+        },
+        "ownership_ref": {
+          "minLength": 1,
+          "title": "Ownership Ref",
+          "type": "string"
+        },
+        "parent_id": {
+          "minLength": 1,
+          "title": "Parent Id",
+          "type": "string"
+        },
+        "probe_id": {
+          "minLength": 1,
+          "title": "Probe Id",
+          "type": "string"
+        },
+        "probe_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Probe Sha256",
+          "type": "string"
+        },
+        "resource": {
+          "enum": [
+            "annotator-a/issue",
+            "annotator-a/submission",
+            "annotator-b/issue",
+            "annotator-b/submission",
+            "coordinator/custody",
+            "coordinator/comparison",
+            "coordinator/adjudication",
+            "coordinator/held-out-sealed",
+            "coordinator/receipts",
+            "coordinator/locked/annotator-a",
+            "coordinator/locked/annotator-b",
+            "coordinator/supersession"
+          ],
+          "title": "Resource",
+          "type": "string"
+        },
+        "session_ref": {
+          "minLength": 1,
+          "title": "Session Ref",
+          "type": "string"
+        },
+        "target_id": {
+          "minLength": 1,
+          "title": "Target Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "actor",
+        "resource",
+        "session_ref",
+        "namespace",
+        "locator",
+        "target_id",
+        "parent_id",
+        "probe_id",
+        "probe_sha256",
+        "ownership_ref"
+      ],
+      "title": "ManualTarget",
+      "type": "object"
+    },
+    "ManualWitnessIndex": {
+      "additionalProperties": false,
+      "properties": {
+        "binding_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Binding Sha256",
+          "type": "string"
+        },
+        "control_sha256s": {
+          "default": [],
+          "items": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "title": "Control Sha256S",
+          "type": "array"
+        },
+        "kind": {
+          "const": "INDEPENDENT_MANUAL_WITNESS_INDEX_V1",
+          "default": "INDEPENDENT_MANUAL_WITNESS_INDEX_V1",
+          "title": "Kind",
+          "type": "string"
+        },
+        "mode": {
+          "enum": [
+            "SYNTHETIC",
+            "MANUALLY_WITNESSED"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "observation_sha256s": {
+          "items": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "title": "Observation Sha256S",
+          "type": "array"
+        },
+        "progress_sha256s": {
+          "default": [],
+          "items": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "title": "Progress Sha256S",
+          "type": "array"
+        },
+        "witness_ref": {
+          "title": "Witness Ref",
+          "type": "string"
+        }
+      },
+      "required": [
+        "binding_sha256",
+        "mode",
+        "witness_ref",
+        "observation_sha256s"
+      ],
+      "title": "ManualWitnessIndex",
+      "type": "object"
+    },
+    "NeutralViewIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "contract_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Contract Sha256",
+          "type": "string"
+        },
+        "file_hashes": {
+          "additionalProperties": {
+            "pattern": "^[a-f0-9]{64}$",
+            "type": "string"
+          },
+          "title": "File Hashes",
+          "type": "object"
+        },
+        "original_package_id": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Original Package Id",
+          "type": "string"
+        },
+        "original_package_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Original Package Sha256",
+          "type": "string"
+        },
+        "policy": {
+          "const": "m2-neutral-human-view-v1",
+          "default": "m2-neutral-human-view-v1",
+          "title": "Policy",
+          "type": "string"
+        },
+        "view_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "View Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "view_sha256",
+        "original_package_sha256",
+        "original_package_id",
+        "contract_sha256",
+        "file_hashes"
+      ],
+      "title": "NeutralViewIdentity",
+      "type": "object"
+    },
+    "PinnedManualPublicationEvidence": {
+      "additionalProperties": false,
+      "description": "Pin is supplied independently, not taken from an imported record's claim.",
+      "properties": {
+        "original": {
+          "$ref": "#/$defs/ManualPublicationEvidence"
+        },
+        "trusted_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Trusted Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "original",
+        "trusted_sha256"
+      ],
+      "title": "PinnedManualPublicationEvidence",
+      "type": "object"
+    }
+  },
+  "anyOf": [
+    {
+      "$ref": "#/$defs/ManualBinding"
+    },
+    {
+      "$ref": "#/$defs/ManualOperationOriginal"
+    },
+    {
+      "$ref": "#/$defs/ManualObservation"
+    },
+    {
+      "$ref": "#/$defs/ManualWitnessIndex"
+    },
+    {
+      "$ref": "#/$defs/ManualActionEvent"
+    },
+    {
+      "$ref": "#/$defs/ManualApplicationControl"
+    },
+    {
+      "$ref": "#/$defs/ManualDecisionOriginal"
+    },
+    {
+      "$ref": "#/$defs/ManualMaterialIdentity"
+    },
+    {
+      "$ref": "#/$defs/ManualIsolationReport"
+    },
+    {
+      "$ref": "#/$defs/ManualLaunchVerification"
+    },
+    {
+      "$ref": "#/$defs/ManualStoreAdmission"
+    },
+    {
+      "$ref": "#/$defs/ManualOriginalIntake"
+    },
+    {
+      "$ref": "#/$defs/ManualPublicationEvidence"
+    },
+    {
+      "$ref": "#/$defs/ManualAcceptedOriginal"
+    }
+  ]
+}
