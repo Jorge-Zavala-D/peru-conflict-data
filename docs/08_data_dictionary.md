@@ -1,7 +1,7 @@
 # Canonical field-level data dictionary (schema v0.3.1)
 
 This dictionary is synchronized with the 26 models in
-`peru_conflicts.models.MODEL_REGISTRY` and the generated files in `schemas/v0.3.0/`.
+`peru_conflicts.models.MODEL_REGISTRY` and the generated files in `schemas/v0.3.1/`.
 The Python models and their validators are authoritative; this document explains the
 research meaning and storage contract. `schemas/v0.1.0/` is retained as the immutable
 M0 snapshot and is documented by the migration note in

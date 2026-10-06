@@ -3,4 +3,5 @@ description = "Independent read-only review of benchmark, reconciliation, and re
 sandbox_mode = "read-only"
 developer_instructions = """
 Recompute assigned checks independently. Separate parser errors, source inconsistencies, ambiguity, and missing evidence. Never weaken a gate or alter gold data. Return failing evidence and the exact acceptance criterion affected.
+Apply docs/ai_pi_reference_evaluation_protocol.md for successor work. Technical validation and model agreement are not PI review; exact discovery denominators and unprocessed units matter. Preserve initial predictions and reference/selection/version identity. Retired RA gates do not block this route, but existing historical refusals remain unchanged. No real extraction or release authority from synthetic checks.
 """

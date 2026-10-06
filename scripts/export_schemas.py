@@ -17,6 +17,7 @@ from peru_conflicts.discovery.schema_export import (
     discovery_schemas_are_current,
     export_discovery_schemas,
 )
+from peru_conflicts.execution.ai_pi import export_schema, schema_bytes
 from peru_conflicts.execution.owner_assisted import export_manual_schema, manual_schema_bytes
 from peru_conflicts.execution.setup_authority import export_real_schema, real_schema_bytes
 from peru_conflicts.execution.setup_bridge import export_setup_schema, setup_schema_bytes
@@ -40,6 +41,7 @@ def main() -> int:
     real_path = arguments.output / "execution" / "setup_real_v2.json"
     installation_path = arguments.output / "execution" / "setup_installation_v1.json"
     manual_path = arguments.output / "execution" / "owner_assisted_v1.json"
+    ai_pi_path = arguments.output / "execution" / "ai_pi_v1.json"
 
     if arguments.check:
         scientific_current = schemas_are_current(arguments.output)
@@ -54,6 +56,7 @@ def main() -> int:
             and installation_path.read_bytes() == installation_schema_bytes()
         )
         manual_current = manual_path.is_file() and manual_path.read_bytes() == manual_schema_bytes()
+        ai_pi_current = ai_pi_path.is_file() and ai_pi_path.read_bytes() == schema_bytes()
         if (
             scientific_current
             and discovery_current
@@ -64,6 +67,7 @@ def main() -> int:
             and real_current
             and installation_current
             and manual_current
+            and ai_pi_current
         ):
             return 0
         if not scientific_current:
@@ -84,6 +88,8 @@ def main() -> int:
             print("Generated installation-v1 setup schema differs from registered models.")
         if not manual_current:
             print("Generated owner-assisted-v1 schema differs from registered models.")
+        if not ai_pi_current:
+            print("Generated AI/PI-v1 schema differs from registered models.")
         return 1
 
     written = export_json_schemas(arguments.output)
@@ -95,6 +101,7 @@ def main() -> int:
     written.append(export_real_schema(arguments.output))
     written.append(export_installation_schema(arguments.output))
     written.append(export_manual_schema(arguments.output))
+    written.append(export_schema(arguments.output))
     print(f"Exported {len(written)} JSON Schemas to {arguments.output}")
     return 0
 
