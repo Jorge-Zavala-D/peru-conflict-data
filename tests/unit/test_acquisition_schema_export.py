@@ -9,6 +9,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+from peru_conflicts.execution.ai_pi import export_schema
 from peru_conflicts.execution.owner_assisted import export_manual_schema
 from peru_conflicts.execution.setup_authority import export_real_schema
 from peru_conflicts.execution.setup_bridge import export_setup_schema
@@ -239,6 +240,7 @@ def test_top_level_schema_check_includes_acquisition(tmp_path: Path) -> None:
     export_real_schema(tmp_path)
     export_installation_schema(tmp_path)
     export_manual_schema(tmp_path)
+    export_schema(tmp_path)
 
     command = [
         sys.executable,

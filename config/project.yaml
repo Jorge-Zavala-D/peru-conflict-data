@@ -1,7 +1,8 @@
-# M1-01/M1-02 authorization gate: v0.2.0 is the M1-only working content
-# baseline. M1-03 remains separately prohibited; M2-01 owns the deferred
-# ontology questions in docs/29_open_questions.md. Keep this metadata in
-# comments until a versioned project-config schema authorizes a parsed field.
+# Active workflow: AI_PI_RECONSTRUCTION_V1 in config/ai_pi/strategy_v1.json.
+# Scientific 0.3.1 and metric 0.1.1 are current. This general project config
+# grants no execution/release authority; legacy approvals remain unchanged.
+# deterministic_before_probabilistic is the retained evidence/tool preference,
+# not a requirement to exhaust deterministic methods before model assistance.
 config_version: "1"
 project:
   slug: peru-conflict-data

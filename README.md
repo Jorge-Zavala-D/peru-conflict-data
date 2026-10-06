@@ -1,71 +1,62 @@
 # Peru social conflict data
 
-Research-data infrastructure for a defensible historical reconstruction of Peru's Defensoría del Pueblo Social Conflicts Monitoring System, April 2004-present.
+Reproducible reconstruction of social conflict **as monitored and published** by Peru's
+Defensoría del Pueblo, April 2004–present. It is not an enumeration of all conflict or a
+causal evaluation of policy.
 
-Status: **Milestone 1 and M2-01 are complete; M2-02 human annotation has not started.**
+## Active route: AI_PI_RECONSTRUCTION_V1
 
-Jorge has approved the
-[source-neutral discovery execution policy](docs/m2_02_discovery_execution_policy.md).
-The [approval record](config/benchmark/m2_02_owner_approval_v1.yaml) approves the policy contract
-only. M2-02A owner readiness is approved: all 15 decisions are closed in
-[the readiness approval](config/benchmark/m2_02a_owner_readiness_approval_v1.yaml).
-Readiness v3 and evidence index v5 bind that approval. This permits preparation of
-a separate launch gate only; no real issuance, annotation, production locking,
-human gold, Dropbox execution writes or parser work is authorized.
-The nine M2-02B.1 technical/design launch decisions are now owner-approved in
-`config/benchmark/m2_02b1_launch_design_approval_v1.yaml`. Candidate v2 preserves
-the reviewed runtime and human material; seven operational decisions remain
-unresolved. No real humans, access tests, package issuance or launch are authorized.
-See the [execution candidate](docs/m2_02_annotation_execution_protocol.md) and
-[coordinator checklist](docs/m2_02_coordinator_checklist.md). No normative discovery-start scoring is approved,
-and the final M3 gate remains unapproved.
+Jorge adopted progressive agentic-AI construction with substantive source-based PI
+review on 6 October 2026. The [strategy](docs/ai_pi_strategy.md) and
+[typed decision](config/ai_pi/strategy_v1.json) select this route; the
+[successor roadmap](docs/ai_pi_roadmap.md) replaces the old staffing-first dependency
+chain for new work. Two external RAs, exhaustive double-human gold and retired
+RA/native-containment diagnostics are **not prerequisites** for bounded AI development.
+Their records remain historical, not retrospectively passed.
 
-M2-02B.2 proposes the [operational launch plan](docs/m2_02_operational_launch_protocol.md):
-private eligibility ceremonies, an unapproved environment candidate, exact future
-setup/probe paths and all 108 access checks (NOT RUN). This is preparation only;
-the seven operational decisions and production-environment approval remain pending.
-The write-once canonical M1 identity/coverage package exists at
-`06_validation/m1_corpus_manifest/v0.2.0/`. It establishes 247 numbered reports and
-247 months without mapping conflicts while preserving 287 factual gaps and 50 owner
-adjudications. This is corpus identity/coverage closure, not full PDF acquisition:
-authoritative byte completeness remains false and 237 report bytes remain deferred.
-Scientific v0.3.0 and benchmark v0.1.0 remain immutable historical approvals.
-The [owner-authorized date correction](docs/scientific_schema_v0_3_0_to_v0_3_1_date_correction.md)
-advances the active readiness contracts to scientific v0.3.1 and benchmark v0.1.1;
-only action/alert source dates and precision replace parsed dates in object matching.
-The unlaunched run and neutral package/issuance identities explicitly bind those active
-contracts; the current source-neutral evidence index is v5. Historical indexes remain intact.
-The active run pins the exact critical-field set and the separately recorded M2-02A.1E
-date-pair ratification, which authenticates the interpretation document.
-The date-pair ratification alone did not approve readiness; the separate 15-decision
-record now approves readiness only, never annotation launch. The two machine pilot aids were verified only for
-protocol coherence and remain non-gold. M2 human gold does not exist and M2-02 human annotation has
-not started. Object-family thresholds remain deferred until the post-M2-03 gate
-revision; the current M3 gate v1 remains an unapproved owner-review draft.
+M0/M1 and M2-01 are completed foundations. The retained M1 closure records 247
+numbered reports/months and 237 deferred report-byte acquisitions: corpus identity
+closure is not full historical acquisition. Ten prepared modern PDFs are not the
+whole corpus. Scientific schema **0.3.1** and benchmark/metric contract **0.1.1** are
+current; historical versions remain immutable.
 
-## Storage boundary
+No external-RA annotation or exhaustive human gold was produced. This migration
+implements a **plan-only entry** and synthetic validation, not a real extractor.
+No real extraction, PI source review, frozen reference, regime qualification,
+canonical promotion or data release is claimed. Existing RA kits/workspaces and
+all historical evidence remain preserved.
 
-Git contains code, tests, schemas, configuration, small synthetic fixtures, and documentation. Official reports, the administrative workbook, extracted artifacts, canonical Parquet/DuckDB, validation evidence, operational acquisition manifests, and releases live outside Git beneath `CONFLICT_DATA_ROOT` (operational manifests under `01_raw/manifests/`).
+## Next bounded task
 
-```powershell
-$env:CONFLICT_DATA_ROOT = 'X:\path\to\Defensoria Social Conflicts Database'
-uv sync --frozen --group dev
-uv run pytest
-```
+Authorize the [first small real-source batch](docs/ai_pi_first_batch.md) after the
+grouped tool/budget/context choices. Implement one thin extraction-to-review path;
+retain initial predictions; present a source-first PI packet and separate assisted
+adjudication packet. Do not start it automatically.
 
-Do not point `CONFLICT_DATA_ROOT` at this repository. Routine code refuses writes beneath `00_external`, `01_raw`, and `99_archive`.
+The [reference/evaluation protocol](docs/ai_pi_reference_evaluation_protocol.md)
+separates technical checks, scoped PI reference, exploratory continuation,
+regime-scale qualification and public release. Software passes and model agreement
+never establish source accuracy or PI approval.
 
-Start with [AGENTS.md](AGENTS.md), [project charter](docs/01_project_charter.md),
+## Plan entry and storage
+
+`scripts/plan_ai_pi.py --strategy config/ai_pi/strategy_v1.json --envelope <run.json>`
+prints a non-executing plan with exact missing parameters. See the strategy document
+for the installed-tool invocation. Even a complete envelope cannot dispatch a model,
+acquire sources or promote/release data through this command.
+
+Git holds recipes, source-safe synthetic fixtures, schemas and documentation.
+`CONFLICT_DATA_ROOT` holds PDFs/workbooks, representations, responses, candidate and
+review data, Parquet/DuckDB and releases. Routine code treats `00_external`,
+`01_raw` and `99_archive` as non-writable. Do not put the data root in Git.
+
+Start with [AGENTS](AGENTS.md), the [charter](docs/01_project_charter.md),
 [architecture](docs/04_architecture.md), [canonical model](docs/07_canonical_data_model.md),
-the [execution plan](docs/execution_plan.md), the
-[M1 discovery protocol](docs/m1_official_source_discovery_protocol.md), the
-[M1-01/M1-02.2 review report](docs/m1_01_02_review_report.md), and the
-[inventory receipt](docs/m1_02_1_inventory_receipt.md). M1-03A is documented in the
-[acquisition checkpoint](docs/m1_acquisition_checkpoint.md) and
-[completion report](docs/m1_03a_completion_report.md). M1-03B.1 is described by the
-[live-comparison protocol](docs/m1_03b_live_comparison_protocol.md) and its
-[readiness report](docs/m1_03b1_completion_report.md). M1-04 owner review is
-summarized in the [M1-04B completion report](docs/m1_04b_completion_report.md), and
-the transition is recorded in the [M1 completion report](docs/m1_completion_report.md).
-None of these documents authorizes a new acquisition. M2-01 pilot packets are blank
-protocol-review forms, not human gold.
+[roadmap](docs/ai_pi_roadmap.md) and [methods basis](docs/ai_pi_methods_basis.md).
+The [original execution plan](docs/execution_plan.md), legacy acquisition,
+annotation, OMA and launch protocols remain reproduction records; their explicit
+versioned invocations keep their original closed behavior.
+
+Development uses Python 3.12–3.13, Pydantic, pytest, Ruff and direct local Pyright.
+Use existing installed tooling for this migration; no package synchronization is
+authorized by its tests. Hosted CI remains a separate native/full-repository check.

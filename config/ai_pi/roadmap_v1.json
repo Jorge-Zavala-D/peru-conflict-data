@@ -1,0 +1,2909 @@
+{
+  "strategy_id": "AI_PI_RECONSTRUCTION_V1",
+  "schema_version": "1.0.0",
+  "source_baseline": {
+    "repository": "Jorge-Zavala-D/peru-conflict-data",
+    "accepted_commit": "b4443f2ecd2457112578386ddc3f7fdffede0101",
+    "accepted_tree": "32d025333c528340b29723d4371352f01549da2f",
+    "historical_plan_path": "docs/execution_plan.md",
+    "historical_plan_sha256": "9a98809561cad839e5965f1cf23f7b99086121531f2370de2d29fd6c6ee19427",
+    "scientific_schema_version": "0.3.1",
+    "benchmark_schema_version": "0.1.1",
+    "metric_contract_version": "0.1.1",
+    "completed_foundations": [
+      "M0",
+      "M0.1",
+      "M1",
+      "M2-01"
+    ],
+    "baseline_status": "Corpus identity/coverage and definitions complete; byte-corpus incomplete; no external-RA annotation/exhaustive human gold. AI extraction, PI source review, new reference freeze, regime certification and public release not executed.",
+    "corpus_inventory_claim": "Accepted README: 247 numbered reports/months and 237 deferred report-byte acquisitions. Identity/coverage closure is not acquisition completeness.",
+    "owner_authority": "Owner instruction adopts strategy and authorizes source migration/preparation, not real batch execution or PI decisions.",
+    "public_scope": "Source-neutral repository paths only; no detailed reserved inventory, answers, private workspace or operational identities."
+  },
+  "tasks": [
+    {
+      "id": "AI-00.1",
+      "objective": "Bind current source authority and historical dependencies.",
+      "inputs": [
+        "Accepted main b4443f2ecd2457112578386ddc3f7fdffede0101",
+        "Direct repository contracts and owner migration instruction"
+      ],
+      "outputs": [
+        "Source baseline, byte-pin inventory and disposition map in roadmap_v1.json"
+      ],
+      "dependencies": [],
+      "technical_checks": [
+        "Verify actual commit/tree; compare pinned contracts without rewriting them; check each map path."
+      ],
+      "pi_validation": "PI adoption is the supplied instruction; no historical null decision is changed.",
+      "completion": "Every direct input has a role, dependency, disposition and reproduction treatment.",
+      "exclusions": [
+        "No recursive receipt reconstruction or external storage mutation."
+      ],
+      "resource_drivers": [
+        "Read-only repository and retained-plan inspection"
+      ],
+      "next_handoff": "AI-00.2 and AI-00.3"
+    },
+    {
+      "id": "AI-00.2",
+      "objective": "Select the adopted route through one small active entry path.",
+      "inputs": [
+        "AI-00.1 inventory",
+        "Existing project config/model/CLI conventions"
+      ],
+      "outputs": [
+        "Strategy decision/config, updated entry documents and non-executing readiness selector"
+      ],
+      "dependencies": [
+        "AI-00.1"
+      ],
+      "technical_checks": [
+        "Unknown strategy/version and missing scope/budget/authority fail closed; explicit legacy invocations retain legacy behavior."
+      ],
+      "pi_validation": "Record Jorge's actual adoption evidence and execution scope; never supply his run approval.",
+      "completion": "A synthetic plan follows AI_PI_RECONSTRUCTION_V1 without A/B, witness or 108-check prerequisites.",
+      "exclusions": [
+        "No real extraction, acquisition, model call, promotion or release."
+      ],
+      "resource_drivers": [
+        "Small metadata/selector implementation and affected tests"
+      ],
+      "next_handoff": "AI-00.4"
+    },
+    {
+      "id": "AI-00.3",
+      "objective": "Define PI reference, source-unit audit, metrics and gate hierarchy.",
+      "inputs": [
+        "AI-00.1 inventory",
+        "Scientific 0.3.1, benchmark/metric 0.1.1 and inherited goals"
+      ],
+      "outputs": [
+        "Successor reference/evaluation protocol, decision templates and metric dispositions"
+      ],
+      "dependencies": [
+        "AI-00.1"
+      ],
+      "technical_checks": [
+        "Preserve initial-versus-corrected identity, source-first/assisted modes, review coverage and eligible-set denominators; reject synthetic real-reference claims."
+      ],
+      "pi_validation": "PI retains substantive adjudication; new tolerances, boundary/date scoring and object targets require actual prospective decisions.",
+      "completion": "Exploration, regime qualification and release have distinct criteria; deferred targets have a prospective selection point.",
+      "exclusions": [
+        "No fabricated reference, statistical certification or hidden two-RA trigger."
+      ],
+      "resource_drivers": [
+        "Protocol review; later PI source review"
+      ],
+      "next_handoff": "AI-00.4"
+    },
+    {
+      "id": "AI-00.4",
+      "objective": "Publish the complete successor graph, crosswalk and worker contracts.",
+      "inputs": [
+        "AI-00.2 active selector",
+        "AI-00.3 evaluation protocol",
+        "Historical execution_plan.md"
+      ],
+      "outputs": [
+        "docs/ai_pi_roadmap.md, config/ai_pi/roadmap_v1.json and updated role/skill instructions"
+      ],
+      "dependencies": [
+        "AI-00.2",
+        "AI-00.3"
+      ],
+      "technical_checks": [
+        "Every old work package has a disposition; successor dependencies exist and are acyclic; public material contains no reserved inventories or answers."
+      ],
+      "pi_validation": "PI scientific definitions remain intact; model agreement never supplies review.",
+      "completion": "M0-M12 obligations and W1 have concrete artifacts, checks, PI responsibilities and handoffs.",
+      "exclusions": [
+        "No wholesale schema/parser/orchestration rewrite."
+      ],
+      "resource_drivers": [
+        "Dependency reconciliation and focused review"
+      ],
+      "next_handoff": "AI-00.5"
+    },
+    {
+      "id": "AI-00.5",
+      "objective": "Verify and hand off a source-only migration plus an unrun first batch.",
+      "inputs": [
+        "AI-00.4 artifacts",
+        "Proposed permitted development-source scope",
+        "Existing installed test/runtime tools"
+      ],
+      "outputs": [
+        "Affected-test evidence, fresh focused review, exact changed-path allowlist and first-batch execution brief"
+      ],
+      "dependencies": [
+        "AI-00.4"
+      ],
+      "technical_checks": [
+        "Actual selector synthetic roundtrip, pinned-byte preservation, leakage/exposure refusals and graph validation; verify exact publication candidate."
+      ],
+      "pi_validation": "PI receives one grouped run decision covering source units, model/tool budgets and narrow context semantics.",
+      "completion": "Migration is reviewed and pilot is prepared, explicitly NOT_RUN; any draft-PR/CI state is reported separately.",
+      "exclusions": [
+        "No automatic pilot start, merge, dependency upgrade or real PI claim."
+      ],
+      "resource_drivers": [
+        "Affected short suites and reviewer time"
+      ],
+      "next_handoff": "Owner authorizes a concrete M2R-01 through M2R-04 envelope"
+    },
+    {
+      "id": "M2R-01",
+      "objective": "Fix the first deliberately small development packet and review frame.",
+      "inputs": [
+        "AI-00.5 first-batch brief",
+        "Verified available permitted pilot/development bytes",
+        "Owner-approved bounded run envelope"
+      ],
+      "outputs": [
+        "batch_manifest.json, source_unit_frame.json and representation_manifest.json beneath the envelope-bound external output root",
+        "Predetermined answer-free source-first PI unit selection held by the coordinator"
+      ],
+      "dependencies": [
+        "AI-00.5"
+      ],
+      "technical_checks": [
+        "Verify every source hash/page bound and continuation/context inclusion; count all processed/context pages; reject reserved-material exposure and missing budget."
+      ],
+      "pi_validation": "PI approves exact scope and source-first review design before execution; selection is independent of candidate confidence.",
+      "completion": "Exact approved first-run scope, model/tool settings and resource bounds are fixed; approximately 25-40 pages or a smallest complete-unit equivalent is a proposal, not an approved sample size.",
+      "exclusions": [
+        "No automatic ten-report expansion, rare-family quota or pristine-holdout claim."
+      ],
+      "resource_drivers": [
+        "Page/context volume; source accessibility; PI review time"
+      ],
+      "next_handoff": "M2R-02 executes only the approved first envelope"
+    },
+    {
+      "id": "M2R-02",
+      "objective": "Implement one thin source-to-relational-candidate path.",
+      "inputs": [
+        "M2R-01 fixed packet/envelope",
+        "Existing domain/evidence models and source-position representation",
+        "Approved two-field context choice if needed"
+      ],
+      "outputs": [
+        "raw_responses/ and initial_candidates.json containing small typed relational candidate tables beneath the external run output root",
+        "evidence_anchors.json and representation_manifest.json with exact source/page/span/bbox identity"
+      ],
+      "dependencies": [
+        "M2R-01"
+      ],
+      "technical_checks": [
+        "Validate types, null/zero, literals, evidence existence/span bounds, foreign keys, repeats and cache identity; freeze initial output hashes before correction."
+      ],
+      "pi_validation": "PI approves any report-context association restricted to report_number/reference_period; existing multi-anchor collections are reused.",
+      "completion": "One complete source-to-record-to-review path works; original outputs are retained and affected unresolved report-context records remain incomplete.",
+      "exclusions": [
+        "No broad case-boundary widening, silent ontology change or production database write."
+      ],
+      "resource_drivers": [
+        "Calls/tokens, representation pages, runtime and retries within envelope"
+      ],
+      "next_handoff": "M2R-03 independent discovery/challenge and deterministic report"
+    },
+    {
+      "id": "M2R-03",
+      "objective": "Challenge first-batch discovery and fields without erasing initial candidates.",
+      "inputs": [
+        "M2R-02 initial outputs",
+        "Same permitted source units",
+        "Fresh reader's retained source-first discovery"
+      ],
+      "outputs": [
+        "independent_discovery.json, discovery_comparison.json, issues.json and deterministic_validation.json beneath the external run output root",
+        "page_coverage.json includes apparent-negative, unreadable, failed and unprocessed units"
+      ],
+      "dependencies": [
+        "M2R-02"
+      ],
+      "technical_checks": [
+        "Compare object inventories and child-parent support; check no-output pages, numeric/date states and reported-versus-derived arithmetic; classify source/model/parser errors separately."
+      ],
+      "pi_validation": "Route consequential disagreements and mapping gaps to PI; audit agreements and apparent negatives.",
+      "completion": "All scoped units have processing/coverage states and every flagged issue points to source evidence.",
+      "exclusions": [
+        "No model vote as truth or claim that empty output confirms zero objects."
+      ],
+      "resource_drivers": [
+        "Fresh-reader calls; validator runtime; review-queue size"
+      ],
+      "next_handoff": "M2R-04 source-first packet plus separate assisted packet"
+    },
+    {
+      "id": "M2R-04",
+      "objective": "Obtain actual PI source-first audit and assisted decisions.",
+      "inputs": [
+        "M2R-01 predetermined review subset",
+        "M2R-03 queues and complete relevant pages",
+        "Answer-free source-first and separate assisted packets"
+      ],
+      "outputs": [
+        "source_first_packet.pdf or .html without candidate answers; separate assisted_packet.pdf or .html with evidence/differences",
+        "pi_decision_template.csv or .json, actual versioned pi_decisions.json, corrected_derivative.json and review_coverage.json only after actual PI review"
+      ],
+      "dependencies": [
+        "M2R-03"
+      ],
+      "technical_checks": [
+        "Reject absent/invented PI identity or decision; preserve exposure mode and original predictions; unresolved mapping remains incomplete."
+      ],
+      "pi_validation": "Jorge first records source-visible objects on selected units without machine answers, then resolves flagged candidates in assisted review.",
+      "completion": "A small relational sample and measured errors/effort exist; actual decisions identify reviewed and unreviewed coverage.",
+      "exclusions": [
+        "No blanket human-gold status, source overwrites or automatic continuation."
+      ],
+      "resource_drivers": [
+        "PI minutes and correction/unresolved burden"
+      ],
+      "next_handoff": "Owner decides whether to authorize M2R-05 and separately bounded M2R-06"
+    },
+    {
+      "id": "M2R-05",
+      "objective": "Make one bounded evidence-driven revision and freeze fresh-validation inputs.",
+      "inputs": [
+        "M2R-04 development evidence",
+        "A separately authorized revision envelope",
+        "Eligible fresh comparable unit frame held by custodian"
+      ],
+      "outputs": [
+        "revision_manifest.json and preserved_initial_error_ledger.json",
+        "freeze_manifest.json binding code/prompt/model/config, candidate/reference/selection versions and separate fresh-validation envelope"
+      ],
+      "dependencies": [
+        "M2R-04"
+      ],
+      "technical_checks": [
+        "Keep initial errors and corrections distinct; record all prior exposure; freeze before seeing fresh answers; run affected synthetic checks."
+      ],
+      "pi_validation": "PI decides revision scope and any prospective metric/context semantics; targets are not reduced because a pilot missed them.",
+      "completion": "Exactly the authorized iteration is complete with a one-shot fresh-evaluation plan and explicit budgets.",
+      "exclusions": [
+        "No retuning on fresh validation or adaptive holdout reuse concealed as blind."
+      ],
+      "resource_drivers": [
+        "One revision; development calls; code checks; custodian preparation"
+      ],
+      "next_handoff": "M2R-06 executes only the separately approved fresh-validation envelope"
+    },
+    {
+      "id": "M2R-06",
+      "objective": "Evaluate fresh comparable units and request bounded next-step decision.",
+      "inputs": [
+        "M2R-05 frozen pipeline/selection/reference identities",
+        "Separately approved fresh-validation units and budget",
+        "Actual scoped PI-reviewed reference"
+      ],
+      "outputs": [
+        "frozen_predictions.json, scoped_reference_manifest.json and frozen_scores.json beneath the envelope-bound external root",
+        "fresh_validation_report.md with denominators, uncertainty, exposure/overlap, review effort and bounded go/no-go/limited-continuation request"
+      ],
+      "dependencies": [
+        "M2R-05"
+      ],
+      "technical_checks": [
+        "Reject selection/reference/version mismatch; retain first score and prediction bytes; distinguish familiar-case/new-month from new-case/new-format and cross-split overlap."
+      ],
+      "pi_validation": "PI judges measured failure modes, workload and justified next scope; any feedback makes units seen thereafter.",
+      "completion": "One frozen fresh comparison is reported without universal 99% claims or automatic scale.",
+      "exclusions": [
+        "No full modern-set qualification, new-provider authority or human-verified corpus label."
+      ],
+      "resource_drivers": [
+        "Fresh-unit calls and independent source review; clustered small-sample uncertainty"
+      ],
+      "next_handoff": "PI authorizes a concrete M3R diagnostic/whole-report envelope or stops"
+    },
+    {
+      "id": "M3R-01",
+      "objective": "Diagnose observed modern page/layout/table/continuation regimes.",
+      "inputs": [
+        "M2R-06 decision evidence",
+        "Separately permitted modern sources and diagnostic envelope"
+      ],
+      "outputs": [
+        "External page diagnostics and evidence-based native/visual/page-specific OCR routing"
+      ],
+      "dependencies": [
+        "M2R-06"
+      ],
+      "technical_checks": [
+        "Hash-bound repeatability, extraction-order/table failures and representation-coordinate identity; no folder/year-as-regime shortcut."
+      ],
+      "pi_validation": "PI reviews regime boundaries, exposure and any OCR/dependency/spend change.",
+      "completion": "Chosen routes explain observed reliable and failed structures on permitted pages.",
+      "exclusions": [
+        "No exhaustive deterministic-first ceremony or broad OCR campaign."
+      ],
+      "resource_drivers": [
+        "Diagnostic pages; scans; rendering/OCR only when needed"
+      ],
+      "next_handoff": "M3R-02 complete discovery on selected whole-report scope"
+    },
+    {
+      "id": "M3R-02",
+      "objective": "Discover all sections/cases/events and deduplicate overlap.",
+      "inputs": [
+        "M3R-01 routing",
+        "Approved selected modern whole-report bytes"
+      ],
+      "outputs": [
+        "External section/page frame, case/event inventories, chunk-overlap map and discovery traces"
+      ],
+      "dependencies": [
+        "M3R-01"
+      ],
+      "technical_checks": [
+        "Source-grounded deduplication, continuation boundaries, all-section coverage and explicit machine-empty/unreadable/unprocessed pages."
+      ],
+      "pi_validation": "PI source-unit audit checks omissions and apparent negatives independently of confidence.",
+      "completion": "Every selected page/section is accounted for; discovered objects retain bounded source evidence.",
+      "exclusions": [
+        "No completeness claim from generated rows alone."
+      ],
+      "resource_drivers": [
+        "Whole-report pages; overlapping chunks; discovery review"
+      ],
+      "next_handoff": "M3R-03 remaining field/family extraction"
+    },
+    {
+      "id": "M3R-03",
+      "objective": "Extract remaining fields and evidence-supported relationships.",
+      "inputs": [
+        "M3R-02 inventories/segments",
+        "Scientific 0.3.1 definitions and approved amendments"
+      ],
+      "outputs": [
+        "External typed records across required families, provenance, abstentions and child-parent links"
+      ],
+      "dependencies": [
+        "M3R-02"
+      ],
+      "technical_checks": [
+        "Strict state/date/value/evidence and repeat/FK checks; source-original versus normalized separation; unsupported relations remain unresolved."
+      ],
+      "pi_validation": "PI resolves consequential fields/relations and approves any scientifically material schema migration.",
+      "completion": "Supported report-local families are represented, unsupported ones retain reason/coverage states.",
+      "exclusions": [
+        "No 13-family ceiling on canonical tables, inferred event-case link or workbook truth override."
+      ],
+      "resource_drivers": [
+        "Repeated objects; difficult text/tables; PI correction workload"
+      ],
+      "next_handoff": "M3R-04 one whole-report candidate and audit"
+    },
+    {
+      "id": "M3R-04",
+      "objective": "Reconstruct and audit one complete modern report.",
+      "inputs": [
+        "M3R-03 records",
+        "Whole-report source coverage and derived aggregate calculations"
+      ],
+      "outputs": [
+        "External one-report relational candidate, arithmetic discrepancy ledger and PI review coverage"
+      ],
+      "dependencies": [
+        "M3R-03"
+      ],
+      "technical_checks": [
+        "Report-versus-derived counts, stock/transition/event distinctions, field/provenance closure and reproducible retained-output materialization."
+      ],
+      "pi_validation": "PI audits selected complete units and arithmetic disagreements, preserving published contradictions.",
+      "completion": "One whole report has honest processing/discovery/review coverage and classified remaining issues.",
+      "exclusions": [
+        "No altered source totals or claim that sample review verifies every row."
+      ],
+      "resource_drivers": [
+        "Whole-report compute/storage and source review"
+      ],
+      "next_handoff": "M3R-05 frozen reserved-modern evaluation"
+    },
+    {
+      "id": "M3R-05",
+      "objective": "Qualify a frozen modern pipeline under reviewed evaluation policy.",
+      "inputs": [
+        "M3R-04 candidate/evidence",
+        "Custodian-held reserved selection and scoped reference",
+        "Prospectively selected object thresholds and reviewed metric contract"
+      ],
+      "outputs": [
+        "External frozen scores by family/report/regime, uncertainty, abstention/workload and regime decision packet"
+      ],
+      "dependencies": [
+        "M3R-04"
+      ],
+      "technical_checks": [
+        "Candidate/reference/eligible-set freeze; discovery recall source denominator; exact page/support and child-parent errors; classify overlap/exposure and clustering."
+      ],
+      "pi_validation": "PI decides object targets before final evaluation and then evaluates inherited goals, remaining uncertainty and permitted regime scope.",
+      "completion": "Scoped regime qualification is an actual PI decision; absent required references/targets fail this boundary.",
+      "exclusions": [
+        "No revived double-RA freeze dependency or 99% population guarantee from small/no-error samples."
+      ],
+      "resource_drivers": [
+        "Reserved source-first reference effort and frozen evaluation compute"
+      ],
+      "next_handoff": "M3R-06 progressively processes only qualified permitted modern scope"
+    },
+    {
+      "id": "M3R-06",
+      "objective": "Process remaining permitted modern reports progressively.",
+      "inputs": [
+        "M3R-05 qualification",
+        "Report-bounded owner scope/budgets and fixed modern manifests"
+      ],
+      "outputs": [
+        "External modern extraction candidate, batch receipts, coverage limits and issue backlog"
+      ],
+      "dependencies": [
+        "M3R-05"
+      ],
+      "technical_checks": [
+        "Resumable retained-output builds, source hashes and drift/backlog checks; stop on systematic errors or review/budget excess."
+      ],
+      "pi_validation": "PI approves material scope expansion and reviews recurring source audits.",
+      "completion": "Approved modern scope is processed with explicit omissions, unresolved issues and review coverage.",
+      "exclusions": [
+        "No automatic processing of all ten reports or transfer to historical formats."
+      ],
+      "resource_drivers": [
+        "Report volume; model/version drift; review backlog"
+      ],
+      "next_handoff": "M4R-01 modern identity contract; M5R remains separately scoped"
+    },
+    {
+      "id": "W1-01",
+      "objective": "Pin and characterize administrative workbook structure.",
+      "inputs": [
+        "AI-00.5 migration",
+        "Separately approved workbook read/processing envelope and fixed workbook bytes"
+      ],
+      "outputs": [
+        "External sheet/header/cell-type inventory, hash and workbook universe/coverage note"
+      ],
+      "dependencies": [
+        "AI-00.5"
+      ],
+      "technical_checks": [
+        "Byte/sheet/range guards; preserve cell formulas/types and blank/null distinctions; disclose inaccessible sheets."
+      ],
+      "pi_validation": "PI reviews ambiguous headers and administrative-universe limitations.",
+      "completion": "Workbook inputs and meaning are documented without claiming report-universe authority.",
+      "exclusions": [
+        "No workbook run in migration or invented missing categories."
+      ],
+      "resource_drivers": [
+        "Workbook sheets/cells and header review"
+      ],
+      "next_handoff": "W1-02 source-preserving staging"
+    },
+    {
+      "id": "W1-02",
+      "objective": "Normalize workbook cells into provenance-linked staging.",
+      "inputs": [
+        "W1-01 fixed cells and dictionary"
+      ],
+      "outputs": [
+        "External normalized staging tables plus original cell/range provenance"
+      ],
+      "dependencies": [
+        "W1-01"
+      ],
+      "technical_checks": [
+        "No source replacement, duplicate-row/type-coercion tests, blank/null semantics and cell-to-value closure."
+      ],
+      "pi_validation": "PI resolves ambiguous codes without filling absent data.",
+      "completion": "Every derivative resolves to its original workbook cell and version.",
+      "exclusions": [
+        "No report absence inferred from workbook absence."
+      ],
+      "resource_drivers": [
+        "Cell volume and normalization review"
+      ],
+      "next_handoff": "W1-03 overlap comparison once relevant report/reference subset exists"
+    },
+    {
+      "id": "W1-03",
+      "objective": "Compare administrative/report overlap and classify disagreements.",
+      "inputs": [
+        "W1-02 staging",
+        "M2R-04 relevant report/reference subset"
+      ],
+      "outputs": [
+        "External overlap keys/coverage statistics and cross-source discrepancy ledger"
+      ],
+      "dependencies": [
+        "W1-02",
+        "M2R-04"
+      ],
+      "technical_checks": [
+        "Key/multiplicity containment, shared-field differences and source-support checks; preserve both contradictory values."
+      ],
+      "pi_validation": "PI reviews critical overlaps/conflicts; PDFs remain authoritative published evidence.",
+      "completion": "All compared differences and unmatched rows have explicit provenance and interpretation limits.",
+      "exclusions": [
+        "No automatic workbook override or mandatory parser prerequisite."
+      ],
+      "resource_drivers": [
+        "Overlap matching and critical-conflict review"
+      ],
+      "next_handoff": "W1-04 workbook-specific dictionary and limitations"
+    },
+    {
+      "id": "W1-04",
+      "objective": "Publish a scoped workbook-methods artifact for later QA.",
+      "inputs": [
+        "W1-03 overlap findings"
+      ],
+      "outputs": [
+        "Source-safe workbook dictionary/methods/limitations and external staging version"
+      ],
+      "dependencies": [
+        "W1-03"
+      ],
+      "technical_checks": [
+        "Dictionary matches staging columns and provenance; disclosure review excludes raw cells and held-out answers."
+      ],
+      "pi_validation": "PI approves any public derived summary and exact limitations.",
+      "completion": "Workbook stream supplies reusable complementary evidence without redefining the corpus.",
+      "exclusions": [
+        "No raw workbook/public data release without separate rights/scope decision."
+      ],
+      "resource_drivers": [
+        "Documentation and source-safe disclosure checks"
+      ],
+      "next_handoff": "M10R-02 consumes applicable overlap findings"
+    },
+    {
+      "id": "M4R-01",
+      "objective": "Define modern identity evidence and relationship policy.",
+      "inputs": [
+        "M3R-06 modern candidates",
+        "Official codes and evidence-backed relationship vocabulary"
+      ],
+      "outputs": [
+        "Source-safe linkage protocol and external feature/blocking/review specifications"
+      ],
+      "dependencies": [
+        "M3R-06"
+      ],
+      "technical_checks": [
+        "Continuation/rename/merge/split/reactivation/related synthetic checks; code reuse/contradictions and missing evidence fail safe."
+      ],
+      "pi_validation": "PI approves confidence/review tiers and structural relationship meaning.",
+      "completion": "Official-code priority is explicit without treating contradicted codes as truth.",
+      "exclusions": [
+        "No forced one-to-one continuity or source-field changes for graph convenience."
+      ],
+      "resource_drivers": [
+        "Feature review and source ambiguity"
+      ],
+      "next_handoff": "M4R-02 deterministic links"
+    },
+    {
+      "id": "M4R-02",
+      "objective": "Generate reproducible deterministic modern links.",
+      "inputs": [
+        "M4R-01 policy",
+        "Modern observations/codes/actors/locations/demands"
+      ],
+      "outputs": [
+        "External deterministic edges, collisions, unmatched records and evidence traces"
+      ],
+      "dependencies": [
+        "M4R-01"
+      ],
+      "technical_checks": [
+        "Stable IDs, precedence, collision retention and evidence closure; normalization-only matches cannot establish identity."
+      ],
+      "pi_validation": "PI reviews every code contradiction/collision.",
+      "completion": "Deterministic edges reproduce from fixed records and unresolved collisions remain queued.",
+      "exclusions": [
+        "No silent tie break or canonical link from similarity alone."
+      ],
+      "resource_drivers": [
+        "Candidate blocks and collision review"
+      ],
+      "next_handoff": "M4R-03 unresolved candidate generation"
+    },
+    {
+      "id": "M4R-03",
+      "objective": "Generate and evaluate unresolved model/statistical candidates.",
+      "inputs": [
+        "M4R-02 graph/unmatched records",
+        "Authorized model/statistical envelope"
+      ],
+      "outputs": [
+        "External candidate sets, score/calibration diagnostics and generation-recall audit"
+      ],
+      "dependencies": [
+        "M4R-02"
+      ],
+      "technical_checks": [
+        "Audit missed candidate pairs/unmatched records, competing candidates and model/version identities; retain candidate generation denominator."
+      ],
+      "pi_validation": "PI-reviewed pairs inform calibration under separated development/evaluation selections.",
+      "completion": "High-recall candidate generation is measured beyond selected positive pairs.",
+      "exclusions": [
+        "No automatically canonical probabilistic edge or independence claim for model sessions."
+      ],
+      "resource_drivers": [
+        "Candidate-pair volume and reviewed pair effort"
+      ],
+      "next_handoff": "M4R-04 structural/ambiguous adjudication"
+    },
+    {
+      "id": "M4R-04",
+      "objective": "Adjudicate required modern relationship tiers.",
+      "inputs": [
+        "M4R-03 candidates",
+        "Source evidence and approved review policy"
+      ],
+      "outputs": [
+        "External append-only PI edge decisions, explicit genealogies and unresolved relationships"
+      ],
+      "dependencies": [
+        "M4R-03"
+      ],
+      "technical_checks": [
+        "Every accepted edge cites decision/evidence; split/merge/reactivation structure and current-version lineage validate."
+      ],
+      "pi_validation": "PI decides structural/ambiguous links and reviews every medium-confidence link under retained policy.",
+      "completion": "Required review coverage is recorded and unknown edges remain candidates/qualified relationships.",
+      "exclusions": [
+        "No agent consensus as identity truth or overwritten observation values."
+      ],
+      "resource_drivers": [
+        "PI source review and competing structural explanations"
+      ],
+      "next_handoff": "M4R-05 graph/stock-flow QA"
+    },
+    {
+      "id": "M4R-05",
+      "objective": "Validate modern linked-data graph and cluster consequences.",
+      "inputs": [
+        "M4R-04 graph/decisions",
+        "Modern observation/transition tables"
+      ],
+      "outputs": [
+        "External pair/cluster evaluation, stock-flow QA, discrepancy ledger and linked-data candidate"
+      ],
+      "dependencies": [
+        "M4R-04"
+      ],
+      "technical_checks": [
+        "Foreign keys, graph/degree rules, false merge/split consequences, held-out pair/cluster denominators and reproducible rebuild."
+      ],
+      "pi_validation": "PI accepts scoped modern linkage with classified arithmetic and critical issues.",
+      "completion": "Reviewed graph candidate records linkage uncertainty and medium-confidence coverage.",
+      "exclusions": [
+        "No treating missing as zero or linkage acceptance as public release."
+      ],
+      "resource_drivers": [
+        "Graph size; held-out pair/cluster audits"
+      ],
+      "next_handoff": "M8R later uses modern policy; M9R can prepare useful geography"
+    },
+    {
+      "id": "M5R-01",
+      "objective": "Refresh deferred-acquisition queue and separately acquire missing official bytes.",
+      "inputs": [
+        "AI-00.5 migration",
+        "Preserved M1 identity/coverage manifest and gap ledger",
+        "Separate acquisition authority"
+      ],
+      "outputs": [
+        "External versioned queue, acquisition receipts, retained alternative bytes and rights/collision decisions"
+      ],
+      "dependencies": [
+        "AI-00.5"
+      ],
+      "technical_checks": [
+        "Manifest-to-file hash closure, no-replace storage, source/version associations and spent-authorization rejection."
+      ],
+      "pi_validation": "PI separately approves live acquisition scope/rights/collisions.",
+      "completion": "Deferred-acquisition queue is fixed; selected missing bytes are acquired only under separate authority or explicitly deferred. Available bytes and remaining gaps are truthful; M1 coverage is never relabeled complete acquisition.",
+      "exclusions": [
+        "No acquisition during migration or reuse of spent M1-03B.2 authority."
+      ],
+      "resource_drivers": [
+        "Network/source availability; storage; collision handling"
+      ],
+      "next_handoff": "M5R-02 scoped historical sampling"
+    },
+    {
+      "id": "M5R-02",
+      "objective": "Choose historical evidence across actual change points and source quality.",
+      "inputs": [
+        "M5R-01 availability/gaps",
+        "Separately scoped historical reconnaissance envelope"
+      ],
+      "outputs": [
+        "External historical diagnostic sample/frame with known availability and selection rationale"
+      ],
+      "dependencies": [
+        "M5R-01"
+      ],
+      "technical_checks": [
+        "Sample covers evidenced time/format/source-quality variation; unknown regimes and missing acquisitions remain represented."
+      ],
+      "pi_validation": "PI reviews sample design and material historical scope.",
+      "completion": "Read-only reconnaissance can proceed independently of completed modern linkage when scoped.",
+      "exclusions": [
+        "No folder/year regime definition or unauthorized full-corpus read/model exposure."
+      ],
+      "resource_drivers": [
+        "Diagnostic sample size and source heterogeneity"
+      ],
+      "next_handoff": "M5R-03 actual format/ontology diagnostics"
+    },
+    {
+      "id": "M5R-03",
+      "objective": "Measure historical representations, terminology and schema applicability.",
+      "inputs": [
+        "M5R-02 sample",
+        "Original PDF and separately retained mechanical evidence"
+      ],
+      "outputs": [
+        "External native/layout/scan/table/coverage diagnostics and semantic-gap ledger"
+      ],
+      "dependencies": [
+        "M5R-02"
+      ],
+      "technical_checks": [
+        "Page hash/coordinate identity, unreadable/unknown format flags, historical source-label retention and explicit unsupported fields."
+      ],
+      "pi_validation": "PI assesses regime boundaries and any meaning change requiring versioned approval.",
+      "completion": "Observed evidence explains proposed regimes and unsupported source states.",
+      "exclusions": [
+        "No modern-label forcing or inferred original facts."
+      ],
+      "resource_drivers": [
+        "Scans/tables, diagnostics and expert review"
+      ],
+      "next_handoff": "M5R-04 regime map and historical audit design"
+    },
+    {
+      "id": "M5R-04",
+      "objective": "Version historical regimes and their reference/acquisition backlog.",
+      "inputs": [
+        "M5R-03 diagnostics",
+        "Acquisition gaps and source-unit sample frame"
+      ],
+      "outputs": [
+        "Source-safe regime-map method; external scoped reference/audit designs and acquisition/processing backlog"
+      ],
+      "dependencies": [
+        "M5R-03"
+      ],
+      "technical_checks": [
+        "Every regime boundary has evidence; qualification tasks have exact inputs, review frames and remaining gaps."
+      ],
+      "pi_validation": "PI approves reconnaissance interpretation and next bounded regime envelopes.",
+      "completion": "Historical adaptations have evidence-based scopes without inherited modern accuracy claims.",
+      "exclusions": [
+        "No regime certification from diagnostics alone."
+      ],
+      "resource_drivers": [
+        "Regime count and review-design effort"
+      ],
+      "next_handoff": "M6R-01 first bounded regime adaptation"
+    },
+    {
+      "id": "M6R-01",
+      "objective": "Adapt extraction to each observed historical regime.",
+      "inputs": [
+        "M5R-04 regime map",
+        "Modern reusable extraction/evidence components",
+        "Approved bounded regime envelope"
+      ],
+      "outputs": [
+        "Versioned regime-specific extraction config/code and external initial candidates"
+      ],
+      "dependencies": [
+        "M5R-04",
+        "M3R-03"
+      ],
+      "technical_checks": [
+        "Affected synthetic checks, historical source-category preservation, prompt/model/cache identities and retained initial outputs."
+      ],
+      "pi_validation": "PI approves separately evidenced semantic schema changes before use.",
+      "completion": "A bounded adaptation supports actual regime evidence without rewriting originals.",
+      "exclusions": [
+        "No universal-parser assumption or unnecessary framework rewrite."
+      ],
+      "resource_drivers": [
+        "Regime heterogeneity and adaptation calls"
+      ],
+      "next_handoff": "M6R-02 only needed page-specific fallback"
+    },
+    {
+      "id": "M6R-02",
+      "objective": "Apply documented page-specific OCR/visual fallback.",
+      "inputs": [
+        "M6R-01 failures",
+        "Approved fallback pages/tool/budget"
+      ],
+      "outputs": [
+        "External original/image/derived-text separation, versioned coordinates and fallback error flags"
+      ],
+      "dependencies": [
+        "M6R-01"
+      ],
+      "technical_checks": [
+        "Pin source/render/OCR identities; compare positions and literal text; mark unreadable/uncertain evidence."
+      ],
+      "pi_validation": "PI/source forensics review consequential fallback readings.",
+      "completion": "Only justified failed pages receive approved fallback; when none require it, diagnostics record explicit not-needed status. Original/derived evidence remains traceable.",
+      "exclusions": [
+        "No corpus OCR campaign, unapproved tools or OCR text as authority over PDF."
+      ],
+      "resource_drivers": [
+        "Fallback page count and scan quality"
+      ],
+      "next_handoff": "M6R-03 scoped regime reference/audit"
+    },
+    {
+      "id": "M6R-03",
+      "objective": "Build a small PI-reviewed historical regime reference.",
+      "inputs": [
+        "M6R-01 candidates",
+        "M6R-02 fallback evidence",
+        "Predetermined source-unit audit and targeted rare-case queues"
+      ],
+      "outputs": [
+        "External scoped source-first/assisted decisions, reference version, review coverage and issue ledger"
+      ],
+      "dependencies": [
+        "M6R-02"
+      ],
+      "technical_checks": [
+        "Keep source-level absence/illegibility separate from processing failure; retain rare/negative units and initial outputs."
+      ],
+      "pi_validation": "PI provides actual source-first and assisted decisions with recorded effort.",
+      "completion": "Regime-specific errors, omissions and unresolved states are measured.",
+      "exclusions": [
+        "No exhaustive-human-gold prerequisite or selected-candidate-only recall estimate."
+      ],
+      "resource_drivers": [
+        "PI historical-source review and unreadable units"
+      ],
+      "next_handoff": "M6R-04 frozen regime evaluation"
+    },
+    {
+      "id": "M6R-04",
+      "objective": "Qualify each historical regime separately.",
+      "inputs": [
+        "M6R-03 reference",
+        "Frozen regime pipeline, selection and prospective metric targets"
+      ],
+      "outputs": [
+        "External per-regime evaluation, approved limits and backlog triage"
+      ],
+      "dependencies": [
+        "M6R-03"
+      ],
+      "technical_checks": [
+        "Scope/version match, discovery/evidence/relationship metrics, source-based denominators and clustered uncertainty."
+      ],
+      "pi_validation": "PI chooses permitted scale after reviewing errors, burden and inherited goals.",
+      "completion": "Each regime has its own actual qualification or explicit nonqualification/defer decision.",
+      "exclusions": [
+        "No automatic modern-to-historical performance transfer."
+      ],
+      "resource_drivers": [
+        "Regime reference size and frozen scoring"
+      ],
+      "next_handoff": "M7R-01 pins only qualified report scopes"
+    },
+    {
+      "id": "M7R-01",
+      "objective": "Pin a qualified full-corpus processing plan by report and regime.",
+      "inputs": [
+        "M6R-04 qualifications",
+        "M3R-06 modern qualification/scope",
+        "Fixed manifest and owner batch budgets"
+      ],
+      "outputs": [
+        "External processing plan with source/config identities, report/regime scopes, budgets and stop rules"
+      ],
+      "dependencies": [
+        "M6R-04",
+        "M3R-06"
+      ],
+      "technical_checks": [
+        "Every planned source resolves to available bytes and a qualified configuration; unqualified/missing sources stay backlog."
+      ],
+      "pi_validation": "PI approves material corpus/regime expansion and queue/cost limits.",
+      "completion": "Plan permits only explicitly qualified bounded batches.",
+      "exclusions": [
+        "No missing budget as unlimited permission or automatic whole-corpus execution."
+      ],
+      "resource_drivers": [
+        "Corpus/regime volume and expected PI queue"
+      ],
+      "next_handoff": "M7R-02 resumable authorized batches"
+    },
+    {
+      "id": "M7R-02",
+      "objective": "Execute resumable report-scoped extraction batches.",
+      "inputs": [
+        "M7R-01 plan",
+        "Retained initial outputs and caches keyed to source/config/model"
+      ],
+      "outputs": [
+        "External raw responses, candidates, resumable receipts and explicit failure/nonresponse/unprocessed states"
+      ],
+      "dependencies": [
+        "M7R-01"
+      ],
+      "technical_checks": [
+        "No-replace initial outputs, idempotent retained-output rebuilds, source/config cache matches and batch budget accounting."
+      ],
+      "pi_validation": "PI reviews exceptions rather than accepting request completion as content completeness.",
+      "completion": "Each authorized batch has exact processing/coverage/issue outcomes.",
+      "exclusions": [
+        "No silent dropping of difficult reports or unauthorized retry/expansion."
+      ],
+      "resource_drivers": [
+        "Calls/tokens/runtime/storage and retry limits"
+      ],
+      "next_handoff": "M7R-03 recurring audit before continued expansion"
+    },
+    {
+      "id": "M7R-03",
+      "objective": "Audit production drift, omissions and review burden during expansion.",
+      "inputs": [
+        "M7R-02 batch outputs",
+        "Known source-unit audit selection probabilities and targeted queues"
+      ],
+      "outputs": [
+        "External audit summaries, model/format drift flags, correction backlog and stop/continue requests"
+      ],
+      "dependencies": [
+        "M7R-02"
+      ],
+      "technical_checks": [
+        "Audit apparent negatives/high-confidence agreements; keep targeted versus probability samples separate; cluster units correctly."
+      ],
+      "pi_validation": "PI stops or bounds expansion when systematic error, queue, cost or review effort exceeds envelope.",
+      "completion": "Recurring source-based evidence supports any continued scope and records unresolved work.",
+      "exclusions": [
+        "No agent consensus certification or pooled targeted examples as population audit."
+      ],
+      "resource_drivers": [
+        "Audit frequency, PI minutes and backlog growth"
+      ],
+      "next_handoff": "M7R-04 consolidation only within approved coverage"
+    },
+    {
+      "id": "M7R-04",
+      "objective": "Consolidate an honest provenance-complete extraction candidate.",
+      "inputs": [
+        "M7R-03 accepted batch/audit evidence",
+        "All report-scoped outputs and manifest gaps"
+      ],
+      "outputs": [
+        "External consolidated extraction tables, provenance/coverage receipts and material issue ledger"
+      ],
+      "dependencies": [
+        "M7R-03"
+      ],
+      "technical_checks": [
+        "Schema/FK/hash/evidence closure; unsupported/unreadable/missing acquisition/unprocessed states remain visible; reproducible retained-output materialization."
+      ],
+      "pi_validation": "PI accepts exact extraction coverage and limitations before later reconstruction/release work.",
+      "completion": "Candidate includes every in-scope report's processing status and unresolved omissions.",
+      "exclusions": [
+        "No corpus-complete claim from successful requests alone."
+      ],
+      "resource_drivers": [
+        "Table volume, validation and reconciliation"
+      ],
+      "next_handoff": "M8R-01 cross-era identity diagnostics"
+    },
+    {
+      "id": "M8R-01",
+      "objective": "Identify cross-era code/name/taxonomy/institution discontinuities.",
+      "inputs": [
+        "M7R-04 historical observations",
+        "M4R-05 modern linkage evidence",
+        "Regime/gap histories"
+      ],
+      "outputs": [
+        "External discontinuity inventory, cross-era blocking proposals and source evidence gaps"
+      ],
+      "dependencies": [
+        "M7R-04",
+        "M4R-05"
+      ],
+      "technical_checks": [
+        "Distinguish renamed institutions/cases, reused codes and missing intervals; preserve historical labels and unresolved evidence."
+      ],
+      "pi_validation": "PI reviews discontinuity interpretation and structural meaning.",
+      "completion": "Cross-era candidates have evidence-based scopes and explicit uncertainty.",
+      "exclusions": [
+        "No expected substantive trajectory fed into identity."
+      ],
+      "resource_drivers": [
+        "Time span, vocabulary drift and gap review"
+      ],
+      "next_handoff": "M8R-02 cross-era candidate generation"
+    },
+    {
+      "id": "M8R-02",
+      "objective": "Generate deterministic and model-assisted cross-era candidates.",
+      "inputs": [
+        "M8R-01 discontinuities",
+        "Approved linkage features/model envelope"
+      ],
+      "outputs": [
+        "External reproducible edges/candidate sets, unmatched records and generation-recall diagnostics"
+      ],
+      "dependencies": [
+        "M8R-01"
+      ],
+      "technical_checks": [
+        "Official-code contradiction handling, competing links and unmatched audits; prevent future-information leakage under declared evaluation design."
+      ],
+      "pi_validation": "PI-reviewed development evidence guides rules without exposing reserved answers.",
+      "completion": "Candidate generation retains alternatives and measures missed links.",
+      "exclusions": [
+        "No forced continuity or automatic canonical probabilistic links."
+      ],
+      "resource_drivers": [
+        "Cross-era pair volume and model/feature cost"
+      ],
+      "next_handoff": "M8R-03 difficult-link adjudication/audit"
+    },
+    {
+      "id": "M8R-03",
+      "objective": "Adjudicate and audit cross-era identity consequences.",
+      "inputs": [
+        "M8R-02 candidates",
+        "Source-first/assisted PI review frame and source evidence"
+      ],
+      "outputs": [
+        "External append-only decisions, false merge/split/unmatched audits and cluster sensitivity evidence"
+      ],
+      "dependencies": [
+        "M8R-02"
+      ],
+      "technical_checks": [
+        "Decision/evidence closure, relation direction/time checks and pair-versus-cluster error denominators."
+      ],
+      "pi_validation": "PI resolves difficult structural links and reviews both accepted and unmatched paths.",
+      "completion": "Reviewed scopes and unresolved genealogies are explicit with downstream consequences.",
+      "exclusions": [
+        "No silent identity repair or blanket fully reviewed graph label."
+      ],
+      "resource_drivers": [
+        "Longitudinal source review and cluster complexity"
+      ],
+      "next_handoff": "M8R-04 versioned full identity candidate"
+    },
+    {
+      "id": "M8R-04",
+      "objective": "Materialize the cross-era graph with unresolved relationships.",
+      "inputs": [
+        "M8R-03 decisions/audits",
+        "Fixed observation and relationship versions"
+      ],
+      "outputs": [
+        "External identity graph, unresolved candidates and justified sensitivity derivatives"
+      ],
+      "dependencies": [
+        "M8R-03"
+      ],
+      "technical_checks": [
+        "Stable identity/FK lineage, no observation-value changes, repeatable graph build and merge/split sensitivity closure."
+      ],
+      "pi_validation": "PI accepts exact graph scope/limitations; uncertain edges retain qualified status.",
+      "completion": "A reproducible full identity candidate supports joins without concealing gaps.",
+      "exclusions": [
+        "No sensitivity variant silently replacing primary identity."
+      ],
+      "resource_drivers": [
+        "Graph size and sensitivity builds"
+      ],
+      "next_handoff": "M9R-04 final geographic joins and M10R-01 dataset QA"
+    },
+    {
+      "id": "M9R-01",
+      "objective": "Preserve reported places and flag ambiguous administrative units.",
+      "inputs": [
+        "M2R-04 source sample",
+        "Existing source-original geographic fields and dictionary"
+      ],
+      "outputs": [
+        "External source-place dictionary, ambiguity register and observation-to-place provenance"
+      ],
+      "dependencies": [
+        "M2R-04"
+      ],
+      "technical_checks": [
+        "Original-string fidelity, repeated geography/FK checks and source-versus-derived distinction."
+      ],
+      "pi_validation": "PI reviews consequential ambiguities without speculative location fills.",
+      "completion": "Useful place work can proceed before all historical links are solved.",
+      "exclusions": [
+        "No model-memory original geography or source-field overwrite."
+      ],
+      "resource_drivers": [
+        "Place diversity and ambiguity review"
+      ],
+      "next_handoff": "M9R-02 approved crosswalk preparation"
+    },
+    {
+      "id": "M9R-02",
+      "objective": "Acquire approved versioned administrative crosswalks and boundaries.",
+      "inputs": [
+        "M9R-01 place inventory",
+        "Separate public-source/rights/tool envelope for external geography"
+      ],
+      "outputs": [
+        "External geographic/admin crosswalks with version, source, rights and time validity"
+      ],
+      "dependencies": [
+        "M9R-01"
+      ],
+      "technical_checks": [
+        "Hash/version/source closure, temporal keys and explicit unsupported periods."
+      ],
+      "pi_validation": "PI approves external-data sources, rights and any paid geocoding infrastructure.",
+      "completion": "Crosswalks support their stated periods and disclose incomplete history.",
+      "exclusions": [
+        "No unapproved external API exposure or inferred boundary history."
+      ],
+      "resource_drivers": [
+        "External-source coverage and boundary complexity"
+      ],
+      "next_handoff": "M9R-03 time-aware harmonization/geocoding"
+    },
+    {
+      "id": "M9R-03",
+      "objective": "Create identifiable geographic derivatives with uncertainty.",
+      "inputs": [
+        "M9R-02 crosswalks",
+        "Source places and approved harmonization rules"
+      ],
+      "outputs": [
+        "External harmonized/admin/coordinate derivatives with ambiguity, confidence and valid-time links"
+      ],
+      "dependencies": [
+        "M9R-02"
+      ],
+      "technical_checks": [
+        "Source-to-derived lineage, temporal joins, candidate-place retention and impossible-coordinate checks."
+      ],
+      "pi_validation": "PI adjudicates material ambiguous places and any inference policy.",
+      "completion": "Every derivative identifies its external evidence, method/version and uncertainty.",
+      "exclusions": [
+        "No uncertain location promoted to source-original fact."
+      ],
+      "resource_drivers": [
+        "Ambiguous matches and optional geocoding cost"
+      ],
+      "next_handoff": "M9R-04 geographic QC and research exports"
+    },
+    {
+      "id": "M9R-04",
+      "objective": "Validate geography against stable identities and document exports.",
+      "inputs": [
+        "M9R-03 derivatives",
+        "M8R-04 stable-enough identity graph and unresolved relations"
+      ],
+      "outputs": [
+        "External geographic QC tables and source-linked research export candidate; source-safe methods"
+      ],
+      "dependencies": [
+        "M9R-03",
+        "M8R-04"
+      ],
+      "technical_checks": [
+        "Coordinate/admin/time plausibility, join multiplicity, unresolved identity sensitivity and export/provenance closure."
+      ],
+      "pi_validation": "PI reviews geographic errors and permitted export scope.",
+      "completion": "Research exports expose uncertainty and preserve source-to-derived traceability.",
+      "exclusions": [
+        "No release authorization or all-linkage-solved prerequisite for earlier geography work."
+      ],
+      "resource_drivers": [
+        "Join volume and geographic sensitivity review"
+      ],
+      "next_handoff": "M10R-01 integrated QA"
+    },
+    {
+      "id": "M10R-01",
+      "objective": "Verify whole-dataset referential/coverage/provenance invariants.",
+      "inputs": [
+        "M7R-04 extraction candidate",
+        "M8R-04 graph",
+        "M9R-04 geography"
+      ],
+      "outputs": [
+        "External deterministic QA receipt and reproducible canonical-materialization candidate"
+      ],
+      "dependencies": [
+        "M7R-04",
+        "M8R-04",
+        "M9R-04"
+      ],
+      "technical_checks": [
+        "Schema/FK/repeat/evidence/source-hash closure, manifest-to-processing coverage and retained-output rebuild hashes."
+      ],
+      "pi_validation": "PI receives technical failures separated from scientific issue decisions.",
+      "completion": "Whole-dataset technical status is reproducible without claiming scientific validation.",
+      "exclusions": [
+        "No direct edits to canonical Parquet/DuckDB or unsupported completeness claim."
+      ],
+      "resource_drivers": [
+        "Dataset volume and materialization runtime"
+      ],
+      "next_handoff": "M10R-02 aggregates and discrepancy review"
+    },
+    {
+      "id": "M10R-02",
+      "objective": "Review source aggregates, stock-flow and applicable workbook overlap.",
+      "inputs": [
+        "M10R-01 candidate",
+        "Reported/derived aggregates and source discrepancy rules",
+        "W1 findings if separately authorized/available"
+      ],
+      "outputs": [
+        "External aggregate/stock-flow QA, classified source/parser/model/cross-source discrepancies and optional workbook comparison"
+      ],
+      "dependencies": [
+        "M10R-01"
+      ],
+      "technical_checks": [
+        "Source-versus-derived basis separation, missingness-safe arithmetic and no forced balance; document workbook-not-run/not-applicable state."
+      ],
+      "pi_validation": "PI reviews material contradictions; W1 is complementary and does not block source QA.",
+      "completion": "Every material discrepancy is classified with source evidence or an explicit processing gap.",
+      "exclusions": [
+        "No artificial reconciliation, zero imputation or workbook-universe override."
+      ],
+      "resource_drivers": [
+        "Cross-report counts and source review"
+      ],
+      "next_handoff": "M10R-03 source-unit measurement audit"
+    },
+    {
+      "id": "M10R-03",
+      "objective": "Audit measurement by regime, period, family and relevant dimensions.",
+      "inputs": [
+        "M10R-02 issues",
+        "Known source-unit frame/probabilities/strata and reviewed frozen evaluation rule"
+      ],
+      "outputs": [
+        "External stratified source audit, denominators, uncertainty and review coverage"
+      ],
+      "dependencies": [
+        "M10R-02"
+      ],
+      "technical_checks": [
+        "Include apparent negatives/unprocessed units; separate targeted review; respect report/page/case clustering and selection weights."
+      ],
+      "pi_validation": "PI conducts actual source-first audits and adjudication; optional specialist help is a separate concrete decision.",
+      "completion": "Quality estimates/qualifications reflect actual sampled units and reviewer coverage.",
+      "exclusions": [
+        "No fabricated independent reviewer or automatic second-person requirement."
+      ],
+      "resource_drivers": [
+        "Sample/frame coverage and PI time"
+      ],
+      "next_handoff": "M10R-04 linkage/geography/model sensitivity"
+    },
+    {
+      "id": "M10R-04",
+      "objective": "Assess linkage, geography and model/version sensitivity.",
+      "inputs": [
+        "M10R-03 audit",
+        "Graph/geographic variants and retained model configuration history"
+      ],
+      "outputs": [
+        "External sensitivity/drift report with reviewed/unreviewed coverage and limitations"
+      ],
+      "dependencies": [
+        "M10R-03"
+      ],
+      "technical_checks": [
+        "Pair/cluster consequences, bridge evaluations for model replacements and stable source-to-derivative identity."
+      ],
+      "pi_validation": "PI assesses materially changing measures and any new production configuration.",
+      "completion": "Claims identify configuration, uncertainty, review exposure and downstream sensitivities.",
+      "exclusions": [
+        "No new model silently replacing qualified output."
+      ],
+      "resource_drivers": [
+        "Variant builds and bridge reference effort"
+      ],
+      "next_handoff": "M10R-05 material issue and release-quality decision"
+    },
+    {
+      "id": "M10R-05",
+      "objective": "Classify material unresolved issues and prepare PI acceptance.",
+      "inputs": [
+        "M10R-04 complete QA/audit evidence",
+        "All unresolved issue and coverage registers"
+      ],
+      "outputs": [
+        "Source-safe release-quality statement and external issue disposition/PI acceptance record"
+      ],
+      "dependencies": [
+        "M10R-04"
+      ],
+      "technical_checks": [
+        "Every material issue has type, provenance, scope and disposition; critical exceptions require explicit prospective policy."
+      ],
+      "pi_validation": "PI decides acceptance/limitations and exact candidate scope; zero critical-error goals remain inherited.",
+      "completion": "Actual acceptance or documented nonacceptance supports rights/release preparation.",
+      "exclusions": [
+        "No numerical score or software pass as automatic acceptance."
+      ],
+      "resource_drivers": [
+        "Issue backlog and PI decision time"
+      ],
+      "next_handoff": "M11R-01 rights/scope review"
+    },
+    {
+      "id": "M11R-01",
+      "objective": "Assess release rights and privacy separately for each artifact class.",
+      "inputs": [
+        "M10R-05 accepted scope/limitations",
+        "Source/workbook/model-output licences and storage boundaries"
+      ],
+      "outputs": [
+        "Source-safe rights/privacy/licence matrix and exact proposed public artifact allowlist"
+      ],
+      "dependencies": [
+        "M10R-05"
+      ],
+      "technical_checks": [
+        "Separate code, PDF redistribution, workbook/derived data and model-output rights; exclude private operational records/reserved answers."
+      ],
+      "pi_validation": "PI approves precise rights and public scope; code licence is not data permission.",
+      "completion": "Releaseable artifacts and held artifacts are explicit before packaging.",
+      "exclusions": [
+        "No raw-PDF licence inference, hidden evaluation answers or automatic public release."
+      ],
+      "resource_drivers": [
+        "Rights evidence and disclosure review"
+      ],
+      "next_handoff": "M11R-02 immutable dataset/export packaging"
+    },
+    {
+      "id": "M11R-02",
+      "objective": "Package canonical Parquet/DuckDB and documented exports.",
+      "inputs": [
+        "M11R-01 permitted allowlist",
+        "Accepted canonical build and schema/quality/provenance dictionaries"
+      ],
+      "outputs": [
+        "External immutable versioned Parquet/DuckDB, CSV/R/Stata/XLSX exports where justified and dictionary/quality joins"
+      ],
+      "dependencies": [
+        "M11R-01"
+      ],
+      "technical_checks": [
+        "Canonical/export row/type/key/hash agreement, provenance/quality join closure and no-replace version publication."
+      ],
+      "pi_validation": "PI verifies public scope matches allowlist and review-quality statement.",
+      "completion": "Exports are documented derivatives of a fixed canonical candidate.",
+      "exclusions": [
+        "No CSV/XLSX as canonical truth or overwritten prior release."
+      ],
+      "resource_drivers": [
+        "Package/export volume and compatibility checks"
+      ],
+      "next_handoff": "M11R-03 reproducible package identifiers"
+    },
+    {
+      "id": "M11R-03",
+      "objective": "Create reproducible release metadata and stable identifiers.",
+      "inputs": [
+        "M11R-02 package",
+        "Approved archive/repository destination"
+      ],
+      "outputs": [
+        "External checksummed release bundle; source-safe changelog, citation, build manifest and approved DOI/stable IDs"
+      ],
+      "dependencies": [
+        "M11R-02"
+      ],
+      "technical_checks": [
+        "Fresh retained-output rebuild/package checksum closure and source/config/schema version traceability."
+      ],
+      "pi_validation": "PI approves repository/destination and publication action; no DOI is fabricated.",
+      "completion": "Reproduction and citation identify exact package/version and limits.",
+      "exclusions": [
+        "No unapproved archive upload or changed prior release bytes."
+      ],
+      "resource_drivers": [
+        "Rebuild/archive volume and metadata review"
+      ],
+      "next_handoff": "M11R-04 exact public methods/scope release decision"
+    },
+    {
+      "id": "M11R-04",
+      "objective": "Publish only the PI-approved dataset scope with honest methods.",
+      "inputs": [
+        "M11R-03 fixed package",
+        "M10R-05 quality statement",
+        "Actual final owner publication decision"
+      ],
+      "outputs": [
+        "Public version, methods/coverage/limitations and AI/audit/review disclosures for approved artifacts"
+      ],
+      "dependencies": [
+        "M11R-03"
+      ],
+      "technical_checks": [
+        "Final allowlist/checksums, licence/privacy exclusion and public review-coverage consistency."
+      ],
+      "pi_validation": "PI explicitly releases exact version/scope; any unreviewed rows require supported quality claim.",
+      "completion": "Publication reflects actual reviewed subset, source gaps and uncertainty.",
+      "exclusions": [
+        "No blanket human-gold label, raw source release by accident or inferred approval."
+      ],
+      "resource_drivers": [
+        "Publication checks and owner review"
+      ],
+      "next_handoff": "M12R-01 paper; M12R-02 handoff; M12R-03 maintenance"
+    },
+    {
+      "id": "M12R-01",
+      "objective": "Write the methods/data paper from measured reconstruction evidence.",
+      "inputs": [
+        "M11R-04 release",
+        "Recorded performance, cost, audit/exposure design and limitations"
+      ],
+      "outputs": [
+        "Publication manuscript, measured methods/tables and reproducible examples"
+      ],
+      "dependencies": [
+        "M11R-04"
+      ],
+      "technical_checks": [
+        "Claims trace to actual source-bound estimates and released artifacts; no unsupported superiority/novelty or causal claim."
+      ],
+      "pi_validation": "PI authors/reviews interpretation and submission scope.",
+      "completion": "Paper distinguishes extraction accuracy, review coverage and substantive inference.",
+      "exclusions": [
+        "No invented endorsement, human-gold result or policy-effect proof."
+      ],
+      "resource_drivers": [
+        "Writing, reproducible tables and publication review"
+      ],
+      "next_handoff": "Owner decides manuscript venue/submission separately"
+    },
+    {
+      "id": "M12R-02",
+      "objective": "Prepare institutional handoff and record real feedback.",
+      "inputs": [
+        "M11R-04 stable release",
+        "Reproducible examples and documentation"
+      ],
+      "outputs": [
+        "Handoff package, ownership/support notes and actual institutional feedback if contact authorized"
+      ],
+      "dependencies": [
+        "M11R-04"
+      ],
+      "technical_checks": [
+        "Examples reproduce release and documentation links resolve; feedback provenance distinguishes received from proposed."
+      ],
+      "pi_validation": "PI approves contacts and handoff; record actual Defensoría response.",
+      "completion": "A usable handoff has stated ownership and limits; unperformed contact remains unperformed.",
+      "exclusions": [
+        "No unsolicited outreach or invented institutional endorsement."
+      ],
+      "resource_drivers": [
+        "Documentation/examples and authorized coordination"
+      ],
+      "next_handoff": "M12R-03 maintenance ownership and SOP"
+    },
+    {
+      "id": "M12R-03",
+      "objective": "Define monthly acquisition/update and bridge-evaluation SOP.",
+      "inputs": [
+        "M11R-04 release contract",
+        "Acquisition safeguards and model/format histories"
+      ],
+      "outputs": [
+        "Source-safe monthly SOP, exception ownership, bridge-test and format-change alarm rules"
+      ],
+      "dependencies": [
+        "M11R-04"
+      ],
+      "technical_checks": [
+        "Separate acquisition authority, old release retention, source/model/version change detection and scoped regression/bridge checks."
+      ],
+      "pi_validation": "PI approves updates, new regimes/model configurations and human exception owner.",
+      "completion": "Future routine operations have explicit scope/budgets/stops without stale retired-route gates.",
+      "exclusions": [
+        "No unlimited standing authority or unapproved scheduled model/acquisition calls."
+      ],
+      "resource_drivers": [
+        "New monthly source volume and model/format drift"
+      ],
+      "next_handoff": "M12R-04 separately authorized small update rehearsal"
+    },
+    {
+      "id": "M12R-04",
+      "objective": "Rehearse a small update and append-only corrections/backfills.",
+      "inputs": [
+        "M12R-03 SOP",
+        "Separately authorized small update envelope and available new source"
+      ],
+      "outputs": [
+        "External versioned rehearsal/update candidate, errata/backfill ledger and no-replace prior release evidence"
+      ],
+      "dependencies": [
+        "M12R-03"
+      ],
+      "technical_checks": [
+        "Source hash/version retention, resumability, correction lineage, bridge scores and old-package checksum invariance."
+      ],
+      "pi_validation": "PI reviews actual update/source changes and separately decides publication.",
+      "completion": "A measured small rehearsal demonstrates ownership and release-preserving corrections.",
+      "exclusions": [
+        "No overwritten release, automatic update publication or unrun rehearsal claim."
+      ],
+      "resource_drivers": [
+        "One bounded update, exception review and bridge evaluation"
+      ],
+      "next_handoff": "PI accepts maintenance ownership and future scoped updates"
+    },
+    {
+      "id": "M12R-05",
+      "objective": "Develop a separate research agenda from extractable measures.",
+      "inputs": [
+        "M2R-04 measurement experience",
+        "Scientific definitions and source coverage limits",
+        "Later released evidence when available"
+      ],
+      "outputs": [
+        "Research-agenda memo distinguishing descriptive trajectories, policy processes, intergenerational/field-study hypotheses and external-data/identification needs"
+      ],
+      "dependencies": [
+        "M2R-04"
+      ],
+      "technical_checks": [
+        "Separate extractable measures from linked survey/admin data, identification assumptions and results not obtained."
+      ],
+      "pi_validation": "PI chooses later research questions/design; expected findings cannot tune extraction.",
+      "completion": "Agenda states feasible measures, missing data and design needs without blocking release.",
+      "exclusions": [
+        "No reconstruction-only causal/policy/intergenerational effect claim."
+      ],
+      "resource_drivers": [
+        "Research design and separately authorized linked-data work"
+      ],
+      "next_handoff": "Separate owner-authorized research design task"
+    }
+  ],
+  "historical_crosswalk": [
+    {
+      "old_id": "M0",
+      "disposition": "RETAIN_ACTIVE",
+      "successors": [
+        "AI-00.1"
+      ],
+      "reason": "Completed repository, safety, schema, metadata, QA/CI and ADR foundations remain inputs; no restart."
+    },
+    {
+      "old_id": "M0.1",
+      "disposition": "RETAIN_ACTIVE",
+      "successors": [
+        "AI-00.1"
+      ],
+      "reason": "Completed source-evidenced hardening and historical schema snapshots remain intact."
+    },
+    {
+      "old_id": "M1-01",
+      "disposition": "RETAIN_ACTIVE",
+      "successors": [
+        "M5R-01"
+      ],
+      "reason": "Completed source registry/discovery protocol is reused for separately authorized deferred acquisition."
+    },
+    {
+      "old_id": "M1-02",
+      "disposition": "RETAIN_ACTIVE",
+      "successors": [
+        "M5R-01",
+        "M5R-02"
+      ],
+      "reason": "Completed identity/coverage discovery remains evidence; inventory is not byte completeness."
+    },
+    {
+      "old_id": "M1-03",
+      "disposition": "REVISE_ACTIVE",
+      "successors": [
+        "M5R-01"
+      ],
+      "reason": "Retain immutable acquisition safeguards; the completed ten-byte comparison is spent and later missing-byte acquisition needs new scope."
+    },
+    {
+      "old_id": "M1-04",
+      "disposition": "RETAIN_ACTIVE",
+      "successors": [
+        "M5R-01",
+        "M7R-01"
+      ],
+      "reason": "Completed identity/coverage manifest and owner adjudications are retained, including unresolved conditions and deferred bytes."
+    },
+    {
+      "old_id": "M2-01",
+      "disposition": "RETAIN_ACTIVE",
+      "successors": [
+        "AI-00.3",
+        "M2R-02"
+      ],
+      "reason": "Completed definitions/evidence/metrics remain scientific foundations with approved action/alert date amendments; no human gold was created."
+    },
+    {
+      "old_id": "M2-02",
+      "disposition": "SUPERSEDED_FOR_NEW_ROUTE",
+      "successors": [
+        "M2R-01",
+        "M2R-02",
+        "M2R-03",
+        "M2R-04"
+      ],
+      "reason": "Exhaustive double-external-RA annotation is replaced by bounded machine candidates, independent source discovery and actual PI review."
+    },
+    {
+      "old_id": "M2-03",
+      "disposition": "SUPERSEDED_FOR_NEW_ROUTE",
+      "successors": [
+        "M2R-04",
+        "M2R-05",
+        "M2R-06",
+        "M3R-05"
+      ],
+      "reason": "Replace exhaustive human-gold freeze with append-only scoped PI references, frozen fresh scoring and prospectively selected qualification targets."
+    },
+    {
+      "old_id": "M2-04",
+      "disposition": "REVISE_ACTIVE",
+      "successors": [
+        "W1-01",
+        "W1-02",
+        "W1-03",
+        "W1-04"
+      ],
+      "reason": "Move workbook byte/cell-preserving staging and overlap to a parallel complementary stream; relevant report reference is needed for overlap, not parser diagnostics."
+    },
+    {
+      "old_id": "M3-01",
+      "disposition": "REVISE_ACTIVE",
+      "successors": [
+        "M3R-01"
+      ],
+      "reason": "Keep page/regime diagnostics; evidence-driven hybrid routing no longer waits for exhaustive human gold."
+    },
+    {
+      "old_id": "M3-02",
+      "disposition": "REVISE_ACTIVE",
+      "successors": [
+        "M2R-02",
+        "M3R-02"
+      ],
+      "reason": "Segmentation becomes source-bound candidate discovery with complete section/negative coverage and overlap deduplication."
+    },
+    {
+      "old_id": "M3-03",
+      "disposition": "REVISE_ACTIVE",
+      "successors": [
+        "M2R-02",
+        "M3R-03"
+      ],
+      "reason": "Preserve all fields/families, null/date/evidence rules and cache identity while allowing bounded AI development under its own envelope."
+    },
+    {
+      "old_id": "M3-04",
+      "disposition": "REVISE_ACTIVE",
+      "successors": [
+        "M2R-06",
+        "M3R-04",
+        "M3R-05",
+        "M3R-06"
+      ],
+      "reason": "Separate exploratory advancement, frozen regime qualification and progressive scope; inherited goals remain, new final statistical/metric decisions are prospective."
+    },
+    {
+      "old_id": "M4-01",
+      "disposition": "REVISE_ACTIVE",
+      "successors": [
+        "M4R-01"
+      ],
+      "reason": "Retain identity evidence/features/vocabulary and owner review, adding explicit reused/contradicted-code treatment."
+    },
+    {
+      "old_id": "M4-02",
+      "disposition": "RETAIN_ACTIVE",
+      "successors": [
+        "M4R-02"
+      ],
+      "reason": "Retain reproducible official-code/multi-field linkage, collisions and unmatched evidence."
+    },
+    {
+      "old_id": "M4-03",
+      "disposition": "REVISE_ACTIVE",
+      "successors": [
+        "M4R-03",
+        "M4R-04"
+      ],
+      "reason": "Separate candidate-generation recall/calibration from actual PI structural-link decisions and keep uncertain edges."
+    },
+    {
+      "old_id": "M4-04",
+      "disposition": "REVISE_ACTIVE",
+      "successors": [
+        "M4R-05"
+      ],
+      "reason": "Retain stock-flow/graph/provenance/rebuild checks and evaluate pair/cluster consequences without claiming public release."
+    },
+    {
+      "old_id": "M5",
+      "disposition": "REVISE_ACTIVE",
+      "successors": [
+        "M5R-01",
+        "M5R-02",
+        "M5R-03",
+        "M5R-04"
+      ],
+      "reason": "Add deferred official-byte acquisition; sample actual change points and diagnose formats before regime approval; scoped read-only work need not wait for final modern graph."
+    },
+    {
+      "old_id": "M6",
+      "disposition": "REVISE_ACTIVE",
+      "successors": [
+        "M6R-01",
+        "M6R-02",
+        "M6R-03",
+        "M6R-04"
+      ],
+      "reason": "Transform regime parsers, page-specific fallback and gold subsets into bounded hybrid adaptations, scoped PI references and frozen per-regime qualification."
+    },
+    {
+      "old_id": "M7",
+      "disposition": "REVISE_ACTIVE",
+      "successors": [
+        "M7R-01",
+        "M7R-02",
+        "M7R-03",
+        "M7R-04"
+      ],
+      "reason": "Preserve fixed manifest/resumable caches/coverage/queues while adding explicit batch budgets, audits, drift/backlog stops and honest missing work."
+    },
+    {
+      "old_id": "M8",
+      "disposition": "REVISE_ACTIVE",
+      "successors": [
+        "M8R-01",
+        "M8R-02",
+        "M8R-03",
+        "M8R-04"
+      ],
+      "reason": "Preserve cross-era linkage/adjudication, discontinuities and graph; measure unmatched and cluster errors without forcing continuity."
+    },
+    {
+      "old_id": "M9",
+      "disposition": "REVISE_ACTIVE",
+      "successors": [
+        "M9R-01",
+        "M9R-02",
+        "M9R-03",
+        "M9R-04"
+      ],
+      "reason": "Retain original geography, versioned crosswalks/uncertainty; useful place preparation can precede full graph, final joins require stable-enough identities."
+    },
+    {
+      "old_id": "M10",
+      "disposition": "REVISE_ACTIVE",
+      "successors": [
+        "M10R-01",
+        "M10R-02",
+        "M10R-03",
+        "M10R-04",
+        "M10R-05"
+      ],
+      "reason": "Keep arithmetic/provenance/anomaly/adjudication/materialization and source audits; no fabricated independent auditor or automatic second-person prerequisite."
+    },
+    {
+      "old_id": "M11",
+      "disposition": "RETAIN_ACTIVE",
+      "successors": [
+        "M11R-01",
+        "M11R-02",
+        "M11R-03",
+        "M11R-04"
+      ],
+      "reason": "Preserve rights, canonical/export packages, dictionary/checksums/citation/limitations and exact PI public-scope decision."
+    },
+    {
+      "old_id": "M12",
+      "disposition": "REVISE_ACTIVE",
+      "successors": [
+        "M12R-01",
+        "M12R-02",
+        "M12R-03",
+        "M12R-04",
+        "M12R-05"
+      ],
+      "reason": "Keep measured methods paper, institutional handoff and rehearsed monthly SOP; add separate research agenda without making it a release dependency."
+    },
+    {
+      "old_id": "M1-02.1",
+      "disposition": "PRESERVE_HISTORICAL",
+      "successors": [
+        "M5R-01"
+      ],
+      "reason": "Preserve the documented M1 refinement and exact existing evidence/authority state; no historical run is repeated or spent authorization renewed."
+    },
+    {
+      "old_id": "M1-02.2",
+      "disposition": "PRESERVE_HISTORICAL",
+      "successors": [
+        "M5R-01"
+      ],
+      "reason": "Preserve the documented M1 refinement and exact existing evidence/authority state; no historical run is repeated or spent authorization renewed."
+    },
+    {
+      "old_id": "M1-03A",
+      "disposition": "PRESERVE_HISTORICAL",
+      "successors": [
+        "M5R-01"
+      ],
+      "reason": "Preserve the documented M1 refinement and exact existing evidence/authority state; no historical run is repeated or spent authorization renewed."
+    },
+    {
+      "old_id": "M1-03A.1",
+      "disposition": "PRESERVE_HISTORICAL",
+      "successors": [
+        "M5R-01"
+      ],
+      "reason": "Preserve the documented M1 refinement and exact existing evidence/authority state; no historical run is repeated or spent authorization renewed."
+    },
+    {
+      "old_id": "M1-03B",
+      "disposition": "PRESERVE_HISTORICAL",
+      "successors": [
+        "M5R-01"
+      ],
+      "reason": "Preserve the documented M1 refinement and exact existing evidence/authority state; no historical run is repeated or spent authorization renewed."
+    },
+    {
+      "old_id": "M1-03B.1",
+      "disposition": "PRESERVE_HISTORICAL",
+      "successors": [
+        "M5R-01"
+      ],
+      "reason": "Preserve the documented M1 refinement and exact existing evidence/authority state; no historical run is repeated or spent authorization renewed."
+    },
+    {
+      "old_id": "M1-03B.2",
+      "disposition": "PRESERVE_HISTORICAL",
+      "successors": [
+        "M5R-01"
+      ],
+      "reason": "Preserve the documented M1 refinement and exact existing evidence/authority state; no historical run is repeated or spent authorization renewed."
+    },
+    {
+      "old_id": "M1-04A",
+      "disposition": "PRESERVE_HISTORICAL",
+      "successors": [
+        "M5R-01"
+      ],
+      "reason": "Preserve the documented M1 refinement and exact existing evidence/authority state; no historical run is repeated or spent authorization renewed."
+    },
+    {
+      "old_id": "M1-04B",
+      "disposition": "PRESERVE_HISTORICAL",
+      "successors": [
+        "M5R-01"
+      ],
+      "reason": "Preserve the documented M1 refinement and exact existing evidence/authority state; no historical run is repeated or spent authorization renewed."
+    },
+    {
+      "old_id": "M1-04C.1",
+      "disposition": "PRESERVE_HISTORICAL",
+      "successors": [
+        "M5R-01"
+      ],
+      "reason": "Preserve the documented M1 refinement and exact existing evidence/authority state; no historical run is repeated or spent authorization renewed."
+    },
+    {
+      "old_id": "M2-02A",
+      "disposition": "PRESERVE_HISTORICAL",
+      "successors": [
+        "AI-00.2",
+        "AI-00.3"
+      ],
+      "reason": "Preserve versioned readiness/launch/setup/owner-assisted records and explicit legacy behavior; they grant no AI-route authority and are not prerequisites for it."
+    },
+    {
+      "old_id": "M2-02A.1",
+      "disposition": "PRESERVE_HISTORICAL",
+      "successors": [
+        "AI-00.2",
+        "AI-00.3"
+      ],
+      "reason": "Preserve versioned readiness/launch/setup/owner-assisted records and explicit legacy behavior; they grant no AI-route authority and are not prerequisites for it."
+    },
+    {
+      "old_id": "M2-02A.1B",
+      "disposition": "PRESERVE_HISTORICAL",
+      "successors": [
+        "AI-00.2",
+        "AI-00.3"
+      ],
+      "reason": "Preserve versioned readiness/launch/setup/owner-assisted records and explicit legacy behavior; they grant no AI-route authority and are not prerequisites for it."
+    },
+    {
+      "old_id": "M2-02A.1E",
+      "disposition": "PRESERVE_HISTORICAL",
+      "successors": [
+        "AI-00.2",
+        "AI-00.3"
+      ],
+      "reason": "Preserve versioned readiness/launch/setup/owner-assisted records and explicit legacy behavior; they grant no AI-route authority and are not prerequisites for it."
+    },
+    {
+      "old_id": "M2-02B",
+      "disposition": "PRESERVE_HISTORICAL",
+      "successors": [
+        "AI-00.2",
+        "AI-00.3"
+      ],
+      "reason": "Preserve versioned readiness/launch/setup/owner-assisted records and explicit legacy behavior; they grant no AI-route authority and are not prerequisites for it."
+    },
+    {
+      "old_id": "M2-02B.1",
+      "disposition": "PRESERVE_HISTORICAL",
+      "successors": [
+        "AI-00.2",
+        "AI-00.3"
+      ],
+      "reason": "Preserve versioned readiness/launch/setup/owner-assisted records and explicit legacy behavior; they grant no AI-route authority and are not prerequisites for it."
+    },
+    {
+      "old_id": "M2-02B.1b",
+      "disposition": "PRESERVE_HISTORICAL",
+      "successors": [
+        "AI-00.2",
+        "AI-00.3"
+      ],
+      "reason": "Preserve versioned readiness/launch/setup/owner-assisted records and explicit legacy behavior; they grant no AI-route authority and are not prerequisites for it."
+    },
+    {
+      "old_id": "M2-02B.1c",
+      "disposition": "PRESERVE_HISTORICAL",
+      "successors": [
+        "AI-00.2",
+        "AI-00.3"
+      ],
+      "reason": "Preserve versioned readiness/launch/setup/owner-assisted records and explicit legacy behavior; they grant no AI-route authority and are not prerequisites for it."
+    },
+    {
+      "old_id": "M2-02B.2",
+      "disposition": "PRESERVE_HISTORICAL",
+      "successors": [
+        "AI-00.2",
+        "AI-00.3"
+      ],
+      "reason": "Preserve versioned readiness/launch/setup/owner-assisted records and explicit legacy behavior; they grant no AI-route authority and are not prerequisites for it."
+    },
+    {
+      "old_id": "M2-02B.2B",
+      "disposition": "PRESERVE_HISTORICAL",
+      "successors": [
+        "AI-00.2",
+        "AI-00.3"
+      ],
+      "reason": "Preserve versioned readiness/launch/setup/owner-assisted records and explicit legacy behavior; they grant no AI-route authority and are not prerequisites for it."
+    },
+    {
+      "old_id": "M1",
+      "disposition": "RETAIN_ACTIVE",
+      "successors": [
+        "M5R-01",
+        "M7R-01"
+      ],
+      "reason": "Completed corpus identity/coverage foundation and acquisition safety retained; missing official bytes carried into M5R."
+    },
+    {
+      "old_id": "M2",
+      "disposition": "REVISE_ACTIVE",
+      "successors": [
+        "M2R-01",
+        "M2R-02",
+        "M2R-03",
+        "M2R-04",
+        "M2R-05",
+        "M2R-06",
+        "W1-01",
+        "W1-02",
+        "W1-03",
+        "W1-04"
+      ],
+      "reason": "M2-01 definitions retained; exhaustive A/B route replaced by progressive PI reference and bounded candidates; workbook becomes parallel stream."
+    },
+    {
+      "old_id": "M3",
+      "disposition": "REVISE_ACTIVE",
+      "successors": [
+        "M3R-01",
+        "M3R-02",
+        "M3R-03",
+        "M3R-04",
+        "M3R-05",
+        "M3R-06"
+      ],
+      "reason": "Modern parser objectives retained under hybrid development, complete discovery and separately qualified scope."
+    },
+    {
+      "old_id": "M4",
+      "disposition": "REVISE_ACTIVE",
+      "successors": [
+        "M4R-01",
+        "M4R-02",
+        "M4R-03",
+        "M4R-04",
+        "M4R-05"
+      ],
+      "reason": "Modern identity/linkage and QA obligations retained with PI edge decisions and explicit pair/cluster consequences."
+    }
+  ],
+  "inherited_metric_dispositions": [
+    {
+      "metric_id": "case_detection_precision",
+      "disposition": "RETAIN_ACTIVE",
+      "successors": [
+        "M2R-06",
+        "M3R-05",
+        "M6R-04"
+      ],
+      "definition": "TP/(TP+FP), including extra/duplicate objects.",
+      "target_treatment": "Inherited >=0.99 release goal; no new approved point estimate or lower confidence bound.",
+      "decision_required": "Review source correspondence and eligible population before normative scoring."
+    },
+    {
+      "metric_id": "case_detection_recall",
+      "disposition": "RETAIN_ACTIVE",
+      "successors": [
+        "M2R-06",
+        "M3R-05",
+        "M6R-04"
+      ],
+      "definition": "TP/(TP+FN), including missed source objects and apparent negatives.",
+      "target_treatment": "Inherited >=0.99 release goal; small pilots diagnose failure, not universal certification.",
+      "decision_required": "Source-based denominator and actual sampling/cluster design."
+    },
+    {
+      "metric_id": "exact_source_page_attribution",
+      "disposition": "RETAIN_ACTIVE",
+      "successors": [
+        "M2R-06",
+        "M3R-05",
+        "M6R-04"
+      ],
+      "definition": "Exact report/hash and sorted page-tuple association; missing/extra pages incorrect.",
+      "target_treatment": "Inherited >=0.99 release goal.",
+      "decision_required": "Reviewed evidence/eligible-set rule and scoped uncertainty."
+    },
+    {
+      "metric_id": "strict_source_value_accuracy",
+      "disposition": "RETAIN_ACTIVE",
+      "successors": [
+        "M2R-06",
+        "M3R-05",
+        "M6R-04"
+      ],
+      "definition": "Correct/(reference slots+extra predicted slots), exact state/raw JSON; reject duplicate keys.",
+      "target_treatment": "Inherited designated-central-field >=0.99 goal.",
+      "decision_required": "Eligible-set/reference identity; never score corrected outputs as initial machine performance."
+    },
+    {
+      "metric_id": "conditional_matched_field_accuracy",
+      "disposition": "RETAIN_ACTIVE",
+      "successors": [
+        "M2R-06",
+        "M3R-05"
+      ],
+      "definition": "Diagnostic reference-key state/raw-value matching; unrelated extras outside this denominator.",
+      "target_treatment": "Diagnostic, not final gate.",
+      "decision_required": "Report with strict/end-to-end/discovery outcomes."
+    },
+    {
+      "metric_id": "object_multiset_actor",
+      "disposition": "RETAIN_ACTIVE",
+      "successors": [
+        "M2R-06",
+        "M3R-05",
+        "M6R-04"
+      ],
+      "definition": "Preserve benchmark/metrics.py 0.1.1 signatures and multiplicity; TP/FP/FN plus precision/recall for actor.",
+      "target_treatment": "All registered families mandatory/reportable; numerical object thresholds remain deferred.",
+      "decision_required": "Choose targets from development/reference composition before final evaluation, without retired M2-03/two-RA trigger."
+    },
+    {
+      "metric_id": "object_multiset_alert",
+      "disposition": "RETAIN_ACTIVE",
+      "successors": [
+        "M2R-06",
+        "M3R-05",
+        "M6R-04"
+      ],
+      "definition": "Preserve benchmark/metrics.py 0.1.1 signatures and multiplicity; TP/FP/FN plus precision/recall for alert.",
+      "target_treatment": "All registered families mandatory/reportable; numerical object thresholds remain deferred.",
+      "decision_required": "Choose targets from development/reference composition before final evaluation, without retired M2-03/two-RA trigger."
+    },
+    {
+      "metric_id": "object_multiset_agreement",
+      "disposition": "RETAIN_ACTIVE",
+      "successors": [
+        "M2R-06",
+        "M3R-05",
+        "M6R-04"
+      ],
+      "definition": "Preserve benchmark/metrics.py 0.1.1 signatures and multiplicity; TP/FP/FN plus precision/recall for agreement.",
+      "target_treatment": "All registered families mandatory/reportable; numerical object thresholds remain deferred.",
+      "decision_required": "Choose targets from development/reference composition before final evaluation, without retired M2-03/two-RA trigger."
+    },
+    {
+      "metric_id": "object_multiset_case_observation",
+      "disposition": "RETAIN_ACTIVE",
+      "successors": [
+        "M2R-06",
+        "M3R-05",
+        "M6R-04"
+      ],
+      "definition": "Preserve benchmark/metrics.py 0.1.1 signatures and multiplicity; TP/FP/FN plus precision/recall for case_observation.",
+      "target_treatment": "All registered families mandatory/reportable; numerical object thresholds remain deferred.",
+      "decision_required": "Choose targets from development/reference composition before final evaluation, without retired M2-03/two-RA trigger."
+    },
+    {
+      "metric_id": "object_multiset_dp_action",
+      "disposition": "RETAIN_ACTIVE",
+      "successors": [
+        "M2R-06",
+        "M3R-05",
+        "M6R-04"
+      ],
+      "definition": "Preserve benchmark/metrics.py 0.1.1 signatures and multiplicity; TP/FP/FN plus precision/recall for dp_action.",
+      "target_treatment": "All registered families mandatory/reportable; numerical object thresholds remain deferred.",
+      "decision_required": "Choose targets from development/reference composition before final evaluation, without retired M2-03/two-RA trigger."
+    },
+    {
+      "metric_id": "object_multiset_demand",
+      "disposition": "RETAIN_ACTIVE",
+      "successors": [
+        "M2R-06",
+        "M3R-05",
+        "M6R-04"
+      ],
+      "definition": "Preserve benchmark/metrics.py 0.1.1 signatures and multiplicity; TP/FP/FN plus precision/recall for demand.",
+      "target_treatment": "All registered families mandatory/reportable; numerical object thresholds remain deferred.",
+      "decision_required": "Choose targets from development/reference composition before final evaluation, without retired M2-03/two-RA trigger."
+    },
+    {
+      "metric_id": "object_multiset_dialogue_event",
+      "disposition": "RETAIN_ACTIVE",
+      "successors": [
+        "M2R-06",
+        "M3R-05",
+        "M6R-04"
+      ],
+      "definition": "Preserve benchmark/metrics.py 0.1.1 signatures and multiplicity; TP/FP/FN plus precision/recall for dialogue_event.",
+      "target_treatment": "All registered families mandatory/reportable; numerical object thresholds remain deferred.",
+      "decision_required": "Choose targets from development/reference composition before final evaluation, without retired M2-03/two-RA trigger."
+    },
+    {
+      "metric_id": "object_multiset_location",
+      "disposition": "RETAIN_ACTIVE",
+      "successors": [
+        "M2R-06",
+        "M3R-05",
+        "M6R-04"
+      ],
+      "definition": "Preserve benchmark/metrics.py 0.1.1 signatures and multiplicity; TP/FP/FN plus precision/recall for location.",
+      "target_treatment": "All registered families mandatory/reportable; numerical object thresholds remain deferred.",
+      "decision_required": "Choose targets from development/reference composition before final evaluation, without retired M2-03/two-RA trigger."
+    },
+    {
+      "metric_id": "object_multiset_mediation_observation",
+      "disposition": "RETAIN_ACTIVE",
+      "successors": [
+        "M2R-06",
+        "M3R-05",
+        "M6R-04"
+      ],
+      "definition": "Preserve benchmark/metrics.py 0.1.1 signatures and multiplicity; TP/FP/FN plus precision/recall for mediation_observation.",
+      "target_treatment": "All registered families mandatory/reportable; numerical object thresholds remain deferred.",
+      "decision_required": "Choose targets from development/reference composition before final evaluation, without retired M2-03/two-RA trigger."
+    },
+    {
+      "metric_id": "object_multiset_protest_event",
+      "disposition": "RETAIN_ACTIVE",
+      "successors": [
+        "M2R-06",
+        "M3R-05",
+        "M6R-04"
+      ],
+      "definition": "Preserve benchmark/metrics.py 0.1.1 signatures and multiplicity; TP/FP/FN plus precision/recall for protest_event.",
+      "target_treatment": "All registered families mandatory/reportable; numerical object thresholds remain deferred.",
+      "decision_required": "Choose targets from development/reference composition before final evaluation, without retired M2-03/two-RA trigger."
+    },
+    {
+      "metric_id": "object_multiset_violence_event",
+      "disposition": "RETAIN_ACTIVE",
+      "successors": [
+        "M2R-06",
+        "M3R-05",
+        "M6R-04"
+      ],
+      "definition": "Preserve benchmark/metrics.py 0.1.1 signatures and multiplicity; TP/FP/FN plus precision/recall for violence_event.",
+      "target_treatment": "All registered families mandatory/reportable; numerical object thresholds remain deferred.",
+      "decision_required": "Choose targets from development/reference composition before final evaluation, without retired M2-03/two-RA trigger."
+    },
+    {
+      "metric_id": "evidence_completeness_and_typed_locator",
+      "disposition": "RETAIN_ACTIVE",
+      "successors": [
+        "M2R-03",
+        "M3R-05",
+        "M10R-01"
+      ],
+      "definition": "Every critical slot requires report/hash/pages/section and valid span/bbox/table-cell or allowed page context; retain component errors.",
+      "target_treatment": "Inherited critical-evidence 1.0 component and inspectable provenance goal; valid anchor alone is not relevant support.",
+      "decision_required": "Reviewed context/eligibility and source-support audit; scoped final gate prospective."
+    },
+    {
+      "metric_id": "provenance_completeness_diagnostic",
+      "disposition": "RETAIN_ACTIVE",
+      "successors": [
+        "M2R-03",
+        "M10R-01"
+      ],
+      "definition": "Policy-neutral required-evidence proportion; mechanically computed hashes/positions.",
+      "target_treatment": "Diagnostic alongside typed/support/coverage checks.",
+      "decision_required": "Evidence-presence boolean never substitutes for support audit."
+    },
+    {
+      "metric_id": "missingness_and_instance_coverage",
+      "disposition": "RETAIN_ACTIVE",
+      "successors": [
+        "M2R-03",
+        "M3R-05",
+        "M7R-04"
+      ],
+      "definition": "Exact observed/zero/unreported/inapplicable/ambiguous/unavailable/illegible/uncertain states and repeated instances; failed/unprocessed separate.",
+      "target_treatment": "Unknown remains null; exclusions never silently improve scores.",
+      "decision_required": "Owner-reviewed eligibility/exclusions, counts and apparent-negative source audit."
+    },
+    {
+      "metric_id": "source_byte_custody_and_matching_keys",
+      "disposition": "RETAIN_ACTIVE",
+      "successors": [
+        "M2R-01",
+        "M3R-05"
+      ],
+      "definition": "Source custody is precondition; unit/field/cardinality keys enable matching, not source-value accuracy.",
+      "target_treatment": "Custody mismatch fails before scoring; hash keys outside transcription denominator.",
+      "decision_required": "Version any changed unit correspondence."
+    },
+    {
+      "metric_id": "literal_source_date_and_precision",
+      "disposition": "RETAIN_ACTIVE",
+      "successors": [
+        "M2R-02",
+        "M3R-03",
+        "M3R-05"
+      ],
+      "definition": "0.1.1 action/alert signatures use original date/precision; approved pair interpretation retained.",
+      "target_treatment": "Parsed dates are derivatives, never inferred originals.",
+      "decision_required": "Any normalized-date scoring requires separately reviewed derivative rule."
+    },
+    {
+      "metric_id": "discovery_start_and_exact_boundary_correspondence",
+      "disposition": "FUTURE_IMPLEMENTATION",
+      "successors": [
+        "M2R-05",
+        "M3R-05"
+      ],
+      "definition": "Preserve start metadata/boundary disagreements; no normative discovery-start amendment exists.",
+      "target_treatment": "No approved numerical boundary threshold.",
+      "decision_required": "PI approves versioned correspondence/metric amendment before normative final scoring."
+    },
+    {
+      "metric_id": "critical_parser_error_closure",
+      "disposition": "RETAIN_ACTIVE",
+      "successors": [
+        "M3R-05",
+        "M10R-05"
+      ],
+      "definition": "Actual classified error ledger and substantive closure, separate from scores.",
+      "target_treatment": "Inherited zero unresolved critical-parser-error release goal.",
+      "decision_required": "Any critical exception/tolerance requires explicit prospective PI rule."
+    },
+    {
+      "metric_id": "arithmetic_discrepancy_classification",
+      "disposition": "RETAIN_ACTIVE",
+      "successors": [
+        "M3R-04",
+        "M10R-02"
+      ],
+      "definition": "Reported/derived quantities remain separate with issue type and source evidence.",
+      "target_treatment": "Inherited all material arithmetic discrepancies classified goal.",
+      "decision_required": "PI classification/limits; never alter source totals."
+    },
+    {
+      "metric_id": "medium_confidence_link_review",
+      "disposition": "RETAIN_ACTIVE",
+      "successors": [
+        "M4R-04",
+        "M8R-03",
+        "M10R-04"
+      ],
+      "definition": "Actual review of every medium-confidence link plus structural/code conflicts.",
+      "target_treatment": "Inherited review requirement; confidence is not accuracy.",
+      "decision_required": "PI calibrates tiers and records exact pair/cluster coverage."
+    },
+    {
+      "metric_id": "linkage_candidate_pair_cluster_quality",
+      "disposition": "REVISE_ACTIVE",
+      "successors": [
+        "M4R-03",
+        "M4R-05",
+        "M8R-03"
+      ],
+      "definition": "Retain candidate recall/calibration; add unmatched/generation recall, false merges/splits and cluster consequences.",
+      "target_treatment": "No invented universal numerical linkage tolerance.",
+      "decision_required": "Predeclare pair/cluster reference design and loss/tolerance before evaluation."
+    },
+    {
+      "metric_id": "resource_review_and_uncertainty_reporting",
+      "disposition": "REVISE_ACTIVE",
+      "successors": [
+        "M2R-06",
+        "M7R-03",
+        "M10R-03"
+      ],
+      "definition": "Observed runtime/cost/retries/PI time, correction/unresolved burden, denominators, strata and cluster-aware uncertainty.",
+      "target_treatment": "Envelope workload/budget stops, not accuracy threshold.",
+      "decision_required": "Actual resource bounds and audit uncertainty interpretation."
+    },
+    {
+      "metric_id": "event_discovery_precision_recall",
+      "disposition": "REVISE_ACTIVE",
+      "successors": [
+        "M2R-03",
+        "M2R-06",
+        "M3R-05"
+      ],
+      "definition": "Source-unit reviewed event inventories supply missed/extra/duplicate events and discovery precision/recall separately from full-value multiset signatures.",
+      "target_treatment": "Numerical event-family goals remain deferred; no case-discovery threshold is silently transferred.",
+      "decision_required": "Review event correspondence and source denominator before normative scoring."
+    },
+    {
+      "metric_id": "child_parent_and_event_case_support",
+      "disposition": "REVISE_ACTIVE",
+      "successors": [
+        "M2R-03",
+        "M3R-05",
+        "M10R-03"
+      ],
+      "definition": "Measure wrong/missing/unsupported child-parent and event-case relationships against source evidence, separately from isolated field labels.",
+      "target_treatment": "Required reported relation errors; no invented numerical tolerance.",
+      "decision_required": "Version matching/support and eligibility rules before qualification."
+    },
+    {
+      "metric_id": "evidence_relevance_and_source_support",
+      "disposition": "REVISE_ACTIVE",
+      "successors": [
+        "M2R-04",
+        "M3R-05",
+        "M10R-03"
+      ],
+      "definition": "Source review checks whether the cited page/section/span actually supports the fact or relationship; quote match and valid locator are insufficient.",
+      "target_treatment": "Required support/association/coverage reporting alongside inherited page/completeness goals.",
+      "decision_required": "PI reference coverage and source-first/assisted exposure must be explicit."
+    },
+    {
+      "metric_id": "schema_pass_and_model_agreement",
+      "disposition": "REVISE_ACTIVE",
+      "successors": [
+        "M2R-03",
+        "M7R-03"
+      ],
+      "definition": "Record technical schema-pass and reader/model agreement rates as diagnostics with denominators and failed/unprocessed coverage.",
+      "target_treatment": "Neither is accuracy or PI review; consensus cannot promote candidate.",
+      "decision_required": "No automatic qualification or review-state transition from diagnostic scores."
+    }
+  ],
+  "migration_map": [
+    {
+      "paths": [
+        "README.md",
+        "AGENTS.md",
+        "CONTRIBUTING.md"
+      ],
+      "disposition": "REVISE_ACTIVE",
+      "role": "Active entry/contributor/agent boundaries.",
+      "direct_dependencies": [
+        "config/project.yaml",
+        "docs/01_project_charter.md",
+        "docs/execution_plan.md"
+      ],
+      "required_change": "Point to adopted strategy, truthful unrun status and first batch; remove stale current M1/RA-only defaults.",
+      "pin_treatment": "Accepted-main commit/tree preserve historical guidance; no pinned contract or approval bytes are regenerated.",
+      "successor": "docs/ai_pi_strategy.md"
+    },
+    {
+      "paths": [
+        "docs/01_project_charter.md",
+        "docs/04_architecture.md",
+        "docs/23_implementation_roadmap.md",
+        "docs/execution_plan.md",
+        "docs/24_definition_of_done.md",
+        "docs/25_codex_agent_orchestration.md"
+      ],
+      "disposition": "REVISE_ACTIVE",
+      "role": "Mission, flow, roadmap and orchestration.",
+      "direct_dependencies": [
+        "README.md",
+        "docs/07_canonical_data_model.md",
+        "config/benchmark/m3_acceptance_gates_v1.yaml"
+      ],
+      "required_change": "Select successor graph; retain historical IDs; replace exhaustive-gold/fixed-tool-order prerequisites for this route.",
+      "pin_treatment": "Historical execution_plan.md SHA-256 9a98809561cad839e5965f1cf23f7b99086121531f2370de2d29fd6c6ee19427 binds accepted baseline; historical approval/config bytes remain unchanged.",
+      "successor": "docs/ai_pi_roadmap.md"
+    },
+    {
+      "paths": [
+        "config/project.yaml",
+        "config/benchmark.yaml"
+      ],
+      "disposition": "REVISE_ACTIVE",
+      "role": "Project defaults and legacy inventory-only benchmark summary.",
+      "direct_dependencies": [
+        "README.md",
+        "src/peru_conflicts/models/common.py",
+        "src/peru_conflicts/benchmark/models.py"
+      ],
+      "required_change": "Select new route and active scientific 0.3.1/benchmark 0.1.1; avoid repurposing old runs.",
+      "pin_treatment": "Accepted-main commit/tree preserve historical guidance; no pinned contract or approval bytes are regenerated.",
+      "successor": "config/ai_pi/strategy_v1.json"
+    },
+    {
+      "paths": [
+        "docs/07_canonical_data_model.md",
+        "docs/08_data_dictionary.md"
+      ],
+      "disposition": "REVISE_ACTIVE",
+      "role": "Scientific table/field definitions and schema pointers.",
+      "direct_dependencies": [
+        "src/peru_conflicts/models/domain.py",
+        "schemas/v0.3.1"
+      ],
+      "required_change": "Correct active-version pointers; preserve original/normalized/null/stock-event/relationship definitions.",
+      "pin_treatment": "Pointer correction does not approve semantic change; old snapshots remain.",
+      "successor": "Scientific 0.3.1 definitions"
+    },
+    {
+      "paths": [
+        "src/peru_conflicts/models/common.py",
+        "src/peru_conflicts/models/domain.py",
+        "src/peru_conflicts/schema_export.py",
+        "schemas/v0.3.1"
+      ],
+      "disposition": "RETAIN_ACTIVE",
+      "role": "Authoritative strict scientific types, evidence positions and export.",
+      "direct_dependencies": [
+        "docs/08_data_dictionary.md",
+        "scripts/export_schemas.py"
+      ],
+      "required_change": "Reuse validators/provenance tuples; no wholesale rewrite.",
+      "pin_treatment": "Any material meaning change needs versioned tests/docs/schema export and actual approval.",
+      "successor": "M2R-02 and later materialization"
+    },
+    {
+      "paths": [
+        "schemas/v0.1.0",
+        "schemas/v0.2.0",
+        "schemas/v0.3.0",
+        "schemas/benchmark/v0.1.0"
+      ],
+      "disposition": "PRESERVE_HISTORICAL",
+      "role": "Immutable older scientific/benchmark snapshots.",
+      "direct_dependencies": [
+        "docs/schema_migrations/v0.1.0_to_v0.2.0.md",
+        "docs/scientific_schema_v0_3_0_to_v0_3_1_date_correction.md"
+      ],
+      "required_change": "No edits/relabeling; successors use new versions.",
+      "pin_treatment": "Preserve exact versioned bytes, pins and original authority/completion states; explicit legacy behavior stays unchanged.",
+      "successor": "Accepted-main reproduction"
+    },
+    {
+      "paths": [
+        "src/peru_conflicts/benchmark/models.py",
+        "src/peru_conflicts/benchmark/metrics.py",
+        "schemas/benchmark/v0.1.1"
+      ],
+      "disposition": "RETAIN_ACTIVE",
+      "role": "Typed multi-anchor evidence and policy-neutral current metrics.",
+      "direct_dependencies": [
+        "config/benchmark/m2_critical_fields_v1.yaml",
+        "docs/m2_01_metric_specification.md"
+      ],
+      "required_change": "Reuse evaluator and collections; add only missing successor metadata.",
+      "pin_treatment": "Keep 0.1.1 date/object signatures and explicit legacy semantics.",
+      "successor": "Successor evaluation protocol"
+    },
+    {
+      "paths": [
+        "config/benchmark/m2_01_owner_approval_v1.yaml",
+        "config/benchmark/m2_01_date_semantics_correction_approval_v1.yaml",
+        "config/benchmark/m2_02_date_pair_interpretation_approval_v1.yaml"
+      ],
+      "disposition": "RETAIN_ACTIVE",
+      "role": "Actual definitions and source-date approvals.",
+      "direct_dependencies": [
+        "docs/m2_01_annotation_handbook.md",
+        "docs/m2_01_date_semantics_correction_v1.md",
+        "docs/m2_02_date_pair_interpretation_v1.md"
+      ],
+      "required_change": "Carry approved definitions without reopening ontology or inventing decisions.",
+      "pin_treatment": "Preserve exact versioned bytes, pins and original authority/completion states; explicit legacy behavior stays unchanged.",
+      "successor": "AI-00.3 and M2R-02"
+    },
+    {
+      "paths": [
+        "docs/m2_01_annotation_handbook.md",
+        "docs/m2_01_metric_specification.md",
+        "docs/m2_01_ontology_decisions.md",
+        "docs/m2_01_source_evidence_census.md"
+      ],
+      "disposition": "PRESERVE_HISTORICAL",
+      "role": "M2-01 definition and old A/B/source evidence.",
+      "direct_dependencies": [
+        "config/benchmark/m2_01_owner_approval_v1.yaml"
+      ],
+      "required_change": "Successor inherits scientific rules; source census/pilot answers remain coordinator material.",
+      "pin_treatment": "Preserve baseline bytes and approval history; no answers distributed to workers.",
+      "successor": "docs/ai_pi_reference_evaluation_protocol.md"
+    },
+    {
+      "paths": [
+        "config/benchmark/m2_critical_fields_v1.yaml"
+      ],
+      "disposition": "RETAIN_ACTIVE",
+      "role": "Exact critical values/custody/keys/evidence set.",
+      "direct_dependencies": [
+        "src/peru_conflicts/execution/contracts.py",
+        "src/peru_conflicts/benchmark/metrics.py"
+      ],
+      "required_change": "Reuse distinctions without shrinking/widening denominator.",
+      "pin_treatment": "Run-pinned SHA-256 4bda5733677a14e087114decf86f0a1ed58f6eb68aa43498cbb2377431e65ff0 unchanged.",
+      "successor": "Successor eligible-set policy"
+    },
+    {
+      "paths": [
+        "config/benchmark/m2_partition_v1.yaml",
+        "config/benchmark/m2_02_annotation_run_v1.yaml"
+      ],
+      "disposition": "PRESERVE_HISTORICAL",
+      "role": "Coordinator-only partition and unlaunched old run inventory.",
+      "direct_dependencies": [
+        "src/peru_conflicts/execution/contracts.py",
+        "src/peru_conflicts/execution/references.py",
+        "config/benchmark/m2_02a_owner_readiness_approval_v1.yaml"
+      ],
+      "required_change": "Select only authorized development material; no public detailed roles/inventory or casual reserve reassignment.",
+      "pin_treatment": "Run baseline SHA-256 043ef83f8161e920683861a35f6bf309df38a2b6357e069fc3359d44315fb389; partition 900a86e79b49011ae8ca491ec594c31fbbbde2d05721859c5186d12091694c03 remain unchanged.",
+      "successor": "Custodian-kept new selection"
+    },
+    {
+      "paths": [
+        "docs/m2_02_discovery_execution_policy.md",
+        "config/benchmark/m2_02_execution_policy_v1.yaml",
+        "config/benchmark/m2_02_owner_approval_v1.yaml"
+      ],
+      "disposition": "PRESERVE_HISTORICAL",
+      "role": "Old approved discovery/unitization, not normative start scoring.",
+      "direct_dependencies": [
+        "src/peru_conflicts/execution/discovery.py",
+        "src/peru_conflicts/execution/compatibility.py"
+      ],
+      "required_change": "Retain explicit old route; new discovery/negative review without invented scoring amendment.",
+      "pin_treatment": "Preserve exact versioned bytes, pins and original authority/completion states; explicit legacy behavior stays unchanged.",
+      "successor": "Prospective successor correspondence decision"
+    },
+    {
+      "paths": [
+        "docs/m2_02_date_pair_interpretation_v1.md",
+        "docs/m2_01_date_semantics_correction_v1.md"
+      ],
+      "disposition": "RETAIN_ACTIVE",
+      "role": "Narrow action/alert literal-date and precision interpretation.",
+      "direct_dependencies": [
+        "config/benchmark/m2_02_date_pair_interpretation_approval_v1.yaml",
+        "src/peru_conflicts/execution/source_dates.py"
+      ],
+      "required_change": "Apply source-literal and unresolved-pair rules.",
+      "pin_treatment": "Date-pair document approval/run pin 7d5e9bc442625690df03b8ce9739d07b3221dee033d125930b994251baef4ea5 unchanged.",
+      "successor": "M2R-02 validation"
+    },
+    {
+      "paths": [
+        "docs/18_benchmark_specification.md",
+        "config/benchmark/m3_acceptance_gates_v1.yaml"
+      ],
+      "disposition": "SUPERSEDED_FOR_NEW_ROUTE",
+      "role": "Old exhaustive human-gold/final M3 draft gate and inherited goals.",
+      "direct_dependencies": [
+        "docs/execution_plan.md",
+        "src/peru_conflicts/benchmark/metrics.py",
+        "config/benchmark/m2_01_owner_approval_v1.yaml"
+      ],
+      "required_change": "Allow bounded exploration; select object targets before final scoring without abandoned M2-03/two-RA event.",
+      "pin_treatment": "Preserve exact versioned bytes, pins and original authority/completion states; explicit legacy behavior stays unchanged.",
+      "successor": "Successor gate hierarchy and inherited metrics"
+    },
+    {
+      "paths": [
+        "config/benchmark/m2_02a_readiness_v1.yaml",
+        "config/benchmark/m2_02a_readiness_v2.yaml",
+        "config/benchmark/m2_02a_readiness_v3.yaml",
+        "config/benchmark/m2_02a_owner_readiness_approval_v1.yaml",
+        "config/benchmark/m2_02b1_launch_design_approval_v1.yaml",
+        "config/benchmark/m2_02_launch_candidate_v1.yaml",
+        "config/benchmark/m2_02_launch_candidate_v2.yaml",
+        "config/benchmark/m2_02_operational_launch_candidate_v1.yaml"
+      ],
+      "disposition": "PRESERVE_HISTORICAL",
+      "role": "Legacy readiness/design/operational candidates and approvals.",
+      "direct_dependencies": [
+        "src/peru_conflicts/execution/readiness_approval.py",
+        "src/peru_conflicts/execution/launch.py",
+        "src/peru_conflicts/execution/operational_plan.py"
+      ],
+      "required_change": "Not new-route prerequisites; never mark NOT_RUN PASS or flip null decisions.",
+      "pin_treatment": "Preserve exact versioned bytes, pins and original authority/completion states; explicit legacy behavior stays unchanged.",
+      "successor": "Explicit legacy route only"
+    },
+    {
+      "paths": [
+        "docs/m2_02_annotation_execution_protocol.md",
+        "docs/m2_02_annotation_launch_protocol.md",
+        "docs/m2_02_coordinator_checklist.md",
+        "docs/m2_02_operational_launch_protocol.md",
+        "docs/m2_02_owner_assisted_profile_v1.md",
+        "docs/m2_02_setup_bridge.md"
+      ],
+      "disposition": "PRESERVE_HISTORICAL",
+      "role": "Retired A/B issuance/setup/containment/manual transport.",
+      "direct_dependencies": [
+        "src/peru_conflicts/execution/access_policy.py",
+        "src/peru_conflicts/execution/setup_authority.py",
+        "src/peru_conflicts/execution/owner_assisted.py"
+      ],
+      "required_change": "Do not require witnesses/native diagnostic campaign for ordinary new PI decision.",
+      "pin_treatment": "Preserve exact versioned bytes, pins and original authority/completion states; explicit legacy behavior stays unchanged.",
+      "successor": "No AI-route prerequisite"
+    },
+    {
+      "paths": [
+        "src/peru_conflicts/execution/annotation.py",
+        "src/peru_conflicts/execution/coordination.py",
+        "src/peru_conflicts/execution/owner_assisted.py"
+      ],
+      "disposition": "PRESERVE_HISTORICAL",
+      "role": "Old submission/intake/lock and owner-assisted authority.",
+      "direct_dependencies": [
+        "src/peru_conflicts/execution/contracts.py",
+        "src/peru_conflicts/execution/neutral_forms.py"
+      ],
+      "required_change": "New decision metadata stays separate; no fake model annotator pair.",
+      "pin_treatment": "Preserve exact versioned bytes, pins and original authority/completion states; explicit legacy behavior stays unchanged.",
+      "successor": "Successor selector/roundtrip"
+    },
+    {
+      "paths": [
+        "src/peru_conflicts/execution/references.py",
+        "src/peru_conflicts/execution/benchmark_projection.py",
+        "src/peru_conflicts/execution/compatibility.py",
+        "src/peru_conflicts/execution/source_dates.py"
+      ],
+      "disposition": "RETAIN_ACTIVE",
+      "role": "Mechanical representation/projection, object compatibility and pure date checks.",
+      "direct_dependencies": [
+        "src/peru_conflicts/models/domain.py",
+        "src/peru_conflicts/benchmark/models.py",
+        "config/benchmark/m2_02_reference_policy_v1.yaml"
+      ],
+      "required_change": "Reuse supported pure components without old participant-authority ceremony.",
+      "pin_treatment": "Retain representation/cache and typed-contract identity; adapted projections separately versioned.",
+      "successor": "M2R-02 adapter"
+    },
+    {
+      "paths": [
+        "docs/09_provenance_standard.md",
+        "docs/10_source_discrepancy_protocol.md",
+        "docs/14_entity_resolution_protocol.md",
+        "docs/15_geographic_harmonization.md",
+        "docs/16_qa_validation_protocol.md",
+        "docs/22_release_versioning_protocol.md"
+      ],
+      "disposition": "RETAIN_ACTIVE",
+      "role": "Evidence/taxonomy/relationships/geography/QA and immutable release obligations.",
+      "direct_dependencies": [
+        "src/peru_conflicts/models/domain.py",
+        "docs/08_data_dictionary.md"
+      ],
+      "required_change": "Retain scientific rules; route-specific wording resolves through successor strategy.",
+      "pin_treatment": "No source meaning/append-only/no-replace weakening.",
+      "successor": "M4R-M12R gates"
+    },
+    {
+      "paths": [
+        "docs/11_extraction_architecture.md",
+        "docs/12_pdf_parsing_ocr_strategy.md",
+        "docs/13_llm_extraction_protocol.md",
+        "docs/17_manual_review_protocol.md"
+      ],
+      "disposition": "REVISE_ACTIVE",
+      "role": "Extraction/model metadata/manual-review guidance.",
+      "direct_dependencies": [
+        "docs/09_provenance_standard.md",
+        "src/peru_conflicts/models/domain.py"
+      ],
+      "required_change": "Use evidence-driven hybrid routes and separate source-first/assisted packets.",
+      "pin_treatment": "Accepted-main commit/tree preserve historical guidance; no pinned contract or approval bytes are regenerated.",
+      "successor": "docs/ai_pi_reference_evaluation_protocol.md"
+    },
+    {
+      "paths": [
+        ".codex/agents/source-scout.toml",
+        ".codex/agents/pdf-engineer.toml",
+        ".codex/agents/data-model-auditor.toml",
+        ".codex/agents/entity-resolution-reviewer.toml",
+        ".codex/agents/qa-auditor.toml",
+        ".agents/skills/extract-report/SKILL.md",
+        ".agents/skills/validate-report/SKILL.md",
+        ".agents/skills/manual-adjudication/SKILL.md",
+        ".agents/skills/corpus-manifest/SKILL.md",
+        ".agents/skills/pdf-forensics/SKILL.md",
+        ".agents/skills/entity-resolution/SKILL.md",
+        ".agents/skills/source-discrepancy/SKILL.md",
+        ".agents/skills/release-dataset/SKILL.md"
+      ],
+      "disposition": "REVISE_ACTIVE",
+      "role": "Procedural worker/coordinator/reader/validator roles.",
+      "direct_dependencies": [
+        "AGENTS.md",
+        "docs/25_codex_agent_orchestration.md"
+      ],
+      "required_change": "Select current route; keep custodian/neutral packet boundaries and actual PI authority; disclose model dependence.",
+      "pin_treatment": "Accepted-main commit/tree preserve historical guidance; no pinned contract or approval bytes are regenerated.",
+      "successor": "Successor role contracts"
+    },
+    {
+      "paths": [
+        "scripts/export_schemas.py",
+        "scripts/ci_m2_gate.py",
+        ".github/workflows/ci.yml"
+      ],
+      "disposition": "RETAIN_ACTIVE",
+      "role": "Schema consistency and existing full quality coverage.",
+      "direct_dependencies": [
+        "src/peru_conflicts/schema_export.py",
+        "src/peru_conflicts/benchmark/schema_export.py"
+      ],
+      "required_change": "Add affected successor checks only as needed; no CI coverage/marker/timeout reduction.",
+      "pin_treatment": "Prior CI applies only to executed source; current migration needs actual affected checks.",
+      "successor": "AI-00.5 and ordinary hosted CI"
+    },
+    {
+      "paths": [
+        "config/acquisition_authorizations/reviewed_registry_v2.json",
+        "config/acquisition_authorizations/m1_03b2_reports_260_269_authorization_v1.json",
+        "scripts/acquire_official_sources.py",
+        "docs/m1_completion_report.md"
+      ],
+      "disposition": "RETAIN_ACTIVE",
+      "role": "Acquisition safety and completed/spent M1 evidence.",
+      "direct_dependencies": [
+        "config/acquisition_authorizations/execution_tree_manifest_v2.json",
+        "docs/m1_03b_live_comparison_protocol.md"
+      ],
+      "required_change": "Preserve collector; later historical acquisition gets new scoped authorization.",
+      "pin_treatment": "No old authorization is unspent; no raw/ledger write/download in migration.",
+      "successor": "M5R-01 separate acquisition"
+    },
+    {
+      "paths": [
+        "src/peru_conflicts/models/domain.py",
+        "src/peru_conflicts/benchmark/models.py",
+        "src/peru_conflicts/execution/benchmark_projection.py"
+      ],
+      "disposition": "FUTURE_IMPLEMENTATION",
+      "role": "Narrow report-context association and relational adapter seam.",
+      "direct_dependencies": [
+        "config/ai_pi/strategy_v1.json",
+        "docs/ai_pi_first_batch.md"
+      ],
+      "required_change": "M2R-02 needs thin adapter and separately approved same-report context only for report_number/reference_period; existing multi-anchor tuples reused.",
+      "pin_treatment": "Roadmap approves no schema semantics; unsupported mapping stays incomplete; old five-CSV interchange preserved.",
+      "successor": "M2R-02 after actual semantic/run decision"
+    },
+    {
+      "paths": [
+        "src/peru_conflicts/execution/references.py",
+        "src/peru_conflicts/benchmark/metrics.py",
+        "docs/ai_pi_reference_evaluation_protocol.md"
+      ],
+      "disposition": "FUTURE_IMPLEMENTATION",
+      "role": "Review-packet/frozen-scoring implementation seams.",
+      "direct_dependencies": [
+        "config/ai_pi/strategy_v1.json",
+        "docs/ai_pi_first_batch.md"
+      ],
+      "required_change": "M2R-02/04 readable answer-free source-first and separate assisted packets; M2R-05/06 freezes; M3R-05 reviewed final metric targets.",
+      "pin_treatment": "No reference answers, PI decisions or statistical claims synthesized in migration.",
+      "successor": "First two bounded batches then regime qualification"
+    },
+    {
+      "paths": [
+        "docs/ai_pi_strategy.md",
+        "config/ai_pi/strategy_v1.json",
+        "src/peru_conflicts/execution/ai_pi.py",
+        "scripts/plan_ai_pi.py",
+        "docs/ai_pi_agent_contract.md"
+      ],
+      "disposition": "REVISE_ACTIVE",
+      "role": "New strategy selection, run/readiness metadata and neutral procedural contracts.",
+      "direct_dependencies": [
+        "src/peru_conflicts/models/domain.py",
+        "src/peru_conflicts/benchmark/models.py",
+        "docs/ai_pi_reference_evaluation_protocol.md",
+        "docs/ai_pi_first_batch.md"
+      ],
+      "required_change": "Test actual non-executing selector and synthetic candidate/review/derived/evaluation interfaces; require concrete scope/budget/authority at execution boundaries.",
+      "pin_treatment": "New source-stage metadata has its own schema/version. Existing legacy and scientific pins remain unchanged; run output cannot fabricate PI/reference/release state.",
+      "successor": "AI-00.2/AI-00.5 active path; M2R-01 future real envelope"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "strategy_id": "AI_PI_RECONSTRUCTION_V1",
+  "schema_version": "1",
+  "owner": "Jorge Zavala",
+  "adopted_on": "2026-10-06",
+  "adoption_evidence": "owner instruction CODEX_AI_FIRST_PI_VALIDATED_MIGRATION.md",
+  "scientific_schema": "0.3.1",
+  "benchmark_metric_contract": "0.1.1",
+  "migration_authorized": true,
+  "real_execution_authorized": false,
+  "data_release_authorized": false
+}

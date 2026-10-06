@@ -1,0 +1,1114 @@
+{
+  "$defs": {
+    "AdjudicationRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "adjudication_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Adjudication Id",
+          "type": "string"
+        },
+        "decided_at": {
+          "format": "date-time",
+          "title": "Decided At",
+          "type": "string"
+        },
+        "decision_action": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Decision Action",
+          "type": "string"
+        },
+        "decision_original": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Decision Original",
+          "type": "string"
+        },
+        "decision_payload_json": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Decision Payload Json"
+        },
+        "evidence_provenance_ids": {
+          "items": {
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Evidence Provenance Ids",
+          "type": "array"
+        },
+        "parser_version": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Parser Version",
+          "type": "string"
+        },
+        "rationale": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Rationale",
+          "type": "string"
+        },
+        "review_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Review Id",
+          "type": "string"
+        },
+        "reviewer_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Reviewer Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "0.3.1",
+          "default": "0.3.1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "second_reviewed_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Second Reviewed At"
+        },
+        "second_reviewer_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Second Reviewer Id"
+        },
+        "supersedes_adjudication_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Supersedes Adjudication Id"
+        }
+      },
+      "required": [
+        "adjudication_id",
+        "review_id",
+        "decision_original",
+        "decision_action",
+        "rationale",
+        "reviewer_id",
+        "decided_at",
+        "parser_version",
+        "evidence_provenance_ids"
+      ],
+      "title": "AdjudicationRecord",
+      "type": "object"
+    },
+    "AnnotationSlot": {
+      "additionalProperties": false,
+      "description": "One source-bounded object-instance field within an annotation unit.",
+      "properties": {
+        "benchmark_schema_version": {
+          "const": "0.1.1",
+          "default": "0.1.1",
+          "title": "Benchmark Schema Version",
+          "type": "string"
+        },
+        "cardinality_index": {
+          "minimum": 0,
+          "title": "Cardinality Index",
+          "type": "integer"
+        },
+        "domain_object_type": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Domain Object Type",
+          "type": "string"
+        },
+        "field_name": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Field Name",
+          "type": "string"
+        },
+        "unit_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Unit Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "unit_id",
+        "domain_object_type",
+        "cardinality_index",
+        "field_name"
+      ],
+      "title": "AnnotationSlot",
+      "type": "object"
+    },
+    "AnnotationState": {
+      "enum": [
+        "observed",
+        "explicit_zero",
+        "not_reported",
+        "not_applicable",
+        "source_ambiguous",
+        "structurally_unavailable",
+        "illegible_uninspectable",
+        "annotation_uncertain"
+      ],
+      "title": "AnnotationState",
+      "type": "string"
+    },
+    "CandidateVersion": {
+      "additionalProperties": false,
+      "properties": {
+        "annotations": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/FieldAnnotation"
+          },
+          "title": "Annotations",
+          "type": "array"
+        },
+        "envelope_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Envelope Sha256",
+          "type": "string"
+        },
+        "intended_use": {
+          "default": "development",
+          "enum": [
+            "development",
+            "reserved_evaluation",
+            "retrospective_audit",
+            "production_candidate"
+          ],
+          "title": "Intended Use",
+          "type": "string"
+        },
+        "notes": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Notes",
+          "type": "array"
+        },
+        "origin": {
+          "enum": [
+            "source_derived_machine_candidate",
+            "synthetic_fixture"
+          ],
+          "title": "Origin",
+          "type": "string"
+        },
+        "processed_unit_ids": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "type": "string"
+          },
+          "title": "Processed Unit Ids",
+          "type": "array"
+        },
+        "processing": {
+          "default": "incomplete",
+          "enum": [
+            "incomplete",
+            "technically_valid",
+            "requires_review"
+          ],
+          "title": "Processing",
+          "type": "string"
+        },
+        "release": {
+          "const": "internal_draft",
+          "default": "internal_draft",
+          "title": "Release",
+          "type": "string"
+        },
+        "run_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "unresolved": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "type": "string"
+          },
+          "title": "Unresolved",
+          "type": "array"
+        },
+        "version_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Version Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "version_id",
+        "run_id",
+        "envelope_sha256",
+        "origin"
+      ],
+      "title": "CandidateVersion",
+      "type": "object"
+    },
+    "DerivedVersion": {
+      "additionalProperties": false,
+      "properties": {
+        "annotations": {
+          "items": {
+            "$ref": "#/$defs/FieldAnnotation"
+          },
+          "title": "Annotations",
+          "type": "array"
+        },
+        "decision_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Decision Sha256",
+          "type": "string"
+        },
+        "initial_candidate_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Initial Candidate Sha256",
+          "type": "string"
+        },
+        "origin": {
+          "enum": [
+            "source_first_pi_decision",
+            "ai_assisted_pi_decision",
+            "synthetic_fixture"
+          ],
+          "title": "Origin",
+          "type": "string"
+        },
+        "processing": {
+          "enum": [
+            "requires_review",
+            "resolved_derived_version"
+          ],
+          "title": "Processing",
+          "type": "string"
+        },
+        "release": {
+          "const": "internal_draft",
+          "default": "internal_draft",
+          "title": "Release",
+          "type": "string"
+        }
+      },
+      "required": [
+        "initial_candidate_sha256",
+        "decision_sha256",
+        "origin",
+        "processing",
+        "annotations"
+      ],
+      "title": "DerivedVersion",
+      "type": "object"
+    },
+    "EvidenceAnchor": {
+      "additionalProperties": false,
+      "properties": {
+        "benchmark_schema_version": {
+          "const": "0.1.1",
+          "default": "0.1.1",
+          "title": "Benchmark Schema Version",
+          "type": "string"
+        },
+        "granularity": {
+          "$ref": "#/$defs/EvidenceGranularity"
+        },
+        "page": {
+          "minimum": 1,
+          "title": "Page",
+          "type": "integer"
+        },
+        "page_only_rationale": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Page Only Rationale"
+        },
+        "report_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Report Id",
+          "type": "string"
+        },
+        "report_number": {
+          "minimum": 1,
+          "title": "Report Number",
+          "type": "integer"
+        },
+        "section": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Section",
+          "type": "string"
+        },
+        "source_bbox": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceBBox"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "source_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Source Sha256",
+          "type": "string"
+        },
+        "source_span": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceSpan"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "source_table": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Table"
+        },
+        "source_text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Text"
+        },
+        "table_column_original": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Table Column Original"
+        },
+        "table_row_original": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Table Row Original"
+        }
+      },
+      "required": [
+        "report_id",
+        "report_number",
+        "source_sha256",
+        "page",
+        "section",
+        "granularity"
+      ],
+      "title": "EvidenceAnchor",
+      "type": "object"
+    },
+    "EvidenceGranularity": {
+      "enum": [
+        "page_only",
+        "section",
+        "span",
+        "bounding_box",
+        "table_cell"
+      ],
+      "title": "EvidenceGranularity",
+      "type": "string"
+    },
+    "FieldAnnotation": {
+      "additionalProperties": false,
+      "properties": {
+        "annotation_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Annotation Id",
+          "type": "string"
+        },
+        "annotator_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Annotator Id",
+          "type": "string"
+        },
+        "benchmark_schema_version": {
+          "const": "0.1.1",
+          "default": "0.1.1",
+          "title": "Benchmark Schema Version",
+          "type": "string"
+        },
+        "cardinality_index": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Cardinality Index",
+          "type": "integer"
+        },
+        "domain_object_type": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Domain Object Type",
+          "type": "string"
+        },
+        "evidence_anchors": {
+          "items": {
+            "$ref": "#/$defs/EvidenceAnchor"
+          },
+          "minItems": 1,
+          "title": "Evidence Anchors",
+          "type": "array"
+        },
+        "field_name": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Field Name",
+          "type": "string"
+        },
+        "raw_value_json": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Raw Value Json"
+        },
+        "state": {
+          "$ref": "#/$defs/AnnotationState"
+        },
+        "uncertainty_comment": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Uncertainty Comment"
+        },
+        "unit_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Unit Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "annotation_id",
+        "unit_id",
+        "annotator_id",
+        "domain_object_type",
+        "field_name",
+        "state",
+        "evidence_anchors"
+      ],
+      "title": "FieldAnnotation",
+      "type": "object"
+    },
+    "PIDecision": {
+      "additionalProperties": false,
+      "properties": {
+        "adjudication": {
+          "$ref": "#/$defs/AdjudicationRecord"
+        },
+        "decision_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Decision Id",
+          "type": "string"
+        },
+        "initial_candidate_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Initial Candidate Sha256",
+          "type": "string"
+        },
+        "inventory_reviewed_unit_ids": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "type": "string"
+          },
+          "title": "Inventory Reviewed Unit Ids",
+          "type": "array"
+        },
+        "mode": {
+          "enum": [
+            "source_first",
+            "assisted"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "reference_annotations": {
+          "items": {
+            "$ref": "#/$defs/FieldAnnotation"
+          },
+          "title": "Reference Annotations",
+          "type": "array"
+        },
+        "request_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Request Sha256",
+          "type": "string"
+        },
+        "reviewed_unit_ids": {
+          "items": {
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "type": "string"
+          },
+          "title": "Reviewed Unit Ids",
+          "type": "array"
+        },
+        "run_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "selection_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Selection Sha256",
+          "type": "string"
+        },
+        "simulated": {
+          "title": "Simulated",
+          "type": "boolean"
+        },
+        "unresolved": {
+          "default": [],
+          "items": {
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "type": "string"
+          },
+          "title": "Unresolved",
+          "type": "array"
+        }
+      },
+      "required": [
+        "decision_id",
+        "run_id",
+        "request_sha256",
+        "initial_candidate_sha256",
+        "selection_sha256",
+        "mode",
+        "simulated",
+        "adjudication",
+        "reviewed_unit_ids",
+        "reference_annotations"
+      ],
+      "title": "PIDecision",
+      "type": "object"
+    },
+    "ResourceBudget": {
+      "additionalProperties": false,
+      "properties": {
+        "max_calls": {
+          "minimum": 1,
+          "title": "Max Calls",
+          "type": "integer"
+        },
+        "max_external_spend": {
+          "minimum": 0,
+          "title": "Max External Spend",
+          "type": "number"
+        },
+        "max_pi_review_minutes": {
+          "minimum": 1,
+          "title": "Max Pi Review Minutes",
+          "type": "integer"
+        },
+        "max_wall_seconds": {
+          "minimum": 1,
+          "title": "Max Wall Seconds",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "max_calls",
+        "max_wall_seconds",
+        "max_pi_review_minutes",
+        "max_external_spend"
+      ],
+      "title": "ResourceBudget",
+      "type": "object"
+    },
+    "ReviewRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "candidate_annotations": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/FieldAnnotation"
+          },
+          "title": "Candidate Annotations",
+          "type": "array"
+        },
+        "initial_candidate_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Initial Candidate Sha256",
+          "type": "string"
+        },
+        "mode": {
+          "enum": [
+            "source_first",
+            "assisted"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "request_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Request Id",
+          "type": "string"
+        },
+        "run_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "selection_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Selection Sha256",
+          "type": "string"
+        },
+        "units": {
+          "items": {
+            "$ref": "#/$defs/SourceUnit"
+          },
+          "title": "Units",
+          "type": "array"
+        }
+      },
+      "required": [
+        "request_id",
+        "run_id",
+        "initial_candidate_sha256",
+        "selection_sha256",
+        "mode",
+        "units"
+      ],
+      "title": "ReviewRequest",
+      "type": "object"
+    },
+    "RunEnvelope": {
+      "additionalProperties": false,
+      "properties": {
+        "eligible_slots": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/AnnotationSlot"
+          },
+          "title": "Eligible Slots",
+          "type": "array"
+        },
+        "owner_execution_authority": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": ".*\\S.*",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Owner Execution Authority"
+        },
+        "permitted_operations": {
+          "default": [
+            "plan",
+            "synthetic_validation"
+          ],
+          "items": {
+            "enum": [
+              "plan",
+              "synthetic_validation"
+            ],
+            "type": "string"
+          },
+          "title": "Permitted Operations",
+          "type": "array"
+        },
+        "purpose": {
+          "enum": [
+            "development",
+            "reserved_evaluation",
+            "production_candidate",
+            "synthetic"
+          ],
+          "title": "Purpose",
+          "type": "string"
+        },
+        "resource_budget": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ResourceBudget"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "run_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Run Id",
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "1",
+          "default": "1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "strategy_id": {
+          "const": "AI_PI_RECONSTRUCTION_V1",
+          "default": "AI_PI_RECONSTRUCTION_V1",
+          "title": "Strategy Id",
+          "type": "string"
+        },
+        "tool_configuration": {
+          "anyOf": [
+            {
+              "minLength": 1,
+              "pattern": ".*\\S.*",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tool Configuration"
+        },
+        "units": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/SourceUnit"
+          },
+          "title": "Units",
+          "type": "array"
+        }
+      },
+      "required": [
+        "run_id",
+        "purpose"
+      ],
+      "title": "RunEnvelope",
+      "type": "object"
+    },
+    "SourceBBox": {
+      "additionalProperties": false,
+      "properties": {
+        "x0": {
+          "title": "X0",
+          "type": "number"
+        },
+        "x1": {
+          "title": "X1",
+          "type": "number"
+        },
+        "y0": {
+          "title": "Y0",
+          "type": "number"
+        },
+        "y1": {
+          "title": "Y1",
+          "type": "number"
+        }
+      },
+      "required": [
+        "x0",
+        "y0",
+        "x1",
+        "y1"
+      ],
+      "title": "SourceBBox",
+      "type": "object"
+    },
+    "SourceSpan": {
+      "additionalProperties": false,
+      "properties": {
+        "end": {
+          "minimum": 0,
+          "title": "End",
+          "type": "integer"
+        },
+        "start": {
+          "minimum": 0,
+          "title": "Start",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ],
+      "title": "SourceSpan",
+      "type": "object"
+    },
+    "SourceUnit": {
+      "additionalProperties": false,
+      "properties": {
+        "pages": {
+          "items": {
+            "type": "integer"
+          },
+          "minItems": 1,
+          "title": "Pages",
+          "type": "array"
+        },
+        "report_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Report Id",
+          "type": "string"
+        },
+        "report_number": {
+          "minimum": 1,
+          "title": "Report Number",
+          "type": "integer"
+        },
+        "sections": {
+          "items": {
+            "minLength": 1,
+            "pattern": ".*\\S.*",
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Sections",
+          "type": "array"
+        },
+        "source_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Source Sha256",
+          "type": "string"
+        },
+        "unit_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Unit Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "unit_id",
+        "report_id",
+        "report_number",
+        "source_sha256",
+        "pages",
+        "sections"
+      ],
+      "title": "SourceUnit",
+      "type": "object"
+    },
+    "StrategyDecision": {
+      "additionalProperties": false,
+      "properties": {
+        "adopted_on": {
+          "const": "2026-10-06",
+          "default": "2026-10-06",
+          "title": "Adopted On",
+          "type": "string"
+        },
+        "adoption_evidence": {
+          "default": "owner instruction CODEX_AI_FIRST_PI_VALIDATED_MIGRATION.md",
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Adoption Evidence",
+          "type": "string"
+        },
+        "benchmark_metric_contract": {
+          "const": "0.1.1",
+          "default": "0.1.1",
+          "title": "Benchmark Metric Contract",
+          "type": "string"
+        },
+        "data_release_authorized": {
+          "const": false,
+          "default": false,
+          "title": "Data Release Authorized",
+          "type": "boolean"
+        },
+        "migration_authorized": {
+          "const": true,
+          "default": true,
+          "title": "Migration Authorized",
+          "type": "boolean"
+        },
+        "owner": {
+          "const": "Jorge Zavala",
+          "default": "Jorge Zavala",
+          "title": "Owner",
+          "type": "string"
+        },
+        "real_execution_authorized": {
+          "const": false,
+          "default": false,
+          "title": "Real Execution Authorized",
+          "type": "boolean"
+        },
+        "schema_version": {
+          "const": "1",
+          "default": "1",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "scientific_schema": {
+          "const": "0.3.1",
+          "default": "0.3.1",
+          "title": "Scientific Schema",
+          "type": "string"
+        },
+        "strategy_id": {
+          "const": "AI_PI_RECONSTRUCTION_V1",
+          "default": "AI_PI_RECONSTRUCTION_V1",
+          "title": "Strategy Id",
+          "type": "string"
+        }
+      },
+      "title": "StrategyDecision",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "candidate": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CandidateVersion"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "derived": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/DerivedVersion"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "envelope": {
+      "$ref": "#/$defs/RunEnvelope"
+    },
+    "pi_decision": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PIDecision"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "review_request": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ReviewRequest"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "strategy": {
+      "$ref": "#/$defs/StrategyDecision"
+    }
+  },
+  "required": [
+    "strategy",
+    "envelope"
+  ],
+  "title": "WorkflowMetadata",
+  "type": "object"
+}

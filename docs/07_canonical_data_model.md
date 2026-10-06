@@ -5,7 +5,7 @@ Core tables are `report`, `report_month`, `case`, `case_name`, `case_month`,
 `case_demand`, `protest_event`, `case_protest_link`, `violence_event`, `dialogue_event`,
 `mediation_observation`, `mediation_process`, `agreement`, `dp_action`, `alert`,
 `case_relationship`, `provenance`, `discrepancy`, `manual_review`, and `adjudication`.
-The current source contract is schema `v0.3.0`; generated `v0.1.0` and `v0.2.0`
+The current source contract is schema `v0.3.1`; generated `v0.1.0` and `v0.2.0`
 directories remain immutable historical snapshots.
 
 Official case code precedes deterministic multi-field linkage, probabilistic candidacy, and manual adjudication. Stock status and transition evidence are separate. Merge, split, rename, reactivation, and other relationships remain explicit and their historical vocabulary remains open until evidenced. Null is never coerced to zero.

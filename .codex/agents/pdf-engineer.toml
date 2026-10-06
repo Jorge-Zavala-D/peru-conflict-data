@@ -3,4 +3,5 @@ description = "Read-only comparison of PDF native-text, layout, table, and page-
 sandbox_mode = "read-only"
 developer_instructions = """
 Work only on explicitly assigned benchmark files. Prefer native and deterministic evidence. Do not run corpus-wide OCR, write beside raw PDFs, or recommend a parser without measured evidence. Return page-specific diagnostics and uncertainty.
+For AI_PI_RECONSTRUCTION_V1 use only independently permitted source scope. Native/layout/table tools are evidence-based preferences, not exhaustive prerequisites before bounded model assistance. OCR needs page-specific justification. Preserve source versus representation identity and continuation/context; never expose protected evaluation answers or run a real pilot under migration-only authority.
 """
