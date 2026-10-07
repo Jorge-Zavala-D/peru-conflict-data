@@ -389,6 +389,33 @@
       "title": "EvidenceGranularity",
       "type": "string"
     },
+    "ExecutableIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        },
+        "version": {
+          "minLength": 1,
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256",
+        "version"
+      ],
+      "title": "ExecutableIdentity",
+      "type": "object"
+    },
     "FieldAnnotation": {
       "additionalProperties": false,
       "properties": {
@@ -556,6 +583,14 @@
           "pattern": "^[a-f0-9]{64}$",
           "title": "Raw Response Sha256",
           "type": "string"
+        },
+        "region_evidence_methods": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/RegionEvidenceMethod"
+          },
+          "title": "Region Evidence Methods",
+          "type": "array"
         },
         "relationships": {
           "default": [],
@@ -870,6 +905,205 @@
         "size_bytes"
       ],
       "title": "RawResponseReceipt",
+      "type": "object"
+    },
+    "RegionEvidenceMethod": {
+      "additionalProperties": false,
+      "properties": {
+        "anchor_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Anchor Sha256",
+          "type": "string"
+        },
+        "layout": {
+          "$ref": "#/$defs/RegionLayoutPin"
+        },
+        "method_id": {
+          "const": "native_bbox_words_v1",
+          "title": "Method Id",
+          "type": "string"
+        },
+        "original_bbox": {
+          "$ref": "#/$defs/SourceBBox"
+        },
+        "raw_response_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Raw Response Sha256",
+          "type": "string"
+        },
+        "unit_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Unit Id",
+          "type": "string"
+        },
+        "whitespace_policy": {
+          "const": "ascii_space_lf_v1",
+          "title": "Whitespace Policy",
+          "type": "string"
+        }
+      },
+      "required": [
+        "method_id",
+        "unit_id",
+        "anchor_sha256",
+        "raw_response_sha256",
+        "original_bbox",
+        "layout",
+        "whitespace_policy"
+      ],
+      "title": "RegionEvidenceMethod",
+      "type": "object"
+    },
+    "RegionLayoutPin": {
+      "additionalProperties": false,
+      "properties": {
+        "bbox_xml_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Bbox Xml Sha256",
+          "type": "string"
+        },
+        "coordinate_policy": {
+          "const": "top_left_pdf_points_unrotated_media_crop_zero_v1",
+          "title": "Coordinate Policy",
+          "type": "string"
+        },
+        "crop_box": {
+          "$ref": "#/$defs/SourceBBox"
+        },
+        "engine": {
+          "$ref": "#/$defs/ExecutableIdentity"
+        },
+        "extraction_options": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Extraction Options",
+          "type": "array"
+        },
+        "layout_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Layout Sha256",
+          "type": "string"
+        },
+        "media_box": {
+          "$ref": "#/$defs/SourceBBox"
+        },
+        "physical_page": {
+          "minimum": 1,
+          "title": "Physical Page",
+          "type": "integer"
+        },
+        "reference_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Reference Sha256",
+          "type": "string"
+        },
+        "region_policy": {
+          "const": "fully_contained_words_retained_order_v1",
+          "title": "Region Policy",
+          "type": "string"
+        },
+        "report_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Report Id",
+          "type": "string"
+        },
+        "report_number": {
+          "title": "Report Number",
+          "type": "integer"
+        },
+        "rotation": {
+          "const": 0,
+          "title": "Rotation",
+          "type": "integer"
+        },
+        "source_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Source Sha256",
+          "type": "string"
+        },
+        "unit_id": {
+          "minLength": 1,
+          "pattern": ".*\\S.*",
+          "title": "Unit Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "report_id",
+        "report_number",
+        "source_sha256",
+        "physical_page",
+        "unit_id",
+        "reference_sha256",
+        "layout_sha256",
+        "bbox_xml_sha256",
+        "engine",
+        "extraction_options",
+        "coordinate_policy",
+        "media_box",
+        "crop_box",
+        "rotation",
+        "region_policy"
+      ],
+      "title": "RegionLayoutPin",
+      "type": "object"
+    },
+    "RegionMatch": {
+      "additionalProperties": false,
+      "properties": {
+        "comparison_end": {
+          "title": "Comparison End",
+          "type": "integer"
+        },
+        "comparison_start": {
+          "title": "Comparison Start",
+          "type": "integer"
+        },
+        "comparison_text_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Comparison Text Sha256",
+          "type": "string"
+        },
+        "match_kind": {
+          "enum": [
+            "raw_exact",
+            "qualified_whitespace"
+          ],
+          "title": "Match Kind",
+          "type": "string"
+        },
+        "method": {
+          "$ref": "#/$defs/RegionEvidenceMethod"
+        },
+        "original_quote_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Original Quote Sha256",
+          "type": "string"
+        },
+        "raw_region_sha256": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Raw Region Sha256",
+          "type": "string"
+        },
+        "raw_region_text": {
+          "title": "Raw Region Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "method",
+        "match_kind",
+        "original_quote_sha256",
+        "raw_region_text",
+        "raw_region_sha256",
+        "comparison_text_sha256",
+        "comparison_start",
+        "comparison_end"
+      ],
+      "title": "RegionMatch",
       "type": "object"
     },
     "ReportContextAssociation": {
@@ -1363,6 +1597,14 @@
         "$ref": "#/$defs/RawResponseReceipt"
       },
       "title": "Raw Responses",
+      "type": "array"
+    },
+    "region_evidence_results": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/RegionMatch"
+      },
+      "title": "Region Evidence Results",
       "type": "array"
     },
     "source_first_packets": {

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path, PureWindowsPath
 from typing import Literal, Self
@@ -25,6 +26,7 @@ from peru_conflicts.hashing import canonical_json_bytes, sha256_file
 from peru_conflicts.models.common import Identifier, JsonDocument, Sha256, StrictModel
 
 from .ai_pi import CandidateVersion, FingerprintedModel, RunEnvelope, SourceUnit, validate_candidate
+from .evidence_regions import RegionEvidenceMethod, RegionMatch, RegionResource, match_region
 from .references import reference_text, sha256
 
 SOURCE_SHA256 = "5d7e9a506d402915d994456fb9a69e371788613e583d8a215975705c7cad0ddd"
@@ -421,12 +423,11 @@ def _validate_anchor(
         raise ValueError("evidence quote/reference mismatch")
 
 
-def validate_report_context(
+def _report_context_unit(
     association: ReportContextAssociation,
     envelope: BatchEnvelope,
     units: Sequence[SourceUnit],
-    reference_pages: Mapping[tuple[str, int], bytes],
-) -> None:
+) -> SourceUnit:
     by_id = {unit.unit_id: unit for unit in units}
     for unit_id in (association.context_source_unit_id, association.target_unit_id):
         if unit_id not in by_id:
@@ -438,8 +439,17 @@ def validate_report_context(
         envelope.source_sha256,
     ) or by_id[association.target_unit_id].report_id != association.target_report_id:
         raise ValueError("context target/report/source identity mismatch")
+    return by_id[association.context_source_unit_id]
+
+
+def validate_report_context(
+    association: ReportContextAssociation,
+    envelope: BatchEnvelope,
+    units: Sequence[SourceUnit],
+    reference_pages: Mapping[tuple[str, int], bytes],
+) -> None:
     _validate_anchor(
-        association.evidence, by_id[association.context_source_unit_id], reference_pages
+        association.evidence, _report_context_unit(association, envelope, units), reference_pages
     )
 
 
@@ -458,9 +468,13 @@ class MachineCandidate(FingerprintedModel):
     report_context_associations: tuple[ReportContextAssociation, ...] = ()
     processed_unit_ids: tuple[Identifier, ...] = ()
     unresolved: tuple[Identifier, ...] = ()
+    region_evidence_methods: tuple[RegionEvidenceMethod, ...] = ()
 
     @model_validator(mode="after")
     def unique_objects_and_units(self) -> Self:
+        method_keys = [(m.unit_id, m.anchor_sha256) for m in self.region_evidence_methods]
+        if len(method_keys) != len(set(method_keys)):
+            raise ValueError("duplicate region evidence declarations")
         if len(set(self.processed_unit_ids)) != len(self.processed_unit_ids):
             raise ValueError("processed units must be unique")
         ids = {obj.object_id for obj in self.objects}
@@ -477,6 +491,9 @@ def validate_machine_candidate(
     envelope: BatchEnvelope,
     units: tuple[SourceUnit, ...],
     reference_pages: Mapping[tuple[str, int], bytes],
+    *,
+    region_resources: Mapping[str, RegionResource] | None = None,
+    region_matches: list[RegionMatch] | None = None,
 ) -> tuple[str, ...]:
     if (candidate.batch_id, candidate.envelope_sha256) != (envelope.batch_id, envelope.fingerprint):
         raise ValueError("candidate/envelope identity mismatch")
@@ -493,6 +510,36 @@ def validate_machine_candidate(
         unresolved=candidate.unresolved,
     )
     issues = list(validate_candidate(retained, ordinary, reference_pages))
+    methods = {(m.unit_id, m.anchor_sha256): m for m in candidate.region_evidence_methods}
+    used_methods: set[tuple[str, str]] = set()
+
+    def validate_evidence(anchor: EvidenceAnchor, unit: SourceUnit) -> None:
+        key = (unit.unit_id, sha256(canonical_json_bytes(anchor.model_dump(mode="json"))))
+        method = methods.get(key)
+        if method is None:
+            _validate_anchor(anchor, unit, reference_pages)
+            return
+        resource = (region_resources or {}).get(method.layout.layout_sha256)
+        if resource is None:
+            raise ValueError("declared region resource missing; incomplete")
+        tool = next(t for t in envelope.tool.native_tools if t.tool_name == "pdftotext")
+        if (
+            method.layout.engine.path,
+            method.layout.engine.sha256,
+            method.layout.engine.version,
+        ) != (str(tool.path), tool.sha256, tool.version):
+            raise ValueError("region extraction tool identity mismatch")
+        reference = reference_pages.get((unit.unit_id, anchor.page))
+        if reference is None:
+            raise ValueError("region reference missing")
+        result = match_region(
+            anchor, unit, reference, candidate.raw_response_sha256, method, resource
+        )
+        used_methods.add(key)
+        issues.append(f"region_match:{result.match_kind}:{result.raw_region_sha256}")
+        if region_matches is not None:
+            region_matches.append(result)
+
     by_id = {unit.unit_id: unit for unit in units}
     fields = (
         *candidate.partial_fields,
@@ -502,13 +549,13 @@ def validate_machine_candidate(
         if field.unit_id not in by_id:
             raise ValueError("partial field unit outside envelope")
         for anchor in field.evidence_anchors:
-            _validate_anchor(anchor, by_id[field.unit_id], reference_pages)
+            validate_evidence(anchor, by_id[field.unit_id])
         issues.append(f"unresolved:{field.unit_id}:{field.field_name}:{field.cardinality_index}")
     for obj in candidate.objects:
         if obj.unit_id not in by_id:
             raise ValueError("object unit outside envelope")
         for anchor in obj.evidence_anchors:
-            _validate_anchor(anchor, by_id[obj.unit_id], reference_pages)
+            validate_evidence(anchor, by_id[obj.unit_id])
     for relation in candidate.relationships:
         if not set(relation.source_unit_ids).issubset(by_id):
             raise ValueError("relationship source units outside envelope")
@@ -520,9 +567,11 @@ def validate_machine_candidate(
             ]
             if not matching:
                 raise ValueError("relationship evidence outside source units")
-            _validate_anchor(anchor, matching[0], reference_pages)
+            validate_evidence(anchor, matching[0])
     for association in candidate.report_context_associations:
-        validate_report_context(association, envelope, units, reference_pages)
+        validate_evidence(association.evidence, _report_context_unit(association, envelope, units))
+    if set(methods) != used_methods:
+        raise ValueError("unused region declarations; incomplete")
     return tuple(issues)
 
 
@@ -591,14 +640,24 @@ class RawResponseReceipt(StrictModel):
     size_bytes: int = Field(ge=0)
 
 
+def followup_filename(filename: str, output_prefix: str | None) -> str:
+    if output_prefix is None:
+        return filename
+    if not re.fullmatch(r"normalization_followups/b-region-v1-[A-Za-z0-9-]+", output_prefix):
+        raise ValueError("invalid separately versioned region followup path")
+    return f"{output_prefix}/{filename}"
+
+
 def freeze_raw_response(
     envelope: BatchEnvelope,
     response_id: str,
     response: bytes,
+    *,
+    output_prefix: str | None = None,
 ) -> RawResponseReceipt:
     if Path(response_id).name != response_id or response_id in {".", ".."}:
         raise ValueError("response ID must be a single filename component")
-    target = _target(envelope, f"raw_responses/{response_id}.txt")
+    target = _target(envelope, followup_filename(f"raw_responses/{response_id}.txt", output_prefix))
     _write_new(target, response)
     return RawResponseReceipt(
         response_id=response_id,
@@ -642,6 +701,7 @@ class BatchExecutionMetadata(StrictModel):
     source_first_packets: tuple[SourceFirstPacket, ...] = ()
     raw_responses: tuple[RawResponseReceipt, ...] = ()
     initial_candidate: MachineCandidate | None = None
+    region_evidence_results: tuple[RegionMatch, ...] = ()
 
 
 def schema_bytes() -> bytes:

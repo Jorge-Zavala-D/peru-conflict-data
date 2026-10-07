@@ -9,6 +9,7 @@ import io
 import json
 import re
 import subprocess
+import traceback
 from collections import defaultdict
 from collections.abc import Mapping, Sequence
 from datetime import UTC, datetime
@@ -29,6 +30,7 @@ from .ai_pi_batch import (
     ToolIdentity,
     _write_new,  # pyright: ignore[reportPrivateUsage]
     coverage_state,
+    followup_filename,
     freeze_raw_response,
     make_worker_packet,
     prepare_output_root,
@@ -39,6 +41,7 @@ from .ai_pi_batch import (
     verify_source_identity,
     write_json,
 )
+from .evidence_regions import RegionEvidenceMethod, RegionMatch, RegionResource
 from .references import reference_text, sha256
 
 REFERENCE_CONFIG: dict[str, object] = {
@@ -490,6 +493,9 @@ def finalize_initial_pass(
     *,
     units: tuple[SourceUnit, ...],
     reference_pages: Mapping[tuple[str, int], bytes],
+    output_prefix: str | None = None,
+    region_methods: Mapping[str, tuple[RegionEvidenceMethod, ...]] | None = None,
+    region_resources: Mapping[str, RegionResource] | None = None,
 ) -> dict[str, object]:
     """Retain exact responses before parsing; never turn a failure or empty result into absence."""
     if pass_name not in {"candidate", "discovery"}:
@@ -498,29 +504,61 @@ def finalize_initial_pass(
         require_unit(envelope, unit)
     if len(set(unit.unit_id for unit in units)) != len(units):
         raise ValueError("finalization units must be unique")
+    if (region_methods or region_resources) and output_prefix is None:
+        raise ValueError("new region methods require a separate derivative destination")
+    if not set(region_methods or {}).issubset({response_id for response_id, _ in raw_responses}):
+        raise ValueError("region declarations name an unknown response")
+    if output_prefix is not None:
+        probe = envelope.output_root / followup_filename("normalization.json", output_prefix)
+        if probe.parent.exists():
+            raise ValueError("followup destination already exists")
+        # The normal no-replace writer below validates containment and filename safety.
     receipts = [
-        freeze_raw_response(envelope, f"{pass_name}-{response_id}", raw)
+        freeze_raw_response(
+            envelope, f"{pass_name}-{response_id}", raw, output_prefix=output_prefix
+        )
         for response_id, raw in raw_responses
     ]
     candidates: list[MachineCandidate] = []
     issues: list[dict[str, object]] = []
     errors: list[dict[str, object]] = []
+    rejected_responses: list[dict[str, object]] = []
+    evidence_matches: list[dict[str, object]] = []
     for (response_id, raw), receipt in zip(raw_responses, receipts, strict=True):
+        matches: list[RegionMatch] = []
+        admitted = False
         try:
             parsed = json.loads(raw)
             if not isinstance(parsed, dict):
                 raise ValueError("machine response must contain one candidate object")
             payload = cast(dict[str, object], parsed)
+            if payload.get("region_evidence_methods"):
+                raise ValueError("machine replies cannot self-declare new region methods")
             payload["raw_response_sha256"] = receipt.sha256
+            declarations = (region_methods or {}).get(response_id, ())
+            if declarations:
+                payload["region_evidence_methods"] = [
+                    m.model_dump(mode="json") for m in declarations
+                ]
             candidate = MachineCandidate.model_validate_json(canonical_json_bytes(payload))
-            found = validate_machine_candidate(candidate, envelope, units, reference_pages)
-            candidates.append(candidate)
-            issues.append({"response_id": response_id, "issues": list(found)})
+            found = validate_machine_candidate(
+                candidate,
+                envelope,
+                units,
+                reference_pages,
+                region_resources=region_resources,
+                region_matches=matches,
+            )
             write_json(
                 envelope,
-                f"normalized_responses/{pass_name}-{response_id}.json",
+                followup_filename(
+                    f"normalized_responses/{pass_name}-{response_id}.json", output_prefix
+                ),
                 candidate.model_dump(mode="json"),
             )
+            candidates.append(candidate)
+            issues.append({"response_id": response_id, "issues": list(found)})
+            admitted = True
         except Exception as error:
             errors.append(
                 {
@@ -529,6 +567,30 @@ def finalize_initial_pass(
                     "error": str(error),
                     "raw_sha256": receipt.sha256,
                 }
+            )
+            if output_prefix is not None:
+                try:
+                    original_payload: object = json.loads(raw)
+                except ValueError:
+                    original_payload = None
+                rejected_responses.append(
+                    {
+                        "response_id": response_id,
+                        "raw_sha256": receipt.sha256,
+                        "original_payload": original_payload,
+                        "normalization": "rejected_response_not_source_absence",
+                        "all_original_entries_retained": True,
+                        "new_followup_traceback": traceback.format_exc(),
+                    }
+                )
+        if output_prefix is not None:
+            evidence_matches.extend(
+                {
+                    "response_id": response_id,
+                    "normalization_status": "admitted" if admitted else "rejected",
+                    "result": match.model_dump(mode="json"),
+                }
+                for match in matches
             )
     coverage: dict[str, str] = {}
     for unit in units:
@@ -556,12 +618,28 @@ def finalize_initial_pass(
         "pi_decisions_created": False,
         "merge_policy": "fragments retained separately; no silent duplicate ID replacement",
     }
+    if output_prefix is not None:
+        result.update(
+            {
+                "kind": "separately_versioned_normalization_derivative_not_initial_run",
+                "rejected_responses": rejected_responses,
+                "region_evidence_matches": evidence_matches,
+                "region_method_declarations": {
+                    response_id: [m.model_dump(mode="json") for m in methods]
+                    for response_id, methods in (region_methods or {}).items()
+                },
+                "original_outputs_replaced": False,
+                "coverage_interpretation": (
+                    "admitted normalization only; rejected entries are noncomparable"
+                ),
+            }
+        )
     filename = (
         "initial_candidates/initial_candidate.json"
         if pass_name == "candidate"
         else "independent_discovery/initial_discovery.json"
     )
-    write_json(envelope, filename, result)
+    write_json(envelope, followup_filename(filename, output_prefix), result)
     return result
 
 
