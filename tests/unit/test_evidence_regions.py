@@ -458,3 +458,69 @@ def test_followup_admission_requires_successful_normalized_persistence(
         assert coverage[unit.unit_id] == "machine_candidate_present"
         assert result["rejected_responses"] == []
     assert matches[0]["normalization_status"] == ("rejected" if write_fails else "admitted")
+
+
+def test_raw_copy_readback_failure_stops_before_typed_normalization(
+    envelope: BatchEnvelope, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from peru_conflicts.execution import ai_pi_batch as batch
+    from peru_conflicts.execution.ai_pi_batch_runtime import finalize_initial_pass
+
+    envelope.output_root.mkdir(parents=True)
+    actual_write = batch._write_new  # pyright: ignore[reportPrivateUsage]
+
+    def corrupted_copy(target: Path, data: bytes) -> Path:
+        return actual_write(target, b"invented incorrect bytes")
+
+    monkeypatch.setattr(batch, "_write_new", corrupted_copy)
+    prefix = "normalization_followups/b-region-v1-rb"
+    with pytest.raises(ValueError, match="readback"):
+        finalize_initial_pass(
+            envelope,
+            "discovery",
+            [("1", '{"invented":"árbol"}'.encode())],
+            units=(),
+            reference_pages={},
+            output_prefix=prefix,
+        )
+    destination = envelope.output_root / prefix
+    assert (
+        destination / "raw_responses/discovery-1.txt"
+    ).read_bytes() == b"invented incorrect bytes"
+    assert not (destination / "normalized_responses").exists()
+    assert not (destination / "independent_discovery/initial_discovery.json").exists()
+
+
+def test_partial_raw_write_is_preserved_without_completion_record(
+    envelope: BatchEnvelope, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from peru_conflicts.execution import ai_pi_batch as batch
+    from peru_conflicts.execution.ai_pi_batch_runtime import finalize_initial_pass
+
+    envelope.output_root.mkdir(parents=True)
+    actual_write = batch._write_new  # pyright: ignore[reportPrivateUsage]
+
+    def interrupted_copy(target: Path, data: bytes) -> Path:
+        actual_write(target, data[:7])
+        raise OSError("invented interruption after partial bytes")
+
+    monkeypatch.setattr(batch, "_write_new", interrupted_copy)
+    prefix = "normalization_followups/b-region-v1-part"
+    raw = b"Invented Unicode and CRLF preservation\r\n"
+    with pytest.raises(OSError, match="interruption"):
+        finalize_initial_pass(
+            envelope,
+            "discovery",
+            [("1", raw)],
+            units=(),
+            reference_pages={},
+            output_prefix=prefix,
+        )
+    destination = envelope.output_root / prefix
+    partial = destination / "raw_responses/discovery-1.txt"
+    assert partial.read_bytes() == raw[:7]
+    assert not (destination / "independent_discovery/initial_discovery.json").exists()
+    monkeypatch.setattr(batch, "_write_new", actual_write)
+    with pytest.raises(FileExistsError):
+        batch.freeze_raw_response(envelope, "discovery-1", raw, output_prefix=prefix)
+    assert partial.read_bytes() == raw[:7]

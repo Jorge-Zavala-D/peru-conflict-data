@@ -659,6 +659,8 @@ def freeze_raw_response(
         raise ValueError("response ID must be a single filename component")
     target = _target(envelope, followup_filename(f"raw_responses/{response_id}.txt", output_prefix))
     _write_new(target, response)
+    if target.read_bytes() != response:
+        raise ValueError("raw-response copy readback mismatch; retained attempt is incomplete")
     return RawResponseReceipt(
         response_id=response_id,
         path=target,
