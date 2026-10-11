@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from peru_conflicts.models import MODEL_REGISTRY, SCHEMA_VERSION
+from peru_conflicts.models import MODEL_REGISTRY, SCHEMA_VERSION, ReportMonthAggregateObservationV1
 
 
 def rendered_schemas() -> dict[str, str]:
@@ -218,4 +218,39 @@ def schemas_are_current(output_dir: Path) -> bool:
     return all(
         (version_dir / name).read_text(encoding="utf-8") == content
         for name, content in expected.items()
+    )
+
+
+def rendered_observation_schemas() -> dict[str, str]:
+    """Export the additive contract without repinning legacy scientific schemas."""
+    name = "report_month_observation_v1.schema.json"
+    schema = ReportMonthAggregateObservationV1.model_json_schema(mode="validation")
+    schema["$schema"] = "https://json-schema.org/draft/2020-12/schema"
+    schema["$id"] = (
+        "https://github.com/Jorge-Zavala-D/peru-conflict-data/schemas/extensions/" + name
+    )
+    schema["allOf"] = json.loads(rendered_schemas()["report_month.schema.json"])["allOf"]
+    # Runtime ReferencePeriod rejects year zero; JSON Schema must express that guard too.
+    month_schema = schema["properties"]["observation_period"]["anyOf"][0]
+    month_schema["pattern"] = r"^[0-9]{4}-(0[1-9]|1[0-2])$"
+    month_schema["not"] = {"pattern": "^0000-"}
+    return {name: json.dumps(schema, ensure_ascii=False, indent=2, sort_keys=True) + "\n"}
+
+
+def export_observation_schemas(output_dir: Path) -> list[Path]:
+    extension_dir = output_dir / "extensions"
+    extension_dir.mkdir(parents=True, exist_ok=True)
+    written: list[Path] = []
+    for name, content in rendered_observation_schemas().items():
+        path = extension_dir / name
+        path.write_text(content, encoding="utf-8", newline="\n")
+        written.append(path)
+    return written
+
+
+def observation_schemas_are_current(output_dir: Path) -> bool:
+    return all(
+        (output_dir / "extensions" / name).is_file()
+        and (output_dir / "extensions" / name).read_text(encoding="utf-8") == content
+        for name, content in rendered_observation_schemas().items()
     )

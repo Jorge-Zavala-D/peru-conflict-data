@@ -35,7 +35,12 @@ from peru_conflicts.manifest.schema_export import (
     export_manifest_schemas,
     manifest_schemas_are_current,
 )
-from peru_conflicts.schema_export import export_json_schemas, schemas_are_current
+from peru_conflicts.schema_export import (
+    export_json_schemas,
+    export_observation_schemas,
+    observation_schemas_are_current,
+    schemas_are_current,
+)
 
 
 def main() -> int:
@@ -52,6 +57,7 @@ def main() -> int:
 
     if arguments.check:
         scientific_current = schemas_are_current(arguments.output)
+        observation_current = observation_schemas_are_current(arguments.output)
         discovery_current = discovery_schemas_are_current(arguments.output)
         acquisition_current = acquisition_schemas_are_current(arguments.output)
         manifest_current = manifest_schemas_are_current(arguments.output)
@@ -67,6 +73,7 @@ def main() -> int:
         batch_current = batch_path.is_file() and batch_path.read_bytes() == batch_schema_bytes()
         if (
             scientific_current
+            and observation_current
             and discovery_current
             and acquisition_current
             and manifest_current
@@ -81,6 +88,8 @@ def main() -> int:
             return 0
         if not scientific_current:
             print("Generated scientific JSON Schemas differ from the registered models.")
+        if not observation_current:
+            print("Generated observation-period extension schema differs from models.")
         if not discovery_current:
             print("Generated discovery JSON Schemas differ from the registered models.")
         if not acquisition_current:
@@ -104,6 +113,7 @@ def main() -> int:
         return 1
 
     written = export_json_schemas(arguments.output)
+    written.extend(export_observation_schemas(arguments.output))
     written.extend(export_discovery_schemas(arguments.output))
     written.extend(export_acquisition_schemas(arguments.output))
     written.extend(export_manifest_schemas(arguments.output))
