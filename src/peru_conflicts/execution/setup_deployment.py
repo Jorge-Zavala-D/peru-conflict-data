@@ -91,7 +91,9 @@ def source_inventory(root: Path) -> dict[str, str]:
         root / "uv.lock",
         root / "pyproject.toml",
     ]
-    return {p.relative_to(root).as_posix(): sha256(p.read_bytes()) for p in sorted(paths)}
+    root_parts = len(root.parts)
+    # Each path was constructed under this same lexical root.
+    return {"/".join(p.parts[root_parts:]): sha256(p.read_bytes()) for p in sorted(paths)}
 
 
 def runtime_inventory() -> dict[str, str]:

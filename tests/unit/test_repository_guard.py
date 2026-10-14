@@ -17,6 +17,7 @@ from peru_conflicts.repository_guard import (
     git_candidate_paths,
     git_candidate_sizes,
 )
+from tests.git_env import foreign_git_context, foreign_git_env
 
 
 @pytest.mark.parametrize("mutation", ["none", "source_text", "nested_text", "hash_text", "comment"])
@@ -143,15 +144,16 @@ def test_guard_accepts_neutral_schema_and_generic_configuration(tmp_path: Path) 
 
 @pytest.mark.parametrize("kind", ["completed", "partial", "inspection_only", "blank"])
 @pytest.mark.parametrize("export_staged", [True, False])
+@foreign_git_context()
 def test_staged_neutral_guard_uses_index_not_worktree(
     tmp_path: Path, kind: str, export_staged: bool
 ) -> None:
-    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, env=foreign_git_env(), check=True)
     path = tmp_path / "ordinary.json"
     export = _neutral_export(kind)
     benign = b'{"mode":"synthetic configuration"}'
     path.write_bytes(export if export_staged else benign)
-    subprocess.run(["git", "add", "ordinary.json"], cwd=tmp_path, check=True)
+    subprocess.run(["git", "add", "ordinary.json"], cwd=tmp_path, env=foreign_git_env(), check=True)
     path.write_bytes(benign if export_staged else export)
     candidates = git_candidate_paths(tmp_path, staged=True)
     sizes = git_candidate_sizes(tmp_path, candidates, staged=True)
@@ -221,19 +223,21 @@ def test_guard_ignores_deleted_or_untracked_argument_that_no_longer_exists(tmp_p
     assert find_policy_violations([missing], repo_root=tmp_path) == []
 
 
+@foreign_git_context()
 def test_default_git_candidates_include_untracked_nonignored_files(tmp_path: Path) -> None:
-    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, env=foreign_git_env(), check=True)
     untracked = tmp_path / "untracked.pdf"
     untracked.write_bytes(b"source bytes")
 
     assert Path("untracked.pdf") in git_candidate_paths(tmp_path)
 
 
+@foreign_git_context()
 def test_staged_guard_uses_index_blob_size_not_worktree_size(tmp_path: Path) -> None:
-    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, env=foreign_git_env(), check=True)
     artifact = tmp_path / "artifact.txt"
     artifact.write_bytes(b"x" * 11)
-    subprocess.run(["git", "add", "artifact.txt"], cwd=tmp_path, check=True)
+    subprocess.run(["git", "add", "artifact.txt"], cwd=tmp_path, env=foreign_git_env(), check=True)
     artifact.write_bytes(b"x")
 
     candidates = git_candidate_paths(tmp_path, staged=True)
@@ -248,12 +252,13 @@ def test_staged_guard_uses_index_blob_size_not_worktree_size(tmp_path: Path) -> 
     assert violations[0].reason == "file exceeds 10 bytes"
 
 
+@foreign_git_context()
 def test_staged_guard_scans_index_blob_content_not_worktree_content(tmp_path: Path) -> None:
-    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, env=foreign_git_env(), check=True)
     artifact = tmp_path / "settings.txt"
     fake_token = "sk-" + "abcdefghijklmnopqrstuvwxyz123456"
     artifact.write_text(f"token={fake_token}", encoding="utf-8")
-    subprocess.run(["git", "add", "settings.txt"], cwd=tmp_path, check=True)
+    subprocess.run(["git", "add", "settings.txt"], cwd=tmp_path, env=foreign_git_env(), check=True)
     artifact.write_text("safe placeholder", encoding="utf-8")
 
     candidates = git_candidate_paths(tmp_path, staged=True)
@@ -269,11 +274,14 @@ def test_staged_guard_scans_index_blob_content_not_worktree_content(tmp_path: Pa
     assert violations[0].reason == "prohibited credential or temporary-link content"
 
 
+@foreign_git_context()
 def test_staged_guard_rejects_forced_zip_index_blob(tmp_path: Path) -> None:
-    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, env=foreign_git_env(), check=True)
     archive = tmp_path / "source-bundle.zip"
     archive.write_bytes(b"PK\x03\x04synthetic archive bytes")
-    subprocess.run(["git", "add", "source-bundle.zip"], cwd=tmp_path, check=True)
+    subprocess.run(
+        ["git", "add", "source-bundle.zip"], cwd=tmp_path, env=foreign_git_env(), check=True
+    )
 
     candidates = git_candidate_paths(tmp_path, staged=True)
     sizes = git_candidate_sizes(tmp_path, candidates, staged=True)

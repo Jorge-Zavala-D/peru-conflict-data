@@ -6,6 +6,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pydantic
+
 from peru_conflicts.acquisition.schema_export import export_acquisition_schemas
 from peru_conflicts.benchmark.schema_export import export_benchmark_schemas
 from peru_conflicts.discovery.schema_export import (
@@ -254,6 +256,14 @@ def test_existing_schema_check_gate_includes_discovery_drift(tmp_path: Path) -> 
     export_batch_schema(tmp_path)
     command = [
         sys.executable,
+        "-I",
+        "-S",
+        "-B",
+        "-c",
+        "import sys, runpy; sys.path.extend([sys.argv.pop(1), sys.argv.pop(1)]); "
+        "sys.argv.pop(0); runpy.run_path(sys.argv[0], run_name='__main__')",
+        str(Path(pydantic.__file__).resolve().parent.parent),
+        str(repo_root / "src"),
         "scripts/export_schemas.py",
         "--check",
         "--output",

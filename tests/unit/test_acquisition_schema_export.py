@@ -9,6 +9,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pydantic
+
 from peru_conflicts.execution.ai_pi import export_schema
 from peru_conflicts.execution.ai_pi_batch import export_batch_schema
 from peru_conflicts.execution.owner_assisted import export_manual_schema
@@ -247,6 +249,14 @@ def test_top_level_schema_check_includes_acquisition(tmp_path: Path) -> None:
 
     command = [
         sys.executable,
+        "-I",
+        "-S",
+        "-B",
+        "-c",
+        "import sys, runpy; sys.path.extend([sys.argv.pop(1), sys.argv.pop(1)]); "
+        "sys.argv.pop(0); runpy.run_path(sys.argv[0], run_name='__main__')",
+        str(Path(pydantic.__file__).resolve().parent.parent),
+        str(Path(__file__).resolve().parents[2] / "src"),
         "scripts/export_schemas.py",
         "--check",
         "--output",

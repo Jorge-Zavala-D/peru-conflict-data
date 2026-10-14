@@ -34,6 +34,7 @@ from peru_conflicts.acquisition.models_v2 import (
     marker_bytes,
 )
 from peru_conflicts.hashing import canonical_json_bytes
+from tests.git_env import foreign_git_env
 
 SHA = "a" * 64
 COMMIT = "c" * 40
@@ -56,7 +57,7 @@ NETWORK_OVERRIDE_ENV = (
 
 def _run(repo: Path, *args: str) -> str:
     return subprocess.run(
-        ["git", *args], cwd=repo, check=True, capture_output=True, text=True
+        ["git", *args], cwd=repo, env=foreign_git_env(), check=True, capture_output=True, text=True
     ).stdout.strip()
 
 
