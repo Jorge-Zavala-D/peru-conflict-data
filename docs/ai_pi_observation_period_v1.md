@@ -36,3 +36,17 @@ top-level schema-currentness script and bounded external r3 projector. Legacy
 imports, loaders, registry-based consumers and frozen schema identities do not
 switch automatically. Validation is technical staging, not human-reference
 eligibility, scientific acceptance, discovery completeness or release approval.
+
+The additive consumer `execution.aggregate_processing.parse_report_month_aggregate`
+and read-only `scripts/validate_report_month.py` now explicitly select the supported
+contract with a required base version. They do not change legacy loaders or infer
+the extension from `schema_version` alone. See [the source-safe local recipe and
+synthetic commands](ai_pi_local_recipe.md); this validation seam does not reproduce
+the historical source-specific adjudication/reporting helper.
+
+The standalone Draft 2020-12 tests validate the exported extension offline.
+Its defaulted `schema_version` and `aggregate_contract` are not required schema
+properties: schema validation neither inserts them nor selects a runtime route.
+The consumer intentionally requires the explicit version and, for the extension,
+the discriminator; omitting either is not fallback authority. Schema acceptance
+does not establish source support or scientific approval.

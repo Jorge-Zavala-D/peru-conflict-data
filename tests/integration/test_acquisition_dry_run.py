@@ -16,11 +16,17 @@ import yaml
 from peru_conflicts.acquisition.models import AcquisitionPilotPlan, DryRunResult
 from peru_conflicts.hashing import canonical_json_bytes
 from peru_conflicts.paths import EXPECTED_TOP_LEVEL
+from tests.git_env import foreign_git_context, foreign_git_env
 
 
 def _git(repo: Path, *arguments: str) -> str:
     result = subprocess.run(
-        ["git", *arguments], cwd=repo, check=True, capture_output=True, text=True
+        ["git", *arguments],
+        cwd=repo,
+        env=foreign_git_env(),
+        check=True,
+        capture_output=True,
+        text=True,
     )
     return result.stdout.strip()
 
@@ -200,6 +206,7 @@ def test_cli_runs_only_preflight_then_writes_and_prints_zero_side_effect_plan(
     assert printed["dropbox_writes"] == 0
 
 
+@foreign_git_context()
 def test_complete_cli_dry_run_has_zero_network_and_preserves_data_tree_exactly(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

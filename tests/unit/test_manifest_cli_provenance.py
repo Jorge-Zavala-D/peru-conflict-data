@@ -5,11 +5,14 @@ import subprocess
 from pathlib import Path
 from types import ModuleType
 
+from tests.git_env import foreign_git_context, foreign_git_env
+
 
 def _git(repo: Path, *arguments: str) -> str:
     completed = subprocess.run(
         ["git", *arguments],
         cwd=repo,
+        env=foreign_git_env(),
         check=True,
         capture_output=True,
         text=True,
@@ -27,6 +30,7 @@ def _load_cli_module() -> ModuleType:
     return module
 
 
+@foreign_git_context()
 def test_cli_resolves_execution_commit_and_exact_tree_from_real_git_repo(tmp_path: Path) -> None:
     repo = tmp_path / "repo"
     repo.mkdir()

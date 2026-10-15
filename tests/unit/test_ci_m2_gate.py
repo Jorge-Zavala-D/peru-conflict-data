@@ -15,6 +15,8 @@ from typing import Any
 
 import pytest
 
+from tests.git_env import foreign_git_context, foreign_git_env
+
 SCRIPT = Path(__file__).resolve().parents[2] / "scripts" / "ci_m2_gate.py"
 OPERATOR = "tests/unit/test_m2_setup_operator.py::test_complete_operator_route_and_terminal_state"
 CLEANUP = "tests/unit/test_m2_setup_native_cleanup.py::test_installed_native_cleanup"
@@ -228,6 +230,7 @@ def test_json_rejects_duplicate_keys_and_nonfinite_numbers(tmp_path: Path) -> No
 
 
 @pytest.mark.parametrize("change", ["unchanged", "working", "staged", "command_error"])
+@foreign_git_context()
 def test_binding_requires_unchanged_tracked_source(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, change: str
 ) -> None:
@@ -248,7 +251,9 @@ def test_binding_requires_unchanged_tracked_source(
     ]
 
     def run(*args: str) -> str:
-        return subprocess.check_output([*git, *args], cwd=tmp_path, text=True).strip()
+        return subprocess.check_output(
+            [*git, *args], cwd=tmp_path, env=foreign_git_env(), text=True
+        ).strip()
 
     run("init", "-q")
     (tmp_path / "uv.lock").write_text("synthetic frozen lock\n", encoding="utf-8")
