@@ -85,6 +85,25 @@ A source-reported narrative/table value and an event-table calculation are separ
 rows even if their labels and values match. No derived row silently replaces a published
 indicator.
 
+### Prospective `report_month_observation_v1` extension
+
+`ReportMonthAggregateObservationV1` retains every legacy aggregate field and guard,
+and adds the explicit `aggregate_contract=report_month_observation_v1` identity plus
+optional `observation_period` (`ReferencePeriod`, ASCII `YYYY-MM`, years 0001–9999,
+months 01–12). It describes the month of this value, not the source report's
+`ReportRecord.reference_period` or a publication date. A different month is valid;
+there is no inferred temporal ordering constraint. Null means unspecified in this
+record and is never defaulted from the report, file, import or current date.
+
+The extension is exported separately at
+`schemas/extensions/report_month_observation_v1.schema.json`. Its inherited
+`schema_version=0.3.1` identifies unchanged base fields; `aggregate_contract`
+identifies the additive contract. Legacy `report_month` schemas and loaders remain
+unchanged. Period labels, source/report/hash/field evidence and deterministic
+resolution rules stay in existing provenance or the qualified staging wrapper;
+month syntax alone is not claim-evidence support. See
+[the short migration note](ai_pi_observation_period_v1.md).
+
 ## `case` (`ConflictCase`)
 
 | Field | Meaning / representation | Orig/norm | Null | Mult | Provenance / relationship | Origin |

@@ -5,6 +5,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pydantic
+
 from peru_conflicts.acquisition.schema_export import export_acquisition_schemas
 from peru_conflicts.benchmark import BENCHMARK_MODEL_REGISTRY, BENCHMARK_SCHEMA_VERSION
 from peru_conflicts.benchmark.schema_export import (
@@ -14,12 +16,13 @@ from peru_conflicts.benchmark.schema_export import (
 )
 from peru_conflicts.discovery.schema_export import export_discovery_schemas
 from peru_conflicts.execution.ai_pi import export_schema
+from peru_conflicts.execution.ai_pi_batch import export_batch_schema
 from peru_conflicts.execution.owner_assisted import export_manual_schema
 from peru_conflicts.execution.setup_authority import export_real_schema
 from peru_conflicts.execution.setup_bridge import export_setup_schema
 from peru_conflicts.execution.setup_deployment import export_installation_schema
 from peru_conflicts.manifest.schema_export import export_manifest_schemas
-from peru_conflicts.schema_export import export_json_schemas
+from peru_conflicts.schema_export import export_json_schemas, export_observation_schemas
 
 
 def test_benchmark_schema_contract_is_independently_versioned() -> None:
@@ -101,6 +104,7 @@ def test_composite_submission_schema_preserves_nested_model_guards() -> None:
 def test_top_level_schema_check_includes_benchmark_drift(tmp_path: Path) -> None:
     repo_root = Path(__file__).parents[2]
     export_json_schemas(tmp_path)
+    export_observation_schemas(tmp_path)
     export_discovery_schemas(tmp_path)
     export_acquisition_schemas(tmp_path)
     export_manifest_schemas(tmp_path)
@@ -110,8 +114,17 @@ def test_top_level_schema_check_includes_benchmark_drift(tmp_path: Path) -> None
     export_installation_schema(tmp_path)
     export_manual_schema(tmp_path)
     export_schema(tmp_path)
+    export_batch_schema(tmp_path)
     command = [
         sys.executable,
+        "-I",
+        "-S",
+        "-B",
+        "-c",
+        "import sys, runpy; sys.path.extend([sys.argv.pop(1), sys.argv.pop(1)]); "
+        "sys.argv.pop(0); runpy.run_path(sys.argv[0], run_name='__main__')",
+        str(Path(pydantic.__file__).resolve().parent.parent),
+        str(repo_root / "src"),
         "scripts/export_schemas.py",
         "--check",
         "--output",

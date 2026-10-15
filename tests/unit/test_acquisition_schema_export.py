@@ -9,7 +9,10 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pydantic
+
 from peru_conflicts.execution.ai_pi import export_schema
+from peru_conflicts.execution.ai_pi_batch import export_batch_schema
 from peru_conflicts.execution.owner_assisted import export_manual_schema
 from peru_conflicts.execution.setup_authority import export_real_schema
 from peru_conflicts.execution.setup_bridge import export_setup_schema
@@ -232,6 +235,7 @@ def test_top_level_schema_check_includes_acquisition(tmp_path: Path) -> None:
     benchmark = importlib.import_module("peru_conflicts.benchmark.schema_export")
     manifest = importlib.import_module("peru_conflicts.manifest.schema_export")
     scientific.export_json_schemas(tmp_path)
+    scientific.export_observation_schemas(tmp_path)
     discovery.export_discovery_schemas(tmp_path)
     written = acquisition.export_acquisition_schemas(tmp_path)
     manifest.export_manifest_schemas(tmp_path)
@@ -241,9 +245,18 @@ def test_top_level_schema_check_includes_acquisition(tmp_path: Path) -> None:
     export_installation_schema(tmp_path)
     export_manual_schema(tmp_path)
     export_schema(tmp_path)
+    export_batch_schema(tmp_path)
 
     command = [
         sys.executable,
+        "-I",
+        "-S",
+        "-B",
+        "-c",
+        "import sys, runpy; sys.path.extend([sys.argv.pop(1), sys.argv.pop(1)]); "
+        "sys.argv.pop(0); runpy.run_path(sys.argv[0], run_name='__main__')",
+        str(Path(pydantic.__file__).resolve().parent.parent),
+        str(Path(__file__).resolve().parents[2] / "src"),
         "scripts/export_schemas.py",
         "--check",
         "--output",

@@ -17,11 +17,13 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+  "jsonschema==4.26.0",
   "pre-commit>=4.3,<5",
   "pyright>=1.1.400,<2",
   "pytest>=8.4,<10",
   "pytest-cov>=6,<8",
   "ruff>=0.12,<1",
+  "types-jsonschema==4.26.0.20261006",
 ]
 
 [tool.hatch.build.targets.wheel]

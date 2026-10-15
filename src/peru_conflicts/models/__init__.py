@@ -40,6 +40,7 @@ from peru_conflicts.models.domain import (
     ProvenanceRecord,
     ReportIdentityEvidenceType,
     ReportMonthAggregate,
+    ReportMonthAggregateObservationV1,
     ReportRecord,
     ViolenceEvent,
 )
@@ -106,6 +107,7 @@ __all__ = [
     "ProvenanceRecord",
     "ReportIdentityEvidenceType",
     "ReportMonthAggregate",
+    "ReportMonthAggregateObservationV1",
     "ReportRecord",
     "SourceBBox",
     "SourceSpan",

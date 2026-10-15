@@ -9,16 +9,19 @@ import sys
 from pathlib import Path
 from typing import Any, cast
 
+import pydantic
+
 from peru_conflicts.acquisition.schema_export import export_acquisition_schemas
 from peru_conflicts.benchmark.schema_export import export_benchmark_schemas
 from peru_conflicts.discovery.schema_export import export_discovery_schemas
 from peru_conflicts.execution.ai_pi import StrategyDecision, export_schema, schema_bytes
+from peru_conflicts.execution.ai_pi_batch import export_batch_schema
 from peru_conflicts.execution.owner_assisted import export_manual_schema
 from peru_conflicts.execution.setup_authority import export_real_schema
 from peru_conflicts.execution.setup_bridge import export_setup_schema
 from peru_conflicts.execution.setup_deployment import export_installation_schema
 from peru_conflicts.manifest.schema_export import export_manifest_schemas
-from peru_conflicts.schema_export import export_json_schemas
+from peru_conflicts.schema_export import export_json_schemas, export_observation_schemas
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -101,6 +104,7 @@ def test_additive_schema_refs_resolve_and_complete_gate_detects_missing_and_drif
     walk(schema)
     for exporter in (
         export_json_schemas,
+        export_observation_schemas,
         export_discovery_schemas,
         export_acquisition_schemas,
         export_manifest_schemas,
@@ -108,11 +112,20 @@ def test_additive_schema_refs_resolve_and_complete_gate_detects_missing_and_drif
         export_real_schema,
         export_installation_schema,
         export_manual_schema,
+        export_batch_schema,
     ):
         exporter(tmp_path)
     export_benchmark_schemas(tmp_path / "benchmark")
     command = [
         sys.executable,
+        "-I",
+        "-S",
+        "-B",
+        "-c",
+        "import sys, runpy; sys.path.extend([sys.argv.pop(1), sys.argv.pop(1)]); "
+        "sys.argv.pop(0); runpy.run_path(sys.argv[0], run_name='__main__')",
+        str(Path(pydantic.__file__).resolve().parent.parent),
+        str(ROOT / "src"),
         str(ROOT / "scripts/export_schemas.py"),
         "--check",
         "--output",
@@ -126,3 +139,18 @@ def test_additive_schema_refs_resolve_and_complete_gate_detects_missing_and_drif
     path.write_bytes(b"{}\n")
     drift = subprocess.run(command, capture_output=True, text=True, check=False, cwd=ROOT)
     assert drift.returncode == 1 and "AI/PI" in drift.stdout
+    export_schema(tmp_path)
+    observation_path = tmp_path / "extensions" / "report_month_observation_v1.schema.json"
+    observation_path.unlink()
+    missing_observation = subprocess.run(
+        command, capture_output=True, text=True, check=False, cwd=ROOT
+    )
+    assert (
+        missing_observation.returncode == 1 and "observation-period" in missing_observation.stdout
+    )
+    export_observation_schemas(tmp_path)
+    observation_path.write_bytes(b"{}\n")
+    drift_observation = subprocess.run(
+        command, capture_output=True, text=True, check=False, cwd=ROOT
+    )
+    assert drift_observation.returncode == 1 and "observation-period" in drift_observation.stdout

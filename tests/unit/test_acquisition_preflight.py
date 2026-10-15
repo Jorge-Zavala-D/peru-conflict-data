@@ -18,6 +18,7 @@ import yaml
 from peru_conflicts.acquisition.models import AcquisitionPilotPlan
 from peru_conflicts.acquisition.plan import LoadedPilotPlan
 from peru_conflicts.paths import EXPECTED_TOP_LEVEL
+from tests.git_env import foreign_git_context, foreign_git_env
 
 V2_PATH = Path("config/acquisition_pilots/m1_03_reports_260_269_v2.yaml")
 
@@ -45,7 +46,12 @@ def _make_directory_alias(link: Path, target: Path) -> None:
 
 def _run_git(repo: Path, *arguments: str) -> str:
     result = subprocess.run(
-        ["git", *arguments], cwd=repo, check=True, capture_output=True, text=True
+        ["git", *arguments],
+        cwd=repo,
+        env=foreign_git_env(),
+        check=True,
+        capture_output=True,
+        text=True,
     )
     return result.stdout.strip()
 
@@ -130,6 +136,7 @@ def test_acquisition_preflight_api_exists() -> None:
     assert callable(getattr(module, "write_dry_run_result", None))
 
 
+@foreign_git_context()
 def test_preflight_verifies_ten_sources_and_builds_ordered_zero_side_effect_plan(
     tmp_path: Path,
 ) -> None:
@@ -161,6 +168,7 @@ def test_preflight_verifies_ten_sources_and_builds_ordered_zero_side_effect_plan
     assert not (data_root / "01_raw" / ".staging").exists()
 
 
+@foreign_git_context()
 def test_preflight_cannot_open_a_network_connection(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -184,6 +192,7 @@ def test_preflight_cannot_open_a_network_connection(
     assert result.dropbox_writes == 0
 
 
+@foreign_git_context()
 def test_preflight_never_probes_the_configured_system_temp_directory(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -209,6 +218,7 @@ def test_preflight_never_probes_the_configured_system_temp_directory(
     assert _snapshot_tree(data_root) == before
 
 
+@foreign_git_context()
 def test_tenth_source_mismatch_fails_without_creating_any_data_path(tmp_path: Path) -> None:
     module = importlib.import_module("peru_conflicts.acquisition.preflight")
     repo, data_root, loaded, _ = _fixture(tmp_path)
@@ -231,6 +241,7 @@ def test_tenth_source_mismatch_fails_without_creating_any_data_path(tmp_path: Pa
     assert not (data_root / "01_raw" / ".staging").exists()
 
 
+@foreign_git_context()
 def test_worktree_receipt_must_match_receipt_at_pinned_ancestor(tmp_path: Path) -> None:
     module = importlib.import_module("peru_conflicts.acquisition.preflight")
     repo, data_root, loaded, _ = _fixture(tmp_path)
@@ -244,6 +255,7 @@ def test_worktree_receipt_must_match_receipt_at_pinned_ancestor(tmp_path: Path) 
         )
 
 
+@foreign_git_context()
 def test_resolved_source_alias_outside_raw_is_rejected(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -267,6 +279,7 @@ def test_resolved_source_alias_outside_raw_is_rejected(
         )
 
 
+@foreign_git_context()
 def test_dry_run_result_writes_only_to_repository_cache_after_preflight(tmp_path: Path) -> None:
     module = importlib.import_module("peru_conflicts.acquisition.preflight")
     repo, data_root, loaded, _ = _fixture(tmp_path)
@@ -301,6 +314,7 @@ def test_dry_run_result_writes_only_to_repository_cache_after_preflight(tmp_path
 
 @pytest.mark.skipif(os.name != "nt", reason="Windows junction ABA regression")
 @pytest.mark.parametrize("operation", ["open", "publish"])
+@foreign_git_context()
 def test_dry_run_output_parent_swap_at_lease_boundary_fails_closed(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, operation: str
 ) -> None:
@@ -375,6 +389,7 @@ def test_dry_run_output_parent_swap_at_lease_boundary_fails_closed(
     assert list(output.parent.glob(f".{output.name}.*.tmp")) == []
 
 
+@foreign_git_context()
 def test_dry_run_output_rejects_outside_cache_and_cleans_interrupted_temp(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

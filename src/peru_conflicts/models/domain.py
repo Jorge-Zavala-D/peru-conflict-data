@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from datetime import date
 from enum import StrEnum
-from typing import Self
+from typing import Annotated, Literal, Self
 
-from pydantic import AwareDatetime, Field, model_validator
+from pydantic import AwareDatetime, Field, StringConstraints, model_validator
 
 from peru_conflicts.models.common import (
     Confidence,
@@ -128,6 +128,19 @@ class ReportMonthAggregate(VersionedModel):
                     "derived indicators require derivation name, version, and upstream records"
                 )
         return self
+
+
+class ReportMonthAggregateObservationV1(ReportMonthAggregate):
+    """Prospective month-scoped aggregate; never impute a source observation month."""
+
+    aggregate_contract: Literal["report_month_observation_v1"] = "report_month_observation_v1"
+    observation_period: (
+        Annotated[
+            ReferencePeriod,
+            StringConstraints(pattern=r"^[0-9]{4}-(0[1-9]|1[0-2])$", min_length=7, max_length=7),
+        ]
+        | None
+    ) = None
 
 
 class ConflictCase(VersionedModel):
