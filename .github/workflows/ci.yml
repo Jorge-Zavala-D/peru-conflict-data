@@ -161,8 +161,8 @@ jobs:
     name: Windows full suite (${{ matrix.shard }})
     needs: windows-preflight
     runs-on: windows-latest
-    # A five-hour step budget leaves 30 minutes for setup and always() receipts.
-    timeout-minutes: 330
+    # Operator: 330-minute step plus 30-minute setup/receipt allowance; other shards unchanged.
+    timeout-minutes: ${{ matrix.shard == 'operator' && 360 || 330 }}
     strategy:
       fail-fast: false
       matrix:
@@ -182,7 +182,7 @@ jobs:
       - run: uv sync --frozen --group dev
       - name: Execute whole tests from the canonical selection
         run: uv run python scripts/ci_m2_gate.py run ${{ matrix.shard }}
-        timeout-minutes: 300
+        timeout-minutes: ${{ matrix.shard == 'operator' && 330 || 300 }}
       - name: Retain synthetic shard evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
