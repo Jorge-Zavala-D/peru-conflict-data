@@ -7,8 +7,10 @@ No source PDF is opened, model is dispatched or canonical data is materialized h
 from __future__ import annotations
 
 import json
+import ntpath
 import os
 import re
+import sys
 from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path, PureWindowsPath
 from typing import Literal, Self
@@ -598,6 +600,13 @@ def prepare_output_root(envelope: BatchEnvelope) -> Path:
     return target
 
 
+def _is_reserved_windows_path(part: str) -> bool:
+    windows_path = PureWindowsPath(part)
+    if sys.version_info >= (3, 13):
+        return ntpath.isreserved(windows_path)
+    return windows_path.is_reserved()
+
+
 def _target(envelope: BatchEnvelope, filename: str) -> Path:
     root = _require_output_identity(envelope)
     if not root.is_dir():
@@ -606,7 +615,7 @@ def _target(envelope: BatchEnvelope, filename: str) -> Path:
     if relative.is_absolute() or ".." in relative.parts or relative.suffix not in {".json", ".txt"}:
         raise ValueError("only no-replace JSON/raw-text batch artifacts are writable")
     if any(
-        PureWindowsPath(part).is_reserved()
+        _is_reserved_windows_path(part)
         or part.endswith((".", " "))
         or any(char in '<>:"|?*' or ord(char) < 32 for char in part)
         for part in relative.parts

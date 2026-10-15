@@ -29,6 +29,7 @@ from peru_conflicts.execution.ai_pi_batch import (
     ToolIdentity,
     coverage_state,
     freeze_initial_candidate,
+    freeze_raw_response,
     freeze_then_normalize,
     make_worker_packet,
     prepare_output_root,
@@ -323,6 +324,11 @@ def test_no_replace_or_canonical_release_output(envelope: BatchEnvelope) -> None
         "data.parquet",
         "issues.json:other.json",
         "CON.json",
+        "bad?.json",
+        "bad<name.json",
+        "control\x01.json",
+        "trailing./new.json",
+        "nested /normal.json",
         "trailing. /new.json",
     ):
         with pytest.raises(ValueError):
@@ -334,6 +340,66 @@ def test_no_replace_or_canonical_release_output(envelope: BatchEnvelope) -> None
     ):
         with pytest.raises(ValidationError):
             BatchEnvelope.model_validate(envelope.model_dump() | {"output_root": root})
+
+
+@pytest.mark.parametrize(
+    "filename",
+    (
+        "CON.json",
+        "con.json",
+        "PRN.json",
+        "AUX.json",
+        "NUL.json",
+        "COM1.json",
+        "LPT9.json",
+        "CONIN$.json",
+        "CONOUT$.json",
+        "con .json",
+        "COM¹.json",
+        "COM².json",
+        "COM³.json",
+        "LPT¹.json",
+        "LPT².json",
+        "LPT³.json",
+        "nested/CON.json",
+        "CON/normal.json",
+    ),
+)
+def test_reserved_windows_json_names_rejected_before_write(
+    envelope: BatchEnvelope, filename: str
+) -> None:
+    prepare_output_root(envelope)
+    with pytest.raises(ValueError, match="unsafe Windows filename"):
+        write_json(envelope, filename, {})
+    assert tuple(envelope.output_root.iterdir()) == ()
+
+
+@pytest.mark.parametrize("response_id", ("CON", "con ", "LPT¹"))
+def test_reserved_windows_raw_names_rejected_before_write(
+    envelope: BatchEnvelope, response_id: str
+) -> None:
+    prepare_output_root(envelope)
+    with pytest.raises(ValueError, match="unsafe Windows filename"):
+        freeze_raw_response(envelope, response_id, b"synthetic raw response")
+    assert tuple(envelope.output_root.iterdir()) == ()
+
+
+@pytest.mark.filterwarnings("error::DeprecationWarning")
+@pytest.mark.parametrize("stem", ("ordinary", "CONSOLE", "COM10"))
+def test_valid_json_and_raw_writes_without_deprecated_path_calls(
+    envelope: BatchEnvelope, stem: str
+) -> None:
+    prepare_output_root(envelope)
+    path = write_json(envelope, f"{stem}.json", {"unknown": None})
+    assert path == envelope.output_root / f"{stem}.json"
+    assert json.loads(path.read_bytes()) == {"unknown": None}
+    raw = b"synthetic unnormalized response\n"
+    receipt = freeze_raw_response(envelope, stem, raw)
+    assert receipt.path == envelope.output_root / "raw_responses" / f"{stem}.txt"
+    assert receipt.path.read_bytes() == raw
+    assert receipt.response_id == stem
+    assert receipt.sha256 == hashlib.sha256(raw).hexdigest()
+    assert receipt.size_bytes == len(raw)
 
 
 def test_unknown_raw_response_is_retained_when_parsing_fails(envelope: BatchEnvelope) -> None:
