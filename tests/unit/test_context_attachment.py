@@ -212,6 +212,102 @@ def mutate(
 
 
 class AttachmentTests(unittest.TestCase):
+    def test_assertion_generated_metadata_cannot_be_overridden(self) -> None:
+        q, d = fixture()
+        mutate(
+            q,
+            d,
+            "assertions",
+            lambda a: a["attachment"].update(
+                source_address="invented:false-assertion-address", human_reviewed=True
+            ),
+        )
+        q["permissions"] = {
+            "normalization": True,
+            "automatic_dispatch": True,
+            "scientific_acceptance": True,
+            "benchmark_scoring": True,
+        }
+        before_request, before_documents = deepcopy(q), deepcopy(d)
+        expected = "sha256:" + hashlib.sha256(d["assertions"]).hexdigest() + "#/attachment"
+        view = attach_context(q, d)
+        original = json.loads(d["assertions"])["attachment"]
+        outputs = [view["attachment_assertions"], view["qualifiers"][0]["applicability"]]
+        for records in outputs:
+            self.assertEqual(len(records), 1)
+            self.assertFalse(records[0]["human_reviewed"])
+            for key in ["status", "attribution", "stage", "context_segments", "supports"]:
+                self.assertEqual(records[0][key], original[key])
+        self.assertEqual(
+            view["permissions"],
+            {
+                "inspection": True,
+                "normalization": False,
+                "automatic_dispatch": False,
+                "scientific_acceptance": False,
+                "benchmark_scoring": False,
+            },
+        )
+        self.assertEqual(q, before_request)
+        self.assertEqual(d, before_documents)
+        for path, records in zip(["attachment_assertions", "applicability"], outputs, strict=True):
+            with self.subTest(path=path):
+                self.assertEqual(records[0]["source_address"], expected)
+
+    def test_multiple_assertions_keep_their_own_resolved_addresses(self) -> None:
+        q, d = fixture()
+        assertions = json.loads(d["assertions"])
+        assertions["second"] = deepcopy(assertions["attachment"])
+        assertions["attachment"]["source_address"] = "sha256:" + "0" * 64 + "#/second"
+        assertions["second"]["source_address"] = "sha256:" + "0" * 64 + "#/attachment"
+        d["assertions"] = encoded(assertions)
+        refresh(q, d)
+        refs = [{"document": "assertions", "pointer": p} for p in ["/attachment", "/second"]]
+        q["attachment_assertion_refs"] = refs
+        q["qualifiers"][0]["assertion_refs"] = refs
+        expected = [
+            "sha256:" + hashlib.sha256(d["assertions"]).hexdigest() + "#" + ref["pointer"]
+            for ref in refs
+        ]
+        before_request, before_documents = deepcopy(q), deepcopy(d)
+        view = attach_context(q, d)
+        for path, records in [
+            ("attachment_assertions", view["attachment_assertions"]),
+            ("applicability", view["qualifiers"][0]["applicability"]),
+        ]:
+            with self.subTest(path=path):
+                self.assertEqual([r["source_address"] for r in records], expected)
+        self.assertEqual(q, before_request)
+        self.assertEqual(d, before_documents)
+
+    def test_root_and_escaped_assertion_addresses_are_generated(self) -> None:
+        for pointer in ["", "/assertion~1with~0escape"]:
+            with self.subTest(pointer=pointer):
+                q, d = fixture()
+                assertions = json.loads(d["assertions"])
+                item = deepcopy(assertions["attachment"])
+                item["source_address"] = "invented:false-pointer-address"
+                if pointer == "":
+                    assertions.update(item)
+                else:
+                    assertions["assertion/with~escape"] = item
+                d["assertions"] = encoded(assertions)
+                refresh(q, d)
+                refs = [{"document": "assertions", "pointer": pointer}]
+                q["attachment_assertion_refs"] = refs
+                q["qualifiers"][0]["assertion_refs"] = refs
+                expected = "sha256:" + hashlib.sha256(d["assertions"]).hexdigest() + "#" + pointer
+                before_request, before_documents = deepcopy(q), deepcopy(d)
+                view = attach_context(q, d)
+                for path, records in [
+                    ("attachment_assertions", view["attachment_assertions"]),
+                    ("applicability", view["qualifiers"][0]["applicability"]),
+                ]:
+                    with self.subTest(path=path):
+                        self.assertEqual(records[0]["source_address"], expected)
+                self.assertEqual(q, before_request)
+                self.assertEqual(d, before_documents)
+
     def test_text_only_positive_preserves_originals_and_metadata(self) -> None:
         q, d = fixture()
         before = deepcopy(d)

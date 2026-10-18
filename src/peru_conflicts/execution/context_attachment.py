@@ -345,7 +345,7 @@ def attach_context(request: dict[str, Any], documents: dict[str, bytes]) -> dict
                 in {"new_attachment_interpretation", "inherited_attachment_interpretation"},
                 "evidence_reclassification",
             )
-            result.append({"source_address": address, **deepcopy(item), "human_reviewed": False})
+            result.append({**deepcopy(item), "source_address": address, "human_reviewed": False})
         return result
 
     attachment = assertions(request["attachment_assertion_refs"])
