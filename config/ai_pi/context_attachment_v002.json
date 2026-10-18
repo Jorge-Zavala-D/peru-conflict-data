@@ -1,0 +1,50 @@
+{
+  "version": "SOURCE_BOUND_CONTEXT_ATTACHMENT_V002",
+  "role_profile_version": "SOURCE_BOUND_CONTEXT_ROLE_PROFILE_V001",
+  "profiles": {
+    "regional_quantitative": {
+      "column_count": 3,
+      "roles": [
+        "category",
+        "count",
+        "percentage"
+      ],
+      "permitted_qualifier_targets": {
+        "subject": "table_proposal",
+        "reporting_period": "table_proposal",
+        "geographic_breakdown": "reported_organization",
+        "count_unit": "count_column",
+        "percentage_sign": "percentage_column"
+      }
+    },
+    "priority_documentary": {
+      "column_count": 3,
+      "roles": [
+        "place_text",
+        "case_description",
+        "published_situation"
+      ],
+      "permitted_qualifier_targets": {
+        "introductory_scope": "table_proposal",
+        "documentary_scope": "table_proposal"
+      }
+    }
+  },
+  "assertion_requirement": "Matching attributed qualifier kind, target and exact source segments establish machine-readable support, not semantic truth or independent review.",
+  "states": [
+    "unknown",
+    "confirmed_none",
+    "reported_empty",
+    "absent_field",
+    "unreviewed_interpretation"
+  ],
+  "permissions": {
+    "inspection": true,
+    "normalization": false,
+    "automatic_dispatch": false,
+    "scientific_acceptance": false,
+    "benchmark_scoring": false
+  },
+  "source_contract": "Hash the same original bytes that are parsed; preserve addresses, record hashes, ordered grouping and separate ownership. Operational locations are supplied separately.",
+  "output_contract": "Serialize before exclusive creation; do not overwrite. Multiple output files are not transactionally atomic."
+}
