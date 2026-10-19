@@ -91,6 +91,14 @@ to an unrelated column. Table, exact-column and reported-organization scopes are
 not interchangeable. No PDF/image coordinate transform or source renumbering is
 inferred. Native word/frame/source-column binding conflicts are rejected.
 
+Qualifier kinds also obey the established profile-specific targets, independently
+of caller-supplied labels. Explicit null targets retain the original unresolved
+resolution and have no active cell edge (technical target kind `unresolved`);
+malformed non-null scopes fail, rather than being relabelled as uncertainty.
+Independent validation resolves scopes from pinned originals, not projected target
+columns, and compares all required snapshot metadata with the supplied manifest
+and fixed inspection-only restrictions. Validation never sanitizes inspected data.
+
 JSON null, absent property, empty string, numeric zero, Boolean false, unknown,
 confirmed_none, reported_empty, absent_field and unreviewed_interpretation remain
 distinct. Documentary TOTAL/category roles are not canonical case/event identities.

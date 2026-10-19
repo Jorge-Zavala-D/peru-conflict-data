@@ -10,15 +10,9 @@ from importlib.resources import files
 from pathlib import Path
 from typing import Any, cast
 
-VERSION = "DOCUMENTARY_SQLITE_PROJECTION_V001"
+from .policy import PERMISSIONS, PROFILE_ROLES, QUALIFIER_TARGETS, SCOPE, VERSION
+
 LIBRARY_VERSION = "DOCUMENTARY_INSPECTION_STORE_V001"
-PERMISSIONS = dict(
-    inspection=True,
-    normalization=False,
-    automatic_dispatch=False,
-    scientific_acceptance=False,
-    benchmark_scoring=False,
-)
 
 
 class RecordHashMismatch(ValueError):
@@ -374,16 +368,20 @@ class Projection:
             columns = view["columns"]
         if len(columns) != 3:
             raise ValueError("bounded profile requires three columns")
+        if any(
+            not isinstance(col["id"], str)
+            or not col["id"]
+            or type(col["source_index"]) is not int
+            or col["source_index"] < 0
+            for col in columns
+        ):
+            raise ValueError("invalid declared column identity/type")
         if (
             len({col["id"] for col in columns}) != 3
             or len({col["source_index"] for col in columns}) != 3
         ):
             raise ValueError("duplicate declared column identity")
-        expected_roles = (
-            {"category", "count", "percentage"}
-            if legacy
-            else {"place_text", "case_description", "published_situation"}
-        )
+        expected_roles = PROFILE_ROLES[view["version"]]
         if {col["role"] for col in columns} != expected_roles:
             raise ValueError("unsupported three-column documentary profile")
         column_keys: dict[Any, str] = {}
@@ -536,20 +534,37 @@ class Projection:
             qk = address(self.view_sha, qpath)
             self.record(qk)
             target = qualifier["target"]
-            if target["kind"] not in ("table_proposal", "column", "reported_organization"):
-                raise ValueError("unsupported declared qualifier target")
+            rule = QUALIFIER_TARGETS[view["version"]].get(qualifier["kind"])
             target_column = None
-            if target["kind"] == "column":
-                target_column = column_keys.get(target.get("column_index", target.get("column_id")))
-                if target_column is None:
-                    raise ValueError("missing qualifier column scope")
-                column_role = self.c.execute(
-                    "SELECT column_role FROM documentary_columns WHERE column_key=?",
-                    (target_column,),
-                ).fetchone()[0]
-                if target.get("role", column_role) != column_role:
-                    raise ValueError("qualifier column role/scope mismatch")
-            if "source_address" in target:
+            target_kind = "unresolved"
+            if target is None:
+                unresolved = (
+                    "unresolved_missing_semantic_support"
+                    if rule is not None
+                    else "unresolved_unsupported_attachment"
+                )
+                if qualifier.get("resolution") != unresolved:
+                    raise ValueError("qualifier_scope: invalid unresolved target")
+            else:
+                if not isinstance(target, dict):
+                    raise ValueError("qualifier_scope: invalid target object")
+                target = cast(dict[str, Any], target)
+                if rule is None or target.get("kind") != rule[0]:
+                    raise ValueError("qualifier_scope: kind/profile target mismatch")
+                target_kind = target["kind"]
+                if target_kind == "column":
+                    column = next(col for col in columns if col["role"] == rule[1])
+                    if (
+                        type(target.get("column_index")) is not int
+                        or target["column_index"] != column["source_index"]
+                        or target.get("role") != column["role"]
+                        or ("column_id" in target and target["column_id"] != column["id"])
+                    ):
+                        raise ValueError("qualifier_scope: column identity/role mismatch")
+                    target_column = column_keys[column["id"]]
+                elif any(field in target for field in ("column_index", "column_id", "role")):
+                    raise ValueError("qualifier_scope: non-column target has column fields")
+            if isinstance(target, dict) and "source_address" in target:
                 self.record(target["source_address"])
             self.c.execute(
                 "INSERT INTO qualifiers VALUES(?,?,?,?,?,?,?,?,?,?,?)",
@@ -559,7 +574,7 @@ class Projection:
                     ctx,
                     i,
                     qualifier["kind"],
-                    target["kind"],
+                    target_kind,
                     target_column,
                     packed(target),
                     qualifier.get("display_text"),
@@ -635,10 +650,7 @@ def build_snapshot(manifest_path: Path, output: Path) -> dict[str, Any]:
             "snapshot_version": manifest["snapshot_version"],
             "projection_version": VERSION,
             "authorship": manifest["authorship"],
-            "scope": (
-                "Only selected frozen documentary records; no full-report completeness "
-                "certification; rows are not canonical cases/events."
-            ),
+            "scope": SCOPE,
             "permissions": PERMISSIONS,
             "source_manifest": manifest,
         }.items():
