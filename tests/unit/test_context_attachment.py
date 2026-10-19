@@ -212,7 +212,7 @@ def mutate(
 
 
 class AttachmentTests(unittest.TestCase):
-    def test_assertion_generated_metadata_cannot_be_overridden(self) -> None:
+    def _assert_generated_metadata_cannot_be_overridden(self, path: str) -> None:
         q, d = fixture()
         mutate(
             q,
@@ -232,8 +232,11 @@ class AttachmentTests(unittest.TestCase):
         expected = "sha256:" + hashlib.sha256(d["assertions"]).hexdigest() + "#/attachment"
         view = attach_context(q, d)
         original = json.loads(d["assertions"])["attachment"]
-        outputs = [view["attachment_assertions"], view["qualifiers"][0]["applicability"]]
-        for records in outputs:
+        outputs = {
+            "attachment_assertions": view["attachment_assertions"],
+            "applicability": view["qualifiers"][0]["applicability"],
+        }
+        for records in outputs.values():
             self.assertEqual(len(records), 1)
             self.assertFalse(records[0]["human_reviewed"])
             for key in ["status", "attribution", "stage", "context_segments", "supports"]:
@@ -250,11 +253,15 @@ class AttachmentTests(unittest.TestCase):
         )
         self.assertEqual(q, before_request)
         self.assertEqual(d, before_documents)
-        for path, records in zip(["attachment_assertions", "applicability"], outputs, strict=True):
-            with self.subTest(path=path):
-                self.assertEqual(records[0]["source_address"], expected)
+        self.assertEqual(outputs[path][0]["source_address"], expected)
 
-    def test_multiple_assertions_keep_their_own_resolved_addresses(self) -> None:
+    def test_attachment_assertion_generated_metadata_cannot_be_overridden(self) -> None:
+        self._assert_generated_metadata_cannot_be_overridden("attachment_assertions")
+
+    def test_qualifier_applicability_generated_metadata_cannot_be_overridden(self) -> None:
+        self._assert_generated_metadata_cannot_be_overridden("applicability")
+
+    def _assert_multiple_assertions_keep_their_own_resolved_addresses(self, path: str) -> None:
         q, d = fixture()
         assertions = json.loads(d["assertions"])
         assertions["second"] = deepcopy(assertions["attachment"])
@@ -271,42 +278,58 @@ class AttachmentTests(unittest.TestCase):
         ]
         before_request, before_documents = deepcopy(q), deepcopy(d)
         view = attach_context(q, d)
-        for path, records in [
-            ("attachment_assertions", view["attachment_assertions"]),
-            ("applicability", view["qualifiers"][0]["applicability"]),
-        ]:
-            with self.subTest(path=path):
-                self.assertEqual([r["source_address"] for r in records], expected)
+        outputs = {
+            "attachment_assertions": view["attachment_assertions"],
+            "applicability": view["qualifiers"][0]["applicability"],
+        }
+        self.assertEqual([r["source_address"] for r in outputs[path]], expected)
         self.assertEqual(q, before_request)
         self.assertEqual(d, before_documents)
 
-    def test_root_and_escaped_assertion_addresses_are_generated(self) -> None:
-        for pointer in ["", "/assertion~1with~0escape"]:
-            with self.subTest(pointer=pointer):
-                q, d = fixture()
-                assertions = json.loads(d["assertions"])
-                item = deepcopy(assertions["attachment"])
-                item["source_address"] = "invented:false-pointer-address"
-                if pointer == "":
-                    assertions.update(item)
-                else:
-                    assertions["assertion/with~escape"] = item
-                d["assertions"] = encoded(assertions)
-                refresh(q, d)
-                refs = [{"document": "assertions", "pointer": pointer}]
-                q["attachment_assertion_refs"] = refs
-                q["qualifiers"][0]["assertion_refs"] = refs
-                expected = "sha256:" + hashlib.sha256(d["assertions"]).hexdigest() + "#" + pointer
-                before_request, before_documents = deepcopy(q), deepcopy(d)
-                view = attach_context(q, d)
-                for path, records in [
-                    ("attachment_assertions", view["attachment_assertions"]),
-                    ("applicability", view["qualifiers"][0]["applicability"]),
-                ]:
-                    with self.subTest(path=path):
-                        self.assertEqual(records[0]["source_address"], expected)
-                self.assertEqual(q, before_request)
-                self.assertEqual(d, before_documents)
+    def test_multiple_attachment_assertions_keep_their_own_resolved_addresses(self) -> None:
+        self._assert_multiple_assertions_keep_their_own_resolved_addresses("attachment_assertions")
+
+    def test_multiple_qualifier_assertions_keep_their_own_resolved_addresses(self) -> None:
+        self._assert_multiple_assertions_keep_their_own_resolved_addresses("applicability")
+
+    def _assert_pointer_address_is_generated(self, pointer: str, path: str) -> None:
+        q, d = fixture()
+        assertions = json.loads(d["assertions"])
+        item = deepcopy(assertions["attachment"])
+        item["source_address"] = "invented:false-pointer-address"
+        if pointer == "":
+            assertions.update(item)
+        else:
+            assertions["assertion/with~escape"] = item
+        d["assertions"] = encoded(assertions)
+        refresh(q, d)
+        refs = [{"document": "assertions", "pointer": pointer}]
+        q["attachment_assertion_refs"] = refs
+        q["qualifiers"][0]["assertion_refs"] = refs
+        expected = "sha256:" + hashlib.sha256(d["assertions"]).hexdigest() + "#" + pointer
+        before_request, before_documents = deepcopy(q), deepcopy(d)
+        view = attach_context(q, d)
+        outputs = {
+            "attachment_assertions": view["attachment_assertions"],
+            "applicability": view["qualifiers"][0]["applicability"],
+        }
+        self.assertEqual(outputs[path][0]["source_address"], expected)
+        self.assertEqual(q, before_request)
+        self.assertEqual(d, before_documents)
+
+    def test_root_attachment_assertion_address_is_generated(self) -> None:
+        self._assert_pointer_address_is_generated("", "attachment_assertions")
+
+    def test_root_qualifier_applicability_address_is_generated(self) -> None:
+        self._assert_pointer_address_is_generated("", "applicability")
+
+    def test_escaped_attachment_assertion_address_is_generated(self) -> None:
+        self._assert_pointer_address_is_generated(
+            "/assertion~1with~0escape", "attachment_assertions"
+        )
+
+    def test_escaped_qualifier_applicability_address_is_generated(self) -> None:
+        self._assert_pointer_address_is_generated("/assertion~1with~0escape", "applicability")
 
     def test_text_only_positive_preserves_originals_and_metadata(self) -> None:
         q, d = fixture()
@@ -768,42 +791,51 @@ class CompatibilityTests(unittest.TestCase):
         self.assertEqual(view["qualifiers"][3]["target"]["role"], "count")
         self.assertEqual(view["qualifiers"][4]["target"]["role"], "percentage")
 
-    def test_V001_source_and_membership_protections(self) -> None:
-        for mode in [
-            "bad_hash",
-            "duplicate_context",
-            "duplicate_body",
-            "bad_cell",
-            "bad_layout",
-            "human_upgrade",
-            "complete_universe",
-        ]:
-            with self.subTest(mode=mode):
-                q, d = adapted_fixture()
-                if mode == "bad_hash":
-                    q["documents"]["native"]["sha256"] = "0" * 64
-                if mode == "duplicate_context":
-                    q["context"]["segments"][0].append(10)
-                if mode == "duplicate_body":
-                    doc = json.loads(d["dossier"])
-                    doc["inherited_cells"][4]["word_indices"] = [10]
-                    d["dossier"] = json.dumps(doc).encode()
-                if mode == "bad_cell":
-                    q["descriptor_ref"]["pointer"] = "/missing"
-                if mode == "bad_layout":
-                    doc = json.loads(d["descriptor"])
-                    doc["word_evidence"][0]["layout_pointers"] = ["/layout_lines/0/words/-1"]
-                    d["descriptor"] = json.dumps(doc).encode()
-                if mode == "human_upgrade":
-                    q["human_reviewed"] = True
-                if mode == "complete_universe":
-                    q["alternative_completeness"] = True
-                if mode not in ["bad_hash"]:
-                    q["documents"] = {
-                        k: {"sha256": hashlib.sha256(v).hexdigest()} for k, v in d.items()
-                    }
-                with self.assertRaises(ValueError):
-                    attach_context(q, d)
+    def _assert_V001_source_and_membership_protection(self, mode: str) -> None:
+        q, d = adapted_fixture()
+        if mode == "bad_hash":
+            q["documents"]["native"]["sha256"] = "0" * 64
+        if mode == "duplicate_context":
+            q["context"]["segments"][0].append(10)
+        if mode == "duplicate_body":
+            doc = json.loads(d["dossier"])
+            doc["inherited_cells"][4]["word_indices"] = [10]
+            d["dossier"] = json.dumps(doc).encode()
+        if mode == "bad_cell":
+            q["descriptor_ref"]["pointer"] = "/missing"
+        if mode == "bad_layout":
+            doc = json.loads(d["descriptor"])
+            doc["word_evidence"][0]["layout_pointers"] = ["/layout_lines/0/words/-1"]
+            d["descriptor"] = json.dumps(doc).encode()
+        if mode == "human_upgrade":
+            q["human_reviewed"] = True
+        if mode == "complete_universe":
+            q["alternative_completeness"] = True
+        if mode not in ["bad_hash"]:
+            q["documents"] = {k: {"sha256": hashlib.sha256(v).hexdigest()} for k, v in d.items()}
+        with self.assertRaises(ValueError):
+            attach_context(q, d)
+
+    def test_V001_rejects_bad_hash(self) -> None:
+        self._assert_V001_source_and_membership_protection("bad_hash")
+
+    def test_V001_rejects_duplicate_context(self) -> None:
+        self._assert_V001_source_and_membership_protection("duplicate_context")
+
+    def test_V001_rejects_duplicate_body(self) -> None:
+        self._assert_V001_source_and_membership_protection("duplicate_body")
+
+    def test_V001_rejects_bad_cell(self) -> None:
+        self._assert_V001_source_and_membership_protection("bad_cell")
+
+    def test_V001_rejects_bad_layout(self) -> None:
+        self._assert_V001_source_and_membership_protection("bad_layout")
+
+    def test_V001_rejects_human_upgrade(self) -> None:
+        self._assert_V001_source_and_membership_protection("human_upgrade")
+
+    def test_V001_rejects_complete_universe(self) -> None:
+        self._assert_V001_source_and_membership_protection("complete_universe")
 
 
 class BoundaryDetails(unittest.TestCase):
